@@ -1,16 +1,13 @@
-﻿// GLibpp.cpp : Tento soubor obsahuje funkci main. Provádění programu se tam zahajuje a ukončuje.
-//
-
+#include "App.h"
 #include <iostream>
-
-#include "math/Mtx4.h"
 #include "geometry/Mesh.h"
+#include "math/Mtx4.h"
 
 using namespace std;
 
-int main()
+void App::work()
 {
-    
+
     Mtx4 m;
 
     m.translate(1, 2, 3);
@@ -36,3 +33,7 @@ int main()
 
 }
 
+void App::onKeydown(int keyCode) {
+
+    cout << "key code: " << keyCode << endl;
+}

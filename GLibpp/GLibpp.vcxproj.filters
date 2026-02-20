@@ -30,7 +30,7 @@
     <ClCompile Include="src/geometry/AABB.cpp">
       <Filter>Zdrojové soubory\src\geometry</Filter>
     </ClCompile>
-    <ClCompile Include="src/core/GLibpp.cpp">
+    <ClCompile Include="src\core\main.cpp">
       <Filter>Zdrojové soubory\src\core</Filter>
     </ClCompile>
     <ClCompile Include="src/geometry/Material.cpp">
@@ -50,6 +50,9 @@
     </ClCompile>
     <ClCompile Include="src/geometry/Vertex.cpp">
       <Filter>Zdrojové soubory\src\geometry</Filter>
+    </ClCompile>
+    <ClCompile Include="src/core/App.cpp">
+      <Filter>Zdrojové soubory\src\core</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -72,6 +75,9 @@
       <Filter>Hlavičkové soubory</Filter>
     </ClInclude>
     <ClInclude Include="src\geometry\Material.h">
+      <Filter>Hlavičkové soubory</Filter>
+    </ClInclude>
+    <ClInclude Include="src/core/App.h">
       <Filter>Hlavičkové soubory</Filter>
     </ClInclude>
   </ItemGroup>

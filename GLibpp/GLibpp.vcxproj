@@ -125,8 +125,9 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="src/core/App.cpp" />
     <ClCompile Include="src/geometry/AABB.cpp" />
-    <ClCompile Include="src/core/GLibpp.cpp" />
+    <ClCompile Include="src\core\main.cpp" />
     <ClCompile Include="src/geometry/Material.cpp" />
     <ClCompile Include="src/geometry/Mesh.cpp" />
     <ClCompile Include="src/math/Mtx4.cpp" />
@@ -135,6 +136,7 @@
     <ClCompile Include="src/geometry/Vertex.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="src/core/App.h" />
     <ClInclude Include="src/geometry/AABB.h" />
     <ClInclude Include="src/geometry/Mesh.h" />
     <ClInclude Include="src/math/Mtx4.h" />
