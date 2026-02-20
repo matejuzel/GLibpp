@@ -3,9 +3,8 @@
 
 #include <iostream>
 
-#include "Mtx4.h"
-
-#include "Mesh.h"
+#include "../math/Mtx4.h"
+#include "../geometry/Mesh.h"
 
 using namespace std;
 
@@ -28,6 +27,7 @@ int main()
         .rotateY(-0.14f)
         .rotateZ(0.02f)
         .translate(0.32f, 0.0f, 0.0f)
+        .scale(3.0f, 0.5f, 1.0f)
     );
 
     msh.applyTransformation();

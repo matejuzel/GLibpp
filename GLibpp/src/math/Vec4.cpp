@@ -40,9 +40,30 @@ Vec4 Vec4::normalize(const Vec4& v) {
     return Vec4(v.x / len, v.y / len, v.z / len, v.w / len);
 }
 
+float Vec4::dot(const Vec4& v)
+{   
+    return Vec4::dot(*this, v);
+}
+
+Vec4& Vec4::cross(const Vec4& v)
+{
+    *this = Vec4::cross(*this, v);
+    return *this;
+}
+
+Vec4 Vec4::operator+(const Vec4& o) const {
+    return Vec4(x + o.x, y + o.y, z + o.z, w + o.w);
+}
+
 Vec4 Vec4::operator-(const Vec4& o) const {
     return Vec4(x - o.x, y - o.y, z - o.z, w - o.w);
 }
+
+// Násobení skalárem (v * s)
+Vec4 Vec4::operator*(float s) const {
+    return Vec4(x * s, y * s, z * s, w * s);
+}
+
 
 std::string Vec4::toString() const
 {

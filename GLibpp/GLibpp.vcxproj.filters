@@ -13,31 +13,43 @@
       <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
       <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
     </Filter>
+    <Filter Include="Zdrojové soubory\src">
+      <UniqueIdentifier>{ce6b7575-3c45-4c52-a0f5-e61fc38d7aa9}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Zdrojové soubory\src\math">
+      <UniqueIdentifier>{dd86ad2b-db07-4c4b-840f-298a7643db1f}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Zdrojové soubory\src\geometry">
+      <UniqueIdentifier>{573337a4-cba0-41f1-a24a-61ac22565687}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Zdrojové soubory\src\core">
+      <UniqueIdentifier>{cca8351d-4c37-45d2-9f50-6dbd35e30080}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="GLibpp.cpp">
-      <Filter>Zdrojové soubory</Filter>
-    </ClCompile>
     <ClCompile Include="Mtx4.cpp">
-      <Filter>Zdrojové soubory</Filter>
+      <Filter>Zdrojové soubory\src\math</Filter>
     </ClCompile>
     <ClCompile Include="Vec4.cpp">
-      <Filter>Zdrojové soubory</Filter>
-    </ClCompile>
-    <ClCompile Include="Vertex.cpp">
-      <Filter>Zdrojové soubory</Filter>
-    </ClCompile>
-    <ClCompile Include="Mesh.cpp">
-      <Filter>Zdrojové soubory</Filter>
-    </ClCompile>
-    <ClCompile Include="Triangle.cpp">
-      <Filter>Zdrojové soubory</Filter>
-    </ClCompile>
-    <ClCompile Include="Material.cpp">
-      <Filter>Zdrojové soubory</Filter>
+      <Filter>Zdrojové soubory\src\math</Filter>
     </ClCompile>
     <ClCompile Include="AABB.cpp">
-      <Filter>Zdrojové soubory</Filter>
+      <Filter>Zdrojové soubory\src\geometry</Filter>
+    </ClCompile>
+    <ClCompile Include="Mesh.cpp">
+      <Filter>Zdrojové soubory\src\geometry</Filter>
+    </ClCompile>
+    <ClCompile Include="Triangle.cpp">
+      <Filter>Zdrojové soubory\src\geometry</Filter>
+    </ClCompile>
+    <ClCompile Include="Vertex.cpp">
+      <Filter>Zdrojové soubory\src\geometry</Filter>
+    </ClCompile>
+    <ClCompile Include="Material.cpp">
+      <Filter>Zdrojové soubory\src\geometry</Filter>
+    </ClCompile>
+    <ClCompile Include="GLibpp.cpp">
+      <Filter>Zdrojové soubory\src\core</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

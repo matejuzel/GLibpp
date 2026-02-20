@@ -143,3 +143,76 @@ AABB Mesh::computeAABB() const
     return box;
 }
 
+inline Mtx4 Mesh::computeViewMatrixToFillScreen(float verticalFovRadians, float aspect) const
+{
+    // 1) AABB v lokálním prostoru
+    AABB localBox = computeAABB();
+
+    // 2) AABB pøevedeme do world space pomocí model matice
+    AABB worldBox = transformAABB(localBox, transformation);
+
+    // 3) støed a extents
+    Vec4 center = (worldBox.min + worldBox.max) * 0.5f;
+
+    // 4) vzdálenost kamery
+    float distance = computeCameraDistanceForAABB(worldBox, verticalFovRadians, aspect);
+
+    // 5) kamera se pohybuje jen po ose Z (do mínusu)
+    Vec4 eye(center.x, center.y, center.z + distance, 1.0f);
+    Vec4 target = center;
+    Vec4 up(0, 1, 0, 0);
+
+    return Mtx4::lookAt(eye, target, up);
+}
+
+inline AABB Mesh::transformAABB(const AABB& box, const Mtx4& m)
+{
+    Vec4 corners[8] = {
+        { box.min.x, box.min.y, box.min.z, 1 },
+        { box.min.x, box.min.y, box.max.z, 1 },
+        { box.min.x, box.max.y, box.min.z, 1 },
+        { box.min.x, box.max.y, box.max.z, 1 },
+        { box.max.x, box.min.y, box.min.z, 1 },
+        { box.max.x, box.min.y, box.max.z, 1 },
+        { box.max.x, box.max.y, box.min.z, 1 },
+        { box.max.x, box.max.y, box.max.z, 1 }
+    };
+
+    AABB out;
+    out.min = Vec4(+INFINITY, +INFINITY, +INFINITY, 1);
+    out.max = Vec4(-INFINITY, -INFINITY, -INFINITY, 1);
+
+    for (int i = 0; i < 8; i++) {
+        Vec4 p = m * corners[i];
+        out.min.x = std::min(out.min.x, p.x);
+        out.min.y = std::min(out.min.y, p.y);
+        out.min.z = std::min(out.min.z, p.z);
+
+        out.max.x = std::max(out.max.x, p.x);
+        out.max.y = std::max(out.max.y, p.y);
+        out.max.z = std::max(out.max.z, p.z);
+    }
+
+    return out;
+}
+
+inline float Mesh::computeCameraDistanceForAABB(const AABB& box, float verticalFovRadians, float aspect)
+{
+    Vec4 center = (box.min + box.max) * 0.5f;
+    Vec4 extents = (box.max - box.min) * 0.5f;
+
+    float halfHeight = extents.y;
+    float halfWidth = extents.x;
+
+    // vertikální omezení
+    float z_v = halfHeight / std::tan(verticalFovRadians * 0.5f);
+
+    // horizontální omezení – spoèítáme efektivní horizontální FOV
+    float tanHalfVert = std::tan(verticalFovRadians * 0.5f);
+    float tanHalfHoriz = tanHalfVert * aspect;
+    float fovHoriz = 2.0f * std::atan(tanHalfHoriz);
+    float z_h = halfWidth / std::tan(fovHoriz * 0.5f);
+
+    return std::max(z_v, z_h);
+}
+

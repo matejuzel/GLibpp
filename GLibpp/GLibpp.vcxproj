@@ -123,24 +123,24 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="AABB.cpp" />
-    <ClCompile Include="GLibpp.cpp" />
-    <ClCompile Include="Material.cpp" />
-    <ClCompile Include="Mesh.cpp" />
-    <ClCompile Include="Mtx4.cpp" />
-    <ClCompile Include="Triangle.cpp" />
-    <ClCompile Include="Vec4.cpp" />
-    <ClCompile Include="Vertex.cpp" />
+    <ClCompile Include="src/geometry/AABB.cpp" />
+    <ClCompile Include="src/core/GLibpp.cpp" />
+    <ClCompile Include="src/geometry/Material.cpp" />
+    <ClCompile Include="src/geometry/Mesh.cpp" />
+    <ClCompile Include="src/math/Mtx4.cpp" />
+    <ClCompile Include="src/geometry/Triangle.cpp" />
+    <ClCompile Include="src/math/Vec4.cpp" />
+    <ClCompile Include="src/geometry/Vertex.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="AABB.h" />
-    <ClInclude Include="Material.h" />
-    <ClInclude Include="Mesh.h" />
-    <ClInclude Include="Mtx4.h" />
-    <ClInclude Include="Test.h" />
-    <ClInclude Include="Triangle.h" />
-    <ClInclude Include="Vec4.h" />
-    <ClInclude Include="Vertex.h" />
+    <ClInclude Include="src/geometry/AABB.h" />
+    <ClInclude Include="src/core/Material.h" />
+    <ClInclude Include="src/geometry/Mesh.h" />
+    <ClInclude Include="src/math/Mtx4.h" />
+    <ClInclude Include="src/geometry/Test.h" />
+    <ClInclude Include="src/geometry/Triangle.h" />
+    <ClInclude Include="src/math/Vec4.h" />
+    <ClInclude Include="src/geometry/Vertex.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

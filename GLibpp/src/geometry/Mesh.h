@@ -1,7 +1,7 @@
 #pragma once
 #include <vector>
 #include "Triangle.h"
-#include "Mtx4.h"
+#include "../math/Mtx4.h"
 #include "Material.h"
 #include "AABB.h"
 
@@ -32,9 +32,17 @@ public:
 	Mesh& transform(const Mtx4 &m);
 
 	/**
-	/* Vypocte struktur AABB (Axis-aligned Bounding box)
-	/*/
+	 * Vypocte struktur AABB (Axis-aligned Bounding box)
+	 */
 	AABB computeAABB() const;
+
+	static float computeCameraDistanceForAABB(const AABB& box, float verticalFovRadians, float aspect);
+	Mtx4 computeViewMatrixToFillScreen(float verticalFovRadians, float aspect) const;
+
+private:
+
+	static AABB transformAABB(const AABB& box, const Mtx4& m);
+	
 
 };
 
