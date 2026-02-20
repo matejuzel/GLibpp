@@ -120,6 +120,17 @@
         return *this;
     }
 
+    Mtx4& Mtx4::setIdentity()
+    {
+        static Mtx4 i{
+            1, 0, 0, 0,
+            0, 1, 0, 0,
+            0, 0, 1, 0,
+            0, 0, 0, 1
+        };
+        return i;
+    }
+
     Mtx4& Mtx4::inverse()
     {
         Mtx4 inv;
@@ -398,6 +409,16 @@
         return r;
     }
 
+
+    Mtx4 Mtx4::identity()
+    {
+        return Mtx4(
+            1, 0, 0, 0,
+            0, 1, 0, 0,
+            0, 0, 1, 0,
+            0, 0, 0, 1
+        );
+    }
 
     Mtx4 Mtx4::translation(float x, float y, float z) {
         return Mtx4(

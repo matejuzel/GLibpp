@@ -44,8 +44,38 @@ Vec4 Vec4::operator-(const Vec4& o) const {
     return Vec4(x - o.x, y - o.y, z - o.z, w - o.w);
 }
 
-std::string Vec4::toString() const {
+std::string Vec4::toString() const
+{
     std::ostringstream ss;
-    ss << "[" << x << ", " << y << ", " << z << ", " << w << "]";
-    return ss.str();
+    ss << std::fixed << std::setprecision(3);
+
+    float values[4] = { x, y, z, w };
+
+    // 1) Najdi nejdelší øetìzec (vèetnì znaménka)
+    int maxWidth = 0;
+    for (int i = 0; i < 4; i++) {
+        std::ostringstream tmp;
+        tmp << std::fixed << std::setprecision(3)
+            << (values[i] >= 0 ? "+" : "")  // pøidej + pro kladná èísla
+            << values[i];
+        int len = (int)tmp.str().length();
+        if (len > maxWidth)
+            maxWidth = len;
+    }
+
+    // 2) Vypiš zarovnanì
+    std::ostringstream out;
+    out << std::fixed << std::setprecision(3);
+
+    out << "[ ";
+    for (int i = 0; i < 4; i++) {
+        out << std::setw(maxWidth)
+            << (values[i] >= 0 ? "+" : "")  // stejné pravidlo pøi výpisu
+            << values[i];
+        if (i < 3) out << ", ";
+    }
+    out << " ]";
+
+    return out.str();
 }
+

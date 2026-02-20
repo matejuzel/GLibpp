@@ -3,12 +3,6 @@
 #include <cmath>
 #include "Vec4.h"
 
-
-#pragma once
-#include <string>
-#include <cmath>
-#include "Vec4.h"
-
 class Mtx4 {
 public:
     float data[16];
@@ -39,6 +33,7 @@ public:
     Mtx4& operator+=(const Mtx4& m);
     Mtx4& operator-=(const Mtx4& m);
 
+    Mtx4& setIdentity();
     Mtx4& inverse();
     Mtx4& inverseAffine();
     Mtx4& transpose();
@@ -56,6 +51,7 @@ public:
     Mtx4 inverted() const;
     Mtx4 invertedAffine() const;
     
+    static Mtx4 identity();
     static Mtx4 translation(float x, float y, float z);
     static Mtx4 scaling(float x, float y, float z);
     static Mtx4 rotationX(float a);
