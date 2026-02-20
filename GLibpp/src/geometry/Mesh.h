@@ -1,7 +1,7 @@
 #pragma once
 #include <vector>
 #include "Triangle.h"
-#include "../math/Mtx4.h"
+#include "math/Mtx4.h"
 #include "Material.h"
 #include "AABB.h"
 

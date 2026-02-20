@@ -3,8 +3,8 @@
 
 #include <iostream>
 
-#include "../math/Mtx4.h"
-#include "../geometry/Mesh.h"
+#include "math/Mtx4.h"
+#include "geometry/Mesh.h"
 
 using namespace std;
 

@@ -1,7 +1,7 @@
 #pragma once
 #include <cstring>
-#include "../math/Vec4.h"
-#include "../math/Mtx4.h"
+#include "math/Vec4.h"
+#include "math/Mtx4.h"
 
 class AABB
 {
