@@ -1,5 +1,8 @@
 #pragma once
 
+#include "core/input/KeyCode.h"
+#include "math/Mtx4.h"
+
 class App
 {
 public:
@@ -9,10 +12,12 @@ public:
 		return inst;
 	}
 
+	Mtx4 mtx;
+
 	App() = default;
 
 	void work();
-	void onKeydown(int keyCode);
+	void onKeydown(KeyCode keyCode);
 
 private:
 

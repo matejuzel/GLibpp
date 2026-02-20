@@ -102,7 +102,7 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>$(ProjectDir)src;$(ProjectDir)src\math;$(ProjectDir)src\geometry;$(ProjectDir)src\core;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ProjectDir)src;$(ProjectDir)src\math;$(ProjectDir)src\geometry;$(ProjectDir)src\core;$(ProjectDir)src\core\input;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -117,7 +117,7 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>$(ProjectDir)src;$(ProjectDir)src\math;$(ProjectDir)src\geometry;$(ProjectDir)src\core;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ProjectDir)src;$(ProjectDir)src\math;$(ProjectDir)src\geometry;$(ProjectDir)src\core;$(ProjectDir)src\core\input;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -127,6 +127,7 @@
   <ItemGroup>
     <ClCompile Include="src/core/App.cpp" />
     <ClCompile Include="src/geometry/AABB.cpp" />
+    <ClCompile Include="src\core\input\KeyCode.cpp" />
     <ClCompile Include="src\core\main.cpp" />
     <ClCompile Include="src/geometry/Material.cpp" />
     <ClCompile Include="src/geometry/Mesh.cpp" />
@@ -136,6 +137,7 @@
     <ClCompile Include="src/geometry/Vertex.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="src/core/input/KeyCode.h" />
     <ClInclude Include="src/core/App.h" />
     <ClInclude Include="src/geometry/AABB.h" />
     <ClInclude Include="src/geometry/Mesh.h" />

@@ -3,9 +3,9 @@
 #define USE_WINAPI
 
 #include <iostream>
-#include "App.h"
+#include "core/App.h"
+#include "core/input/KeyCode.h"
 
-using namespace std;
 
 #ifdef USE_WINAPI
 #include <windows.h>
@@ -19,21 +19,32 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
         return 0;
 
     case WM_KEYDOWN:
+        KeyCode key = KeyCode::Unknown;
 
-        int key = 0;
-        App::instance().onKeydown((int) wParam);
+        switch (wParam)
+        {
+        case VK_LEFT:   key = KeyCode::Left; break;
+        case VK_RIGHT:  key = KeyCode::Right; break;
+        case VK_UP:     key = KeyCode::Up; break;
+        case VK_DOWN:   key = KeyCode::Down; break;
 
-        if (wParam == VK_ESCAPE) {
-
-            PostQuitMessage(0);
+        case VK_ESCAPE: key = KeyCode::Esc; break;
+        case VK_SPACE:  key = KeyCode::Space; break;
+        case VK_RETURN: key = KeyCode::Enter; break;
+        case VK_SHIFT:  key = KeyCode::Shift; break;
+        case VK_CONTROL:key = KeyCode::Ctrl; break;
         }
 
-        break;
+        App::instance().onKeydown(key);
+    break;
+
     }
     return DefWindowProc(hwnd, uMsg, wParam, lParam);
 }
 
 #endif
+
+using namespace std;
 
 
 int main()

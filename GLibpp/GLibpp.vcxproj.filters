@@ -25,6 +25,9 @@
     <Filter Include="Zdrojové soubory\src\core">
       <UniqueIdentifier>{cca8351d-4c37-45d2-9f50-6dbd35e30080}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Zdrojové soubory\src\core\input">
+      <UniqueIdentifier>{f844b52a-4210-41b3-8cc2-da2b8395f8e4}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src/geometry/AABB.cpp">
@@ -54,6 +57,9 @@
     <ClCompile Include="src/core/App.cpp">
       <Filter>Zdrojové soubory\src\core</Filter>
     </ClCompile>
+    <ClCompile Include="src\core\input\KeyCode.cpp">
+      <Filter>Zdrojové soubory\src\core\input</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src/geometry/AABB.h">
@@ -78,6 +84,9 @@
       <Filter>Hlavičkové soubory</Filter>
     </ClInclude>
     <ClInclude Include="src/core/App.h">
+      <Filter>Hlavičkové soubory</Filter>
+    </ClInclude>
+    <ClInclude Include="src/core/input/KeyCode.h">
       <Filter>Hlavičkové soubory</Filter>
     </ClInclude>
   </ItemGroup>

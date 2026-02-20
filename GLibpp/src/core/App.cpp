@@ -2,6 +2,7 @@
 #include <iostream>
 #include "geometry/Mesh.h"
 #include "math/Mtx4.h"
+#include "core/input/KeyCode.h"
 
 using namespace std;
 
@@ -33,7 +34,28 @@ void App::work()
 
 }
 
-void App::onKeydown(int keyCode) {
+void App::onKeydown(KeyCode keyCode) {
 
-    cout << "key code: " << keyCode << endl;
+    if (keyCode == KeyCode::Up) {
+
+        mtx = Mtx4::translation(0,0,0.01) * mtx;
+    }
+    
+    if (keyCode == KeyCode::Down) {
+
+        mtx = Mtx4::translation(0, 0, -0.01) * mtx;
+    }
+
+    if (keyCode == KeyCode::Left) {
+
+        mtx = Mtx4::rotationY(0.01) * mtx;
+    }
+
+    if (keyCode == KeyCode::Right) {
+
+        mtx = Mtx4::rotationY(-0.01) * mtx;
+    }
+
+    cout << mtx.toString() << endl;
+    //cout << "key code: " << toString(keyCode) << endl;
 }
