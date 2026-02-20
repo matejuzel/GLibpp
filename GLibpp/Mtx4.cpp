@@ -480,18 +480,124 @@
         );
     }
 
+    float Mtx4::determinant() const {
+        const float* m = data;
+
+        float det =
+            m[0] * (m[5] * (m[10] * m[15] - m[11] * m[14]) -
+                m[6] * (m[9] * m[15] - m[11] * m[13]) +
+                m[7] * (m[9] * m[14] - m[10] * m[13])) -
+
+            m[1] * (m[4] * (m[10] * m[15] - m[11] * m[14]) -
+                m[6] * (m[8] * m[15] - m[11] * m[12]) +
+                m[7] * (m[8] * m[14] - m[10] * m[12])) +
+
+            m[2] * (m[4] * (m[9] * m[15] - m[11] * m[13]) -
+                m[5] * (m[8] * m[15] - m[11] * m[12]) +
+                m[7] * (m[8] * m[13] - m[9] * m[12])) -
+
+            m[3] * (m[4] * (m[9] * m[14] - m[10] * m[13]) -
+                m[5] * (m[8] * m[14] - m[10] * m[12]) +
+                m[6] * (m[8] * m[13] - m[9] * m[12]));
+
+        return det;
+    }
+
+
     std::string Mtx4::toString() const {
         std::ostringstream ss;
         ss << std::fixed << std::setprecision(3);
 
+        // 1) Najdi nejdelší řetězec mezi všemi hodnotami
+        int maxWidth = 0;
+        for (int r = 0; r < 4; r++) {
+            for (int c = 0; c < 4; c++) {
+                std::ostringstream tmp;
+                tmp << std::fixed << std::setprecision(3) << at(r, c);
+                int len = (int)tmp.str().length();
+                if (len > maxWidth)
+                    maxWidth = len;
+            }
+        }
+
+        // 2) Vypiš matici se zarovnáním
+        std::ostringstream out;
+        out << std::fixed << std::setprecision(3);
+
+        for (int r = 0; r < 4; r++) {
+            out << "[ ";
+            for (int c = 0; c < 4; c++) {
+                out << std::setw(maxWidth) << at(r, c);
+                if (c < 3) out << ", ";
+            }
+            out << " ]\n";
+        }
+
+        return out.str();
+    }
+
+    std::string Mtx4::toStringDetail() const {
+        std::ostringstream ss;
+        ss << std::fixed << std::setprecision(3);
+
+        // 1) Najdi nejdelší formátovanou hodnotu v matici
+        int maxWidth = 0;
+        for (int r = 0; r < 4; r++) {
+            for (int c = 0; c < 4; c++) {
+                std::ostringstream tmp;
+                tmp << std::fixed << std::setprecision(3) << at(r, c);
+                maxWidth = std::max<int>(maxWidth, tmp.str().length());
+            }
+        }
+
+        // 2) Spočítej délky sloupců
+        float colLen[4];
+        for (int c = 0; c < 4; c++) {
+            float x = at(0, c);
+            float y = at(1, c);
+            float z = at(2, c);
+            float w = at(3, c);
+            colLen[c] = std::sqrt(x * x + y * y + z * z + w * w);
+        }
+
+        // 3) Najdi max šířku i pro normy
+        int maxNormWidth = 0;
+        for (int c = 0; c < 4; c++) {
+            std::ostringstream tmp;
+            tmp << std::fixed << std::setprecision(3) << colLen[c];
+            maxNormWidth = std::max<int>(maxNormWidth, tmp.str().length());
+        }
+
+        // 4) Vypiš matici
         for (int r = 0; r < 4; r++) {
             ss << "[ ";
             for (int c = 0; c < 4; c++) {
-                ss << at(r, c);
+                ss << std::setw(maxWidth) << at(r, c);
                 if (c < 3) ss << ", ";
             }
             ss << " ]\n";
         }
 
+        ss << std::endl;
+
+        // 5) Vypiš normy sloupců
+        ss << "  ";
+        for (int c = 0; c < 4; c++) {
+            ss << std::setw(maxWidth) << colLen[c];
+            if (c < 3) ss << "  ";
+        }
+        ss << "   <- column lengths\n";
+
+        // 6) Determinant
+        float det = determinant();
+        std::ostringstream tmp;
+        tmp << std::fixed << std::setprecision(3) << det;
+        int detWidth = tmp.str().length();
+
+        ss << "  " << std::setw(maxWidth) << det << "   <- determinant\n";
+
         return ss.str();
     }
+
+
+

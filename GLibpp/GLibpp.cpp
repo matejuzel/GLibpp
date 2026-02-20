@@ -3,9 +3,21 @@
 
 #include <iostream>
 
+#include "Mtx4.h"
+
+using namespace std;
+
 int main()
 {
-    std::cout << "Hello World!\n";
+    
+    Mtx4 m;
+
+    m.translate(1, 2, 3);
+    m.rotateX(0.3f);
+    m.rotateY(0.21f);
+
+    cout << m.toStringDetail() << endl;
+
 }
 
 // Spuštění programu: Ctrl+F5 nebo nabídka Ladit > Spustit bez ladění

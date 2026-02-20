@@ -65,6 +65,9 @@ public:
     static Mtx4 perspective(float fov, float aspect, float nearZ, float farZ);
     static Mtx4 orthographic(float left, float right, float bottom, float top, float nearZ, float farZ);
 
+    float determinant() const;
+
     std::string toString() const;
+    std::string toStringDetail() const;
 };
 

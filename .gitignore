@@ -1,0 +1,37 @@
+# Visual Studio
+.vs/
+*.user
+*.suo
+
+# Build output
+Debug/
+Release/
+x64/
+x86/
+ipch/
+*.obj
+*.pdb
+*.idb
+*.ilk
+*.tlog
+*.log
+*.cache
+*.db
+*.opendb
+
+# Binaries
+*.exe
+*.dll
+*.lib
+*.exp
+
+# CMake (pokud nìkdy použiješ)
+CMakeFiles/
+CMakeCache.txt
+cmake_install.cmake
+Makefile
+
+# Others
+*.tmp
+*.bak
+*.old

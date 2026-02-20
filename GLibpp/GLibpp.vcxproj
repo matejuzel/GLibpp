@@ -124,6 +124,13 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="GLibpp.cpp" />
+    <ClCompile Include="Mtx4.cpp" />
+    <ClCompile Include="Vec4.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="Mtx4.h" />
+    <ClInclude Include="Test.h" />
+    <ClInclude Include="Vec4.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
