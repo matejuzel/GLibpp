@@ -31,31 +31,29 @@ void App::work()
     msh.applyTransformation();
 
     cout << msh.computeAABB().toString() << endl;
-
 }
 
-void App::onKeydown(KeyCode keyCode) {
-
-    if (keyCode == KeyCode::Up) {
-
-        mtx = Mtx4::translation(0,0,0.01) * mtx;
+void App::onKeydown(KeyCode keyCode) 
+{
+    if (keyCode == KeyCode::Up) 
+    {
+        mtx = mtx * Mtx4::translation(0, 0, 0.01);
     }
     
-    if (keyCode == KeyCode::Down) {
-
-        mtx = Mtx4::translation(0, 0, -0.01) * mtx;
+    if (keyCode == KeyCode::Down) 
+    {
+        mtx = mtx * Mtx4::translation(0, 0, -0.01);
     }
 
-    if (keyCode == KeyCode::Left) {
-
-        mtx = Mtx4::rotationY(0.01) * mtx;
+    if (keyCode == KeyCode::Left) 
+    {
+        mtx = mtx * Mtx4::rotationY(0.01);
     }
 
-    if (keyCode == KeyCode::Right) {
-
-        mtx = Mtx4::rotationY(-0.01) * mtx;
+    if (keyCode == KeyCode::Right) 
+    {
+        mtx = mtx * Mtx4::rotationY(-0.01);
     }
 
     cout << mtx.toString() << endl;
-    //cout << "key code: " << toString(keyCode) << endl;
 }
