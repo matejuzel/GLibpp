@@ -6,12 +6,12 @@ class WindowBuilder {
 public:
 
 	using WindowCallback = LRESULT(CALLBACK*)(HWND, UINT, WPARAM, LPARAM);
-	using MainLoopCallback = bool(*)();
+	using MainLoopCallback = bool(*)(float logicHz);
 
 	WindowBuilder(MainLoopCallback mainLoopProc, WindowCallback proc);
 
 	bool init();
-	bool run();
+	bool run(float logicHz);
 	//bool mainLoop();
 
 private:

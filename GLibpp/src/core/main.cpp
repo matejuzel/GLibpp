@@ -6,6 +6,9 @@
 #include "core/input/Keymap.h"
 #include "window/WindowBuilder.h"
 
+#include "utils/timer/HighResTimer.h"
+#include "utils/timer/FixedTimestep.h"
+
 #pragma comment(lib, "User32.lib")
 
 LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
@@ -50,7 +53,51 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 }
 
 
-bool mainLoop()
+bool mainLoopFixedTimestamp(float logicHz = 60.0f)
+{
+    App& app = App::instance();
+    app.init();
+
+    MSG msg = {};
+
+    HighResTimer timer;
+    FixedTimestep taskLogic(60.0);
+    FixedTimestep taskCmd(15.0);
+
+    while (true)
+    {
+        // messages
+        while (PeekMessage(&msg, nullptr, 0, 0, PM_REMOVE))
+        {
+            if (msg.message == WM_QUIT) return true;
+            TranslateMessage(&msg);
+            DispatchMessage(&msg);
+        }
+
+        // čas
+        double frameTime = timer.tick();
+        if (frameTime > 0.25) frameTime = 0.25;
+
+        int steps;
+        
+        steps = taskLogic.consume(frameTime);
+        for (int i = 0; i < steps; i++) {
+            app.update((float)taskLogic.getDt());
+        }
+
+        steps = taskCmd.consume(frameTime);
+        for (int i = 0; i < steps; i++) {
+            app.__cmdUpdate((float)taskCmd.getDt());
+        }
+
+        // render
+        app.render();
+    }
+
+    return true;
+}
+
+bool mainLoopBasic(float dummy)
 {
     App& app = App::instance();
     app.init();
@@ -66,7 +113,7 @@ bool mainLoop()
             DispatchMessage(&msg);
         }
 
-        app.update();
+        app.update(0.01f);
         app.render();
 
         Sleep(10);
@@ -77,7 +124,7 @@ bool mainLoop()
 
 int main()
 {
-    WindowBuilder wnd(mainLoop, WindowProc);
+    WindowBuilder wnd(mainLoopFixedTimestamp, WindowProc);
 
     if (!wnd.init())
     {
@@ -85,7 +132,7 @@ int main()
         return 1;
     }
 
-    wnd.run();
+    wnd.run(60.0f);
 
     return 0;
 }

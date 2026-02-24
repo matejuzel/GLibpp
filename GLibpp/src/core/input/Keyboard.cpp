@@ -28,9 +28,6 @@ void Keyboard::keyDown(size_t code)
 {
     if (code >= length) return;
     this->keys[code] = true;
-
-    std::cout << "down(" << code << ") [" << (*this)[code] << "]\n";
-    std::cout << this->toString() << "\n";
 }
 
 void Keyboard::keyUp(size_t code)

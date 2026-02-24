@@ -8,7 +8,7 @@ using namespace std;
 
 void App::init()
 {
-    Vec4 eye(1.0f, 0.0f, -3.0f, 0.0f);
+    Vec4 eye(1.0f, 0.0f, 0.0f, 0.0f);
     Vec4 target(0.0f, 0.0f, 0.0f, 0.0f);
     Vec4 up(0.0f, 1.0f, 0.0f, 0.0f);
 
@@ -16,23 +16,29 @@ void App::init()
 
 }
 
-void App::update()
+void App::update(float dt)
 {
-    float stepMove = 0.01f;
-    float stepRotate = 0.01f;
 
-    if (keyboard[KEY_UP]) mtx = mtx * Mtx4::translation(0.0f, 0.0f, stepMove);
-    if (keyboard[KEY_DOWN]) mtx = mtx * Mtx4::translation(0.0f, 0.0f, -stepMove);
-    if (keyboard[KEY_LEFT]) mtx = mtx * Mtx4::rotationY(stepRotate);
-    if (keyboard[KEY_RIGHT]) mtx = mtx * Mtx4::rotationY(-stepRotate);
+    float factorMove = 1.0;
+    float factorRotate = 1.0;
+
+    if (keyboard[KEY_UP]) mtx = mtx * Mtx4::translation(0.0f, 0.0f, factorMove * dt);
+    if (keyboard[KEY_DOWN]) mtx = mtx * Mtx4::translation(0.0f, 0.0f, -factorMove * dt);
+    if (keyboard[KEY_LEFT]) mtx = mtx * Mtx4::rotationY(factorRotate * dt);
+    if (keyboard[KEY_RIGHT]) mtx = mtx * Mtx4::rotationY( -factorRotate * dt);
 }
 
 void App::render()
 {
+    
+}
+
+
+void App::__cmdUpdate(float dt)
+{
     std::cout << std::string(100, '\n');
     std::cout << mtx.toString() << std::endl;
 }
-
 
 void App::__work()
 {
@@ -59,3 +65,4 @@ void App::__work()
 
     cout << msh.computeAABB().toString() << endl;
 }
+

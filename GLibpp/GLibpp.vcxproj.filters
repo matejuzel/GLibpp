@@ -31,6 +31,12 @@
     <Filter Include="Zdrojové soubory\src\window">
       <UniqueIdentifier>{b8219812-e764-40e7-833c-45f55893547f}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Zdrojové soubory\src\utils">
+      <UniqueIdentifier>{d0b32f7d-e420-41e7-b2db-cf4fbd2486ea}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Zdrojové soubory\src\utils\timer">
+      <UniqueIdentifier>{acb4f8dc-b220-4a74-b63b-8947c95babf6}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src/geometry/AABB.cpp">
@@ -66,6 +72,12 @@
     <ClCompile Include="src\window\WindowBuilder.cpp">
       <Filter>Zdrojové soubory\src\window</Filter>
     </ClCompile>
+    <ClCompile Include="src\utils\timer\HighResTimer.cpp">
+      <Filter>Zdrojové soubory\src\utils\timer</Filter>
+    </ClCompile>
+    <ClCompile Include="src\utils\timer\FixedTimestep.cpp">
+      <Filter>Zdrojové soubory\src\utils\timer</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src/geometry/AABB.h">
@@ -99,6 +111,12 @@
       <Filter>Hlavičkové soubory</Filter>
     </ClInclude>
     <ClInclude Include="src\window\WindowBuilder.h">
+      <Filter>Hlavičkové soubory</Filter>
+    </ClInclude>
+    <ClInclude Include="src\utils\timer\HighResTimer.h">
+      <Filter>Hlavičkové soubory</Filter>
+    </ClInclude>
+    <ClInclude Include="src\utils\timer\FixedTimestep.h">
       <Filter>Hlavičkové soubory</Filter>
     </ClInclude>
   </ItemGroup>

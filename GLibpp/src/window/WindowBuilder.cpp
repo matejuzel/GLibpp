@@ -45,9 +45,9 @@ bool WindowBuilder::init() {
     return true;
 }
 
-bool WindowBuilder::run()
+bool WindowBuilder::run(float logicHz)
 {
-    return this->mainLoopProc();
+    return this->mainLoopProc(logicHz);
 }
 
 void WindowBuilder::glibRegisterRawInputDevices()

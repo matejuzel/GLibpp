@@ -18,13 +18,17 @@ public:
 	App() = default;
 
 	void init();
-	void update();
+	void update(float dt);
 	void render();
 
 
+
 	void __work();
+	void __cmdUpdate(float dt);
 
 private:
 
+	double cmdAccumulator = 0.0;
+	const double cmdInterval = 1.0 / 30.0;
 
 };
