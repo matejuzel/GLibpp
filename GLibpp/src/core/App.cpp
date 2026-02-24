@@ -2,13 +2,40 @@
 #include <iostream>
 #include "geometry/Mesh.h"
 #include "math/Mtx4.h"
-#include "core/input/KeyCode.h"
+#include <Keymap.h>
 
 using namespace std;
 
-void App::work()
+void App::init()
 {
+    Vec4 eye(1.0f, 0.0f, -3.0f, 0.0f);
+    Vec4 target(0.0f, 0.0f, 0.0f, 0.0f);
+    Vec4 up(0.0f, 1.0f, 0.0f, 0.0f);
 
+    mtx = Mtx4::lookAt(eye, target, up);
+
+}
+
+void App::update()
+{
+    float stepMove = 0.01f;
+    float stepRotate = 0.01f;
+
+    if (keyboard[KEY_UP]) mtx = mtx * Mtx4::translation(0.0f, 0.0f, stepMove);
+    if (keyboard[KEY_DOWN]) mtx = mtx * Mtx4::translation(0.0f, 0.0f, -stepMove);
+    if (keyboard[KEY_LEFT]) mtx = mtx * Mtx4::rotationY(stepRotate);
+    if (keyboard[KEY_RIGHT]) mtx = mtx * Mtx4::rotationY(-stepRotate);
+}
+
+void App::render()
+{
+    std::cout << std::string(100, '\n');
+    std::cout << mtx.toString() << std::endl;
+}
+
+
+void App::__work()
+{
     Mtx4 m;
 
     m.translate(1, 2, 3);
@@ -31,29 +58,4 @@ void App::work()
     msh.applyTransformation();
 
     cout << msh.computeAABB().toString() << endl;
-}
-
-void App::onKeydown(KeyCode keyCode) 
-{
-    if (keyCode == KeyCode::Up) 
-    {
-        mtx = mtx * Mtx4::translation(0, 0, 0.01);
-    }
-    
-    if (keyCode == KeyCode::Down) 
-    {
-        mtx = mtx * Mtx4::translation(0, 0, -0.01);
-    }
-
-    if (keyCode == KeyCode::Left) 
-    {
-        mtx = mtx * Mtx4::rotationY(0.01);
-    }
-
-    if (keyCode == KeyCode::Right) 
-    {
-        mtx = mtx * Mtx4::rotationY(-0.01);
-    }
-
-    cout << mtx.toString() << endl;
 }

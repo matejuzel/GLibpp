@@ -102,7 +102,7 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>$(ProjectDir)src;$(ProjectDir)src\math;$(ProjectDir)src\geometry;$(ProjectDir)src\core;$(ProjectDir)src\core\input;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ProjectDir)src;$(ProjectDir)src\math;$(ProjectDir)src\geometry;$(ProjectDir)src\core;$(ProjectDir)src\core\input;$(ProjectDir)src\window;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -117,7 +117,7 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>$(ProjectDir)src;$(ProjectDir)src\math;$(ProjectDir)src\geometry;$(ProjectDir)src\core;$(ProjectDir)src\core\input;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ProjectDir)src;$(ProjectDir)src\math;$(ProjectDir)src\geometry;$(ProjectDir)src\core;$(ProjectDir)src\core\input;$(ProjectDir)src\window;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -127,7 +127,7 @@
   <ItemGroup>
     <ClCompile Include="src/core/App.cpp" />
     <ClCompile Include="src/geometry/AABB.cpp" />
-    <ClCompile Include="src\core\input\KeyCode.cpp" />
+    <ClCompile Include="src\core\input\Keyboard.cpp" />
     <ClCompile Include="src\core\main.cpp" />
     <ClCompile Include="src/geometry/Material.cpp" />
     <ClCompile Include="src/geometry/Mesh.cpp" />
@@ -135,9 +135,9 @@
     <ClCompile Include="src/geometry/Triangle.cpp" />
     <ClCompile Include="src/math/Vec4.cpp" />
     <ClCompile Include="src/geometry/Vertex.cpp" />
+    <ClCompile Include="src\window\WindowBuilder.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="src/core/input/KeyCode.h" />
     <ClInclude Include="src/core/App.h" />
     <ClInclude Include="src/geometry/AABB.h" />
     <ClInclude Include="src/geometry/Mesh.h" />
@@ -145,7 +145,10 @@
     <ClInclude Include="src/geometry/Triangle.h" />
     <ClInclude Include="src/math/Vec4.h" />
     <ClInclude Include="src/geometry/Vertex.h" />
+    <ClInclude Include="src\core\input\Keyboard.h" />
+    <ClInclude Include="src\core\input\Keymap.h" />
     <ClInclude Include="src\geometry\Material.h" />
+    <ClInclude Include="src\window\WindowBuilder.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

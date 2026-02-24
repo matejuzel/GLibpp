@@ -28,6 +28,9 @@
     <Filter Include="Zdrojové soubory\src\core\input">
       <UniqueIdentifier>{f844b52a-4210-41b3-8cc2-da2b8395f8e4}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Zdrojové soubory\src\window">
+      <UniqueIdentifier>{b8219812-e764-40e7-833c-45f55893547f}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src/geometry/AABB.cpp">
@@ -57,8 +60,11 @@
     <ClCompile Include="src/core/App.cpp">
       <Filter>Zdrojové soubory\src\core</Filter>
     </ClCompile>
-    <ClCompile Include="src\core\input\KeyCode.cpp">
+    <ClCompile Include="src\core\input\Keyboard.cpp">
       <Filter>Zdrojové soubory\src\core\input</Filter>
+    </ClCompile>
+    <ClCompile Include="src\window\WindowBuilder.cpp">
+      <Filter>Zdrojové soubory\src\window</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -86,7 +92,13 @@
     <ClInclude Include="src/core/App.h">
       <Filter>Hlavičkové soubory</Filter>
     </ClInclude>
-    <ClInclude Include="src/core/input/KeyCode.h">
+    <ClInclude Include="src\core\input\Keyboard.h">
+      <Filter>Hlavičkové soubory</Filter>
+    </ClInclude>
+    <ClInclude Include="src\core\input\Keymap.h">
+      <Filter>Hlavičkové soubory</Filter>
+    </ClInclude>
+    <ClInclude Include="src\window\WindowBuilder.h">
       <Filter>Hlavičkové soubory</Filter>
     </ClInclude>
   </ItemGroup>

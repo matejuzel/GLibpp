@@ -1,6 +1,6 @@
 #pragma once
 
-#include "core/input/KeyCode.h"
+#include "core/input/Keyboard.h"
 #include "math/Mtx4.h"
 
 class App
@@ -13,11 +13,16 @@ public:
 	}
 
 	Mtx4 mtx;
+	Keyboard keyboard;
 
 	App() = default;
 
-	void work();
-	void onKeydown(KeyCode keyCode);
+	void init();
+	void update();
+	void render();
+
+
+	void __work();
 
 private:
 

@@ -1,14 +1,12 @@
-﻿#pragma comment(lib, "User32.lib")
-
-#define USE_WINAPI
-
+﻿#include <windows.h>
 #include <iostream>
+#include <chrono>
 #include "core/App.h"
-#include "core/input/KeyCode.h"
+#include "core/input/Keyboard.h"
+#include "core/input/Keymap.h"
+#include "window/WindowBuilder.h"
 
-
-#ifdef USE_WINAPI
-#include <windows.h>
+#pragma comment(lib, "User32.lib")
 
 LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
@@ -18,87 +16,80 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
         PostQuitMessage(0);
         return 0;
 
-    case WM_KEYDOWN:
-        KeyCode key = KeyCode::Unknown;
+    case WM_INPUT:
+    {
+        UINT size = 0;
+        GetRawInputData((HRAWINPUT)lParam, RID_INPUT, nullptr, &size, sizeof(RAWINPUTHEADER));
 
-        switch (wParam)
+        BYTE* buffer = new BYTE[size];
+        GetRawInputData((HRAWINPUT)lParam, RID_INPUT, buffer, &size, sizeof(RAWINPUTHEADER));
+
+        RAWINPUT* raw = (RAWINPUT*)buffer;
+
+        if (raw->header.dwType == RIM_TYPEKEYBOARD)
         {
-        case VK_LEFT:   key = KeyCode::Left; break;
-        case VK_RIGHT:  key = KeyCode::Right; break;
-        case VK_UP:     key = KeyCode::Up; break;
-        case VK_DOWN:   key = KeyCode::Down; break;
+            USHORT vk = raw->data.keyboard.VKey;
+            USHORT flags = raw->data.keyboard.Flags;
 
-        case VK_ESCAPE: key = KeyCode::Esc; break;
-        case VK_SPACE:  key = KeyCode::Space; break;
-        case VK_RETURN: key = KeyCode::Enter; break;
-        case VK_SHIFT:  key = KeyCode::Shift; break;
-        case VK_CONTROL:key = KeyCode::Ctrl; break;
+            bool isUp = (flags & RI_KEY_BREAK) != 0;
+
+            KeyMap key = KEYMAP[vk];
+
+            if (isUp)
+                App::instance().keyboard.keyUp((size_t)key);
+            else
+                App::instance().keyboard.keyDown((size_t)key);
         }
 
-        App::instance().onKeydown(key);
+        delete[] buffer;
+    }
     break;
 
     }
     return DefWindowProc(hwnd, uMsg, wParam, lParam);
 }
 
-#endif
 
-using namespace std;
+bool mainLoop()
+{
+    App& app = App::instance();
+    app.init();
 
+    MSG msg = {};
+    while (true)
+    {
+
+        while (PeekMessage(&msg, nullptr, 0, 0, PM_REMOVE))
+        {
+            if (msg.message == WM_QUIT)
+                return false;
+
+            TranslateMessage(&msg);
+            DispatchMessage(&msg);
+        }
+
+        app.update();
+        app.render();
+
+        Sleep(10);
+    }
+
+    return true;
+}
 
 int main()
 {
+    WindowBuilder wnd(mainLoop, WindowProc);
 
-    App::instance().work();
-
-
-
-#ifdef USE_WINAPI
-
-    // ---------------------------------------------------------
-    // 2) WINAPI VERZE – otevře prázdné okno
-    // ---------------------------------------------------------
-
-    HINSTANCE hInstance = GetModuleHandle(nullptr);
-
-    //const char CLASS_NAME[] = "MyWinAPIWindowClass";
-    const wchar_t CLASS_NAME[] = L"MyWinAPIWindowClass";
-
-
-    WNDCLASS wc = {};
-    wc.lpfnWndProc = WindowProc;
-    wc.hInstance = hInstance;
-    wc.lpszClassName = CLASS_NAME;
-
-    RegisterClass(&wc);
-
-    HWND hwnd = CreateWindowEx(
-        0,
-        CLASS_NAME,
-        L"Moje WinAPI okno",
-        WS_OVERLAPPEDWINDOW,
-        CW_USEDEFAULT, CW_USEDEFAULT,
-        800, 600,
-        nullptr,
-        nullptr,
-        hInstance,
-        nullptr
-    );
-
-    if (hwnd == nullptr)
-        return 1;
-
-    ShowWindow(hwnd, SW_SHOW);
-
-    MSG msg = {};
-    while (GetMessage(&msg, nullptr, 0, 0))
+    if (!wnd.init())
     {
-        TranslateMessage(&msg);
-        DispatchMessage(&msg);
+        std::cout << "chyba pri vytvoreni WIN onka" << std::endl;
+        return 1;
     }
 
-    return 0;
+    wnd.create();
 
-#endif
+    return 0;
 }
+
+
