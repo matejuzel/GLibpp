@@ -11,7 +11,7 @@ public:
 	WindowBuilder(MainLoopCallback mainLoopProc, WindowCallback proc);
 
 	bool init();
-	bool create();
+	bool run();
 	//bool mainLoop();
 
 private:

@@ -61,9 +61,7 @@ bool mainLoop()
 
         while (PeekMessage(&msg, nullptr, 0, 0, PM_REMOVE))
         {
-            if (msg.message == WM_QUIT)
-                return false;
-
+            if (msg.message == WM_QUIT) return true;
             TranslateMessage(&msg);
             DispatchMessage(&msg);
         }
@@ -87,7 +85,7 @@ int main()
         return 1;
     }
 
-    wnd.create();
+    wnd.run();
 
     return 0;
 }

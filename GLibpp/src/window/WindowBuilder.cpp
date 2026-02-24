@@ -45,10 +45,9 @@ bool WindowBuilder::init() {
     return true;
 }
 
-bool WindowBuilder::create()
+bool WindowBuilder::run()
 {
-    this->mainLoopProc();
-    return true;
+    return this->mainLoopProc();
 }
 
 void WindowBuilder::glibRegisterRawInputDevices()
