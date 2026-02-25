@@ -5,6 +5,7 @@
 #include "window/WindowBuilder.h"
 #include <Keymap.h>
 #include <windows.h>
+#include "window/ConsoleDoubleBuffer.h"
 
 using namespace std;
 
@@ -20,14 +21,24 @@ void App::init()
 
 void App::update(float dt)
 {
-
-    float factorMove = 1.0;
+    float factorMove = 8.0;
     float factorRotate = 1.0;
 
-    if (keyboard[KEY_UP]) mtx = mtx * Mtx4::translation(0.0f, 0.0f, factorMove * dt);
-    if (keyboard[KEY_DOWN]) mtx = mtx * Mtx4::translation(0.0f, 0.0f, -factorMove * dt);
-    if (keyboard[KEY_LEFT]) mtx = mtx * Mtx4::rotationY(factorRotate * dt);
-    if (keyboard[KEY_RIGHT]) mtx = mtx * Mtx4::rotationY( -factorRotate * dt);
+    if (keyboard[KEY_UP]) this->sceneState.velocityMove += factorMove * dt;
+    if (keyboard[KEY_DOWN]) this->sceneState.velocityMove -= factorMove * dt;
+    if (keyboard[KEY_LEFT]) this->sceneState.transformation = this->sceneState.transformation * Mtx4::rotationY(factorRotate * dt);
+    if (keyboard[KEY_RIGHT]) this->sceneState.transformation = this->sceneState.transformation * Mtx4::rotationY(-factorRotate * dt);
+
+
+    sceneState.transformation = sceneState.transformation * Mtx4::translation(0.0f, 0.0f, dt * sceneState.velocityMove);
+
+    if (abs(sceneState.velocityMove) > 0.01) {
+
+        sceneState.velocityMove -= sceneState.velocityMove * 0.01;
+    }
+    else {
+        sceneState.velocityMove = 0.0f;
+    }
 }
 
 void App::render()
@@ -38,7 +49,18 @@ void App::render()
 
 void App::__cmdUpdate(float dt)
 {
-    WindowBuilder::consolePrint(mtx.toString());
+
+    console.clearBack();
+    console.write(0, "Matrix:");
+    console.write(1, this->sceneState.transformation.toString());
+
+    console.write(6, "Stisknuto: " + this->keyboard.toString());
+    console.write(7, "velocity move: " + std::to_string(this->sceneState.velocityMove));
+    //console.write(8, "velocity move: " + std::to_string(this->sceneState.velocityRotation));
+
+    console.present();
+
+    //WindowBuilder::consolePrint(mtx.toString());
 }
 
 void App::__work()

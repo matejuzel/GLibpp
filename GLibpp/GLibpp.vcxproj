@@ -135,8 +135,10 @@
     <ClCompile Include="src/geometry/Triangle.cpp" />
     <ClCompile Include="src/math/Vec4.cpp" />
     <ClCompile Include="src/geometry/Vertex.cpp" />
+    <ClCompile Include="src\core\SceneState.cpp" />
     <ClCompile Include="src\utils\timer\FixedTimestep.cpp" />
     <ClCompile Include="src\utils\timer\HighResTimer.cpp" />
+    <ClCompile Include="src\window\ConsoleDoubleBuffer.cpp" />
     <ClCompile Include="src\window\WindowBuilder.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -149,9 +151,11 @@
     <ClInclude Include="src/geometry/Vertex.h" />
     <ClInclude Include="src\core\input\Keyboard.h" />
     <ClInclude Include="src\core\input\Keymap.h" />
+    <ClInclude Include="src\core\SceneState.h" />
     <ClInclude Include="src\geometry\Material.h" />
     <ClInclude Include="src\utils\timer\FixedTimestep.h" />
     <ClInclude Include="src\utils\timer\HighResTimer.h" />
+    <ClInclude Include="src\window\ConsoleDoubleBuffer.h" />
     <ClInclude Include="src\window\WindowBuilder.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

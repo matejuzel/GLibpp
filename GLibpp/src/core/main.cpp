@@ -19,6 +19,11 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
         PostQuitMessage(0);
         return 0;
 
+    case WM_KEYDOWN:
+
+        if (wParam == VK_ESCAPE) PostQuitMessage(0);
+        return 0;
+
     case WM_INPUT:
     {
         UINT size = 0;
@@ -62,7 +67,7 @@ bool mainLoopFixedTimestamp(float logicHz = 60.0f)
 
     HighResTimer timer;
     FixedTimestep taskLogic(60.0);
-    FixedTimestep taskCmd(15.0);
+    FixedTimestep taskCmd(60.0);
 
     while (true)
     {
@@ -126,7 +131,9 @@ int main()
 {
     WindowBuilder wnd(mainLoopFixedTimestamp, WindowProc);
 
-    WindowBuilder::consoleSetFixedViewport();
+    //WindowBuilder::consoleSetFixedViewport();
+
+
 
     if (!wnd.init())
     {
