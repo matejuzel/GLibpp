@@ -2,6 +2,15 @@
 #include <chrono>
 #include <windows.h>
 
+HighResTimer::HighResTimer()
+{
+    QueryPerformanceFrequency(&freq);
+    QueryPerformanceCounter(&prev);
+    QueryPerformanceCounter(&absoluteStart);
+    start = absoluteStart;
+
+}
+
 // vrátí èas od posledního volání v sekundách
 double HighResTimer::tick()
 {
@@ -25,4 +34,17 @@ void HighResTimer::reset()
 {
     QueryPerformanceCounter(&start);
     prev = start;
+}
+
+double HighResTimer::sinceStart() const 
+{
+    LARGE_INTEGER now; 
+    QueryPerformanceCounter(&now); 
+    return double(now.QuadPart - absoluteStart.QuadPart) / double(freq.QuadPart); 
+}
+
+double HighResTimer::nowSeconds() const { 
+    LARGE_INTEGER now; 
+    QueryPerformanceCounter(&now); 
+    return double(now.QuadPart) / double(freq.QuadPart); 
 }

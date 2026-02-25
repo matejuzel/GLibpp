@@ -56,7 +56,7 @@ void App::render()
 
 
 
-void App::__cmdUpdate(float dt)
+void App::__cmdUpdate(float dt, float fps)
 {
 
     console.clearBack();
@@ -65,6 +65,7 @@ void App::__cmdUpdate(float dt)
 
     console.write(6, "Stisknuto: " + this->keyboard.toString());
     console.write(7, "velocity move: " + std::to_string(this->sceneState.velocityMove));
+    console.write(8, "FPS: " + std::to_string(fps));
     //console.write(8, "velocity move: " + std::to_string(this->sceneState.velocityRotation));
 
     console.present();

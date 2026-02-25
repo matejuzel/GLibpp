@@ -31,7 +31,7 @@ public:
 
 
 	void __work();
-	void __cmdUpdate(float dt);
+	void __cmdUpdate(float dt, float fps);
 
 private:
 

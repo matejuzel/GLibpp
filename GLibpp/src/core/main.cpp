@@ -69,6 +69,8 @@ bool mainLoopFixedTimestamp(float logicHz = 60.0f)
     FixedTimestep taskLogic(60.0);
     FixedTimestep taskCmd(60.0);
 
+    int frames = 0;
+
     while (true)
     {
         // messages
@@ -92,11 +94,15 @@ bool mainLoopFixedTimestamp(float logicHz = 60.0f)
 
         steps = taskCmd.consume(frameTime);
         for (int i = 0; i < steps; i++) {
-            app.__cmdUpdate((float)taskCmd.getDt());
+
+            float fps = frames / timer.sinceStart();
+
+            app.__cmdUpdate((float)taskCmd.getDt(), fps);
         }
 
         // render
         app.render();
+        frames++;
     }
 
     return true;

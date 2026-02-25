@@ -6,11 +6,7 @@
 class HighResTimer
 {
 public:
-    HighResTimer()
-    {
-        QueryPerformanceFrequency(&freq);
-        QueryPerformanceCounter(&prev);
-    }
+    HighResTimer();
 
     // vrátí èas od posledního volání v sekundách
     double tick();
@@ -20,8 +16,13 @@ public:
 
     void reset();
 
+    double sinceStart() const;
+
+    double nowSeconds() const;
+
 private:
     LARGE_INTEGER freq;
     LARGE_INTEGER prev;
     LARGE_INTEGER start;
+    LARGE_INTEGER absoluteStart;
 };
