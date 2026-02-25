@@ -13,6 +13,7 @@ public:
 
 	bool init();
 	bool run(float logicHz);
+	HWND getHwnd() const;
 	//bool mainLoop();
 
 	static void consoleSetFixedViewport();

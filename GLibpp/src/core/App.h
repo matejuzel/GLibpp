@@ -3,7 +3,8 @@
 #include "core/input/Keyboard.h"
 #include "math/Mtx4.h"
 #include "window/ConsoleDoubleBuffer.h"
-#include <core/SceneState.h>
+#include "core/SceneState.h"
+#include <windows.h>
 
 class App
 {
@@ -26,6 +27,7 @@ public:
 	void render();
 
 
+	void setWindowHandler(HWND hwnd);
 
 	void __work();
 	void __cmdUpdate(float dt);
@@ -36,5 +38,7 @@ private:
 
 	double cmdAccumulator = 0.0;
 	const double cmdInterval = 1.0 / 30.0;
+
+	HWND hwnd = nullptr;
 
 };

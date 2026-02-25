@@ -141,6 +141,8 @@ int main()
         return 1;
     }
 
+    App::instance().setWindowHandler(wnd.getHwnd());
+
     wnd.run(60.0f);
 
     return 0;

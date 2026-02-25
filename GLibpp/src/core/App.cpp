@@ -43,8 +43,27 @@ void App::update(float dt)
 
 void App::render()
 {
-    
+    HDC dc = GetDC(hwnd);
+
+    // vyplnime pozadi
+    RECT r;
+    GetClientRect(hwnd, &r);
+    HBRUSH brush = CreateSolidBrush(RGB(30, 30, 30));
+    FillRect(dc, &r, brush);
+    DeleteObject(brush);
+
+    // nakreslime cerveny kruh
+    HBRUSH red = CreateSolidBrush(RGB(255, 0, 0));
+    HBRUSH old = (HBRUSH)SelectObject(dc, red);
+
+    Ellipse(dc, 100, 100, 200, 200);
+
+    SelectObject(dc, old);
+    DeleteObject(red);
+
+    ReleaseDC(hwnd, dc);
 }
+
 
 
 void App::__cmdUpdate(float dt)
@@ -61,6 +80,11 @@ void App::__cmdUpdate(float dt)
     console.present();
 
     //WindowBuilder::consolePrint(mtx.toString());
+}
+
+void App::setWindowHandler(HWND hwnd)
+{
+    this->hwnd = hwnd;
 }
 
 void App::__work()

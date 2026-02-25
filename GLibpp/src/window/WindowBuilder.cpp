@@ -52,6 +52,10 @@ bool WindowBuilder::run(float logicHz)
     return this->mainLoopProc(logicHz);
 }
 
+HWND WindowBuilder::getHwnd() const {
+    return this->hwnd;
+}
+
 void WindowBuilder::glibRegisterRawInputDevices()
 {
     // registrace Raw Input Devices - pro lepsi odchytavani stisku klaves
