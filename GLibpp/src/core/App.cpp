@@ -2,10 +2,10 @@
 #include <iostream>
 #include "geometry/Mesh.h"
 #include "math/Mtx4.h"
-#include "window/WindowBuilder.h"
 #include <Keymap.h>
 #include <windows.h>
 #include "window/ConsoleDoubleBuffer.h"
+#include "window/WindowBuilder.h"
 
 using namespace std;
 
@@ -21,8 +21,8 @@ void App::init()
 
 void App::update(float dt)
 {
-    float factorMove = 8.0;
-    float factorRotate = 1.0;
+    float factorMove = 300.0;
+    float factorRotate = 4.0;
 
     if (keyboard[KEY_UP]) this->sceneState.velocityMove += factorMove * dt;
     if (keyboard[KEY_DOWN]) this->sceneState.velocityMove -= factorMove * dt;
@@ -41,27 +41,17 @@ void App::update(float dt)
     }
 }
 
+
 void App::render()
 {
-    HDC dc = GetDC(hwnd);
 
-    // vyplnime pozadi
-    RECT r;
-    GetClientRect(hwnd, &r);
-    HBRUSH brush = CreateSolidBrush(RGB(30, 30, 30));
-    FillRect(dc, &r, brush);
-    DeleteObject(brush);
+    float x = this->sceneState.transformation.at(0, 3);
+    float z = this->sceneState.transformation.at(2, 3);
 
-    // nakreslime cerveny kruh
-    HBRUSH red = CreateSolidBrush(RGB(255, 0, 0));
-    HBRUSH old = (HBRUSH)SelectObject(dc, red);
-
-    Ellipse(dc, 100, 100, 200, 200);
-
-    SelectObject(dc, old);
-    DeleteObject(red);
-
-    ReleaseDC(hwnd, dc);
+    this->win->DIB_clear(0x00000000);
+    this->win->DIB_drawCircle(x+400, z+300, max(4, abs(this->sceneState.velocityMove/10.0f)), 0xffff0000);
+    this->win->DIB_drawCircle(x + 400, z + 300, 4, 0xffffff00);
+    this->win->DIB_drawBitmap();
 }
 
 
@@ -82,9 +72,11 @@ void App::__cmdUpdate(float dt)
     //WindowBuilder::consolePrint(mtx.toString());
 }
 
-void App::setWindowHandler(HWND hwnd)
+
+
+void App::setWindow(WindowBuilder *window)
 {
-    this->hwnd = hwnd;
+    this->win = window;
 }
 
 void App::__work()

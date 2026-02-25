@@ -130,19 +130,18 @@ bool mainLoopBasic(float dummy)
 int main()
 {
     WindowBuilder wnd(mainLoopFixedTimestamp, WindowProc);
-
-    //WindowBuilder::consoleSetFixedViewport();
-
+    //WindowBuilder wnd(mainLoopBasic, WindowProc);
 
 
-    if (!wnd.init())
+
+    if (!wnd.init(1200, 800))
     {
         std::cout << "chyba pri vytvoreni WIN onka" << std::endl;
         return 1;
     }
 
-    App::instance().setWindowHandler(wnd.getHwnd());
-
+    wnd.DIB_init();
+    App::instance().setWindow(&wnd);
     wnd.run(60.0f);
 
     return 0;

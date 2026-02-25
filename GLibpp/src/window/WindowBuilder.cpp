@@ -12,7 +12,10 @@ WindowBuilder::WindowBuilder(MainLoopCallback mainLoopProc, WindowCallback proc)
     this->callback = proc;
 }
 
-bool WindowBuilder::init() {
+bool WindowBuilder::init(int width, int height) {
+
+    this->width = width;
+    this->height = height;
 
     hInstance = GetModuleHandle(nullptr);
 
@@ -31,7 +34,7 @@ bool WindowBuilder::init() {
         L"Moje WinAPI okno",
         WS_OVERLAPPEDWINDOW,
         CW_USEDEFAULT, CW_USEDEFAULT,
-        800, 600,
+        this->width, this->height,
         nullptr,
         nullptr,
         hInstance,
@@ -114,4 +117,59 @@ void WindowBuilder::consoleClear()
     FillConsoleOutputAttribute(h, csbi.wAttributes, cellCount, {0, 0}, &written);
 
     SetConsoleCursorPosition(h, {0, 0});
+}
+
+void WindowBuilder::DIB_init()
+{
+
+    this->width = width;
+    this->height = height;
+
+    BITMAPINFO bmi = {};
+    bmi.bmiHeader.biSize = sizeof(BITMAPINFOHEADER);
+    bmi.bmiHeader.biWidth = width;
+    bmi.bmiHeader.biHeight = -height; // top-down bitmap
+    bmi.bmiHeader.biPlanes = 1;
+    bmi.bmiHeader.biBitCount = 32;
+    bmi.bmiHeader.biCompression = BI_RGB;
+
+    HDC screen = GetDC(nullptr);
+
+    hBitmap = CreateDIBSection(
+        screen,
+        &bmi,
+        DIB_RGB_COLORS,
+        (void**)&framebuffer,
+        nullptr,
+        0
+    );
+
+    ReleaseDC(nullptr, screen);
+}
+
+void WindowBuilder::DIB_clear(uint32_t color)
+{
+    for (int i = 0; i < width * height; i++)
+        framebuffer[i] = color;
+}
+
+void WindowBuilder::DIB_putPixel(int x, int y, uint32_t color)
+{
+    if (x < 0 || y < 0 || x >= width || y >= height) return;
+    framebuffer[y * width + x] = color;
+}
+
+void WindowBuilder::DIB_drawBitmap()
+{
+    HDC dc = GetDC(this->hwnd);
+
+    HDC memDC = CreateCompatibleDC(dc);
+    HBITMAP old = (HBITMAP)SelectObject(memDC, hBitmap);
+
+    BitBlt(dc, 0, 0, this->width, this->height, memDC, 0, 0, SRCCOPY);
+
+    SelectObject(memDC, old);
+    DeleteDC(memDC);
+
+    ReleaseDC(hwnd, dc);
 }
