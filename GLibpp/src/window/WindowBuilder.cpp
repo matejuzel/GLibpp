@@ -1,4 +1,6 @@
 #include <windows.h>
+#include <string>
+#include <iostream>
 #include "WindowBuilder.h"
 #include "core/App.h"
 #include "core/input/Keymap.h"
@@ -61,4 +63,34 @@ void WindowBuilder::glibRegisterRawInputDevices()
     rid.hwndTarget = this->hwnd;
 
     RegisterRawInputDevices(&rid, 1, sizeof(rid));
+}
+
+void WindowBuilder::consoleSetFixedViewport()
+{
+    // nastavime konzoli na fixed viewport (vypne scrollovani)
+    HANDLE h = GetStdHandle(STD_OUTPUT_HANDLE);
+
+    CONSOLE_SCREEN_BUFFER_INFOEX infoConsole = { sizeof(infoConsole) };
+    GetConsoleScreenBufferInfoEx(h, &infoConsole);
+
+    infoConsole.dwSize.Y = infoConsole.srWindow.Bottom - infoConsole.srWindow.Top + 1;
+
+    SetConsoleScreenBufferInfoEx(h, &infoConsole);
+
+    // vypneme kurzor
+    CONSOLE_CURSOR_INFO cursorInfo;
+    GetConsoleCursorInfo(h, &cursorInfo);
+
+    cursorInfo.bVisible = FALSE;
+    
+    SetConsoleCursorInfo(h, &cursorInfo);
+}
+
+void WindowBuilder::consolePrint(std::string text)
+{
+    HANDLE h = GetStdHandle(STD_OUTPUT_HANDLE);
+    COORD pos = { 0, 0 };
+    SetConsoleCursorPosition(h, pos);
+
+    std::cout << text;
 }

@@ -2,7 +2,9 @@
 #include <iostream>
 #include "geometry/Mesh.h"
 #include "math/Mtx4.h"
+#include "window/WindowBuilder.h"
 #include <Keymap.h>
+#include <windows.h>
 
 using namespace std;
 
@@ -36,8 +38,7 @@ void App::render()
 
 void App::__cmdUpdate(float dt)
 {
-    std::cout << std::string(100, '\n');
-    std::cout << mtx.toString() << std::endl;
+    WindowBuilder::consolePrint(mtx.toString());
 }
 
 void App::__work()

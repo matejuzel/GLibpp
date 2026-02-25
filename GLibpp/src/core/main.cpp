@@ -126,6 +126,8 @@ int main()
 {
     WindowBuilder wnd(mainLoopFixedTimestamp, WindowProc);
 
+    WindowBuilder::consoleSetFixedViewport();
+
     if (!wnd.init())
     {
         std::cout << "chyba pri vytvoreni WIN onka" << std::endl;

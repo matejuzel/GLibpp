@@ -1,5 +1,6 @@
 #pragma once
 #include <windows.h>
+#include <string>
 
 class WindowBuilder {
 
@@ -13,6 +14,9 @@ public:
 	bool init();
 	bool run(float logicHz);
 	//bool mainLoop();
+
+	static void consoleSetFixedViewport();
+	static void consolePrint(std::string text);
 
 private:
 	
