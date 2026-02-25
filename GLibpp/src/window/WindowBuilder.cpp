@@ -94,3 +94,20 @@ void WindowBuilder::consolePrint(std::string text)
 
     std::cout << text;
 }
+
+void WindowBuilder::consoleClear()
+{
+    HANDLE h = GetStdHandle(STD_OUTPUT_HANDLE);
+
+    CONSOLE_SCREEN_BUFFER_INFO csbi;
+    GetConsoleScreenBufferInfo(h, &csbi);
+
+    DWORD cellCount = csbi.dwSize.X * csbi.dwSize.Y;
+    DWORD written;
+
+    FillConsoleOutputCharacter(h, ' ', cellCount, {0, 0}, &written);
+
+    FillConsoleOutputAttribute(h, csbi.wAttributes, cellCount, {0, 0}, &written);
+
+    SetConsoleCursorPosition(h, {0, 0});
+}

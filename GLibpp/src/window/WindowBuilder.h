@@ -17,6 +17,7 @@ public:
 
 	static void consoleSetFixedViewport();
 	static void consolePrint(std::string text);
+	static void consoleClear();
 
 private:
 	
