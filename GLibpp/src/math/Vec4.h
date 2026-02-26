@@ -28,6 +28,15 @@ public:
     Vec4 operator*(float s) const;
     std::string toString() const;
 
+
+    Vec4& divideW() {
+        x /= w;
+        y /= w;
+        z /= w;
+        w = 1.0f;
+        return *this;
+    }
+
 };
 
 

@@ -1,6 +1,11 @@
 
 #include "Mesh.h"
+#include "math/Mtx4.h"
+#include "Triangle.h"
+#include "Material.h"
+#include "AABB.h"
 #include <iostream>
+#include <algorithm>
 
 Mesh& Mesh::addTriangle(const Triangle& triangle)
 {
@@ -143,7 +148,7 @@ AABB Mesh::computeAABB() const
     return box;
 }
 
-inline Mtx4 Mesh::computeViewMatrixToFillScreen(float verticalFovRadians, float aspect) const
+Mtx4 Mesh::computeViewMatrixToFillScreen(float verticalFovRadians, float aspect) const
 {
     // 1) AABB v lokálním prostoru
     AABB localBox = computeAABB();
@@ -165,8 +170,13 @@ inline Mtx4 Mesh::computeViewMatrixToFillScreen(float verticalFovRadians, float 
     return Mtx4::lookAt(eye, target, up);
 }
 
-inline AABB Mesh::transformAABB(const AABB& box, const Mtx4& m)
+
+
+AABB Mesh::transformAABB(const AABB& box, const Mtx4& m)
 {
+    
+    AABB out;
+    
     Vec4 corners[8] = {
         { box.min.x, box.min.y, box.min.z, 1 },
         { box.min.x, box.min.y, box.max.z, 1 },
@@ -178,7 +188,7 @@ inline AABB Mesh::transformAABB(const AABB& box, const Mtx4& m)
         { box.max.x, box.max.y, box.max.z, 1 }
     };
 
-    AABB out;
+    
     out.min = Vec4(+INFINITY, +INFINITY, +INFINITY, 1);
     out.max = Vec4(-INFINITY, -INFINITY, -INFINITY, 1);
 
@@ -192,11 +202,10 @@ inline AABB Mesh::transformAABB(const AABB& box, const Mtx4& m)
         out.max.y = std::max(out.max.y, p.y);
         out.max.z = std::max(out.max.z, p.z);
     }
-
     return out;
 }
 
-inline float Mesh::computeCameraDistanceForAABB(const AABB& box, float verticalFovRadians, float aspect)
+float Mesh::computeCameraDistanceForAABB(const AABB& box, float verticalFovRadians, float aspect)
 {
     Vec4 center = (box.min + box.max) * 0.5f;
     Vec4 extents = (box.max - box.min) * 0.5f;
@@ -215,4 +224,5 @@ inline float Mesh::computeCameraDistanceForAABB(const AABB& box, float verticalF
 
     return std::max(z_v, z_h);
 }
+
 

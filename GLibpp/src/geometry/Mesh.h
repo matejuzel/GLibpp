@@ -7,7 +7,7 @@
 
 class Mesh {
 
-private:
+public:
 
 	std::vector<Triangle> tris;
 	Mtx4 transformation{ Mtx4::identity() };

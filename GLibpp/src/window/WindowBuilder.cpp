@@ -159,6 +159,39 @@ void WindowBuilder::DIB_putPixel(int x, int y, uint32_t color)
     framebuffer[y * width + x] = color;
 }
 
+// Bresenham line algorithm
+static void drawLine(uint32_t* framebuffer, int fbWidth, int fbHeight, int x0, int y0, int x1, int y1, uint32_t color)
+{
+    int dx = abs(x1 - x0);
+    int sx = x0 < x1 ? 1 : -1;
+    int dy = -abs(y1 - y0);
+    int sy = y0 < y1 ? 1 : -1;
+    int err = dx + dy;
+
+    while (true) {
+        if (x0 >= 0 && y0 >= 0 && x0 < fbWidth && y0 < fbHeight)
+            framebuffer[y0 * fbWidth + x0] = color;
+        if (x0 == x1 && y0 == y1) break;
+        int e2 = 2 * err;
+        if (e2 >= dy) { err += dy; x0 += sx; }
+        if (e2 <= dx) { err += dx; y0 += sy; }
+    }
+}
+
+void WindowBuilder::DIB_drawTriangle(const Vec4& a, const Vec4& b, const Vec4& c, uint32_t color)
+{
+    int ax = (int)std::lround(a.x);
+    int ay = (int)std::lround(a.y);
+    int bx = (int)std::lround(b.x);
+    int by = (int)std::lround(b.y);
+    int cx = (int)std::lround(c.x);
+    int cy = (int)std::lround(c.y);
+
+    drawLine(framebuffer, this->width, this->height, ax, ay, bx, by, color);
+    drawLine(framebuffer, this->width, this->height, bx, by, cx, cy, color);
+    drawLine(framebuffer, this->width, this->height, cx, cy, ax, ay, color);
+}
+
 void WindowBuilder::DIB_drawBitmap()
 {
     HDC dc = GetDC(this->hwnd);

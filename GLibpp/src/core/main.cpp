@@ -1,4 +1,7 @@
-﻿#include <windows.h>
+﻿#ifndef NOMINMAX
+#define NOMINMAX
+#endif
+#include <windows.h>
 #include <iostream>
 #include <chrono>
 #include "core/App.h"
@@ -167,30 +170,29 @@ void consumer() {
     }
 }
 
-int main()
-{
+void runProducerConsumerDemo() {
+    
     std::thread t1(producer);
     std::thread t2(consumer);
 
     t1.join();
     t2.join();
 
+    return;
+}
+
+int main()
+{
+    
+    /*
+    runProducerConsumerDemo();
     return 0;
-
-
-
-
-
-
-
-
+    //*/
 
 
 
     WindowBuilder wnd(mainLoopFixedTimestamp, WindowProc);
     //WindowBuilder wnd(mainLoopBasic, WindowProc);
-
-
 
     if (!wnd.init(1200, 800))
     {

@@ -1,6 +1,10 @@
 #pragma once
+#ifndef NOMINMAX
+#define NOMINMAX
+#endif
 #include <windows.h>
 #include <string>
+#include "math/Vec4.h"
 
 class WindowBuilder {
 
@@ -23,6 +27,7 @@ public:
 	void DIB_clear(uint32_t color);
 	void DIB_putPixel(int x, int y, uint32_t color);
 	void DIB_drawBitmap();
+	void DIB_drawTriangle(const Vec4& a, const Vec4& b, const Vec4& c, uint32_t color = 0xffffffff);
 	void DIB_drawCircle(int cx, int cy, int r, uint32_t color)
 	{
 		for (int y = -r; y <= r; y++)
