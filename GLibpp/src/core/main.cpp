@@ -8,6 +8,9 @@
 
 #include "utils/timer/HighResTimer.h"
 #include "utils/timer/FixedTimestep.h"
+#include <thread>
+#include <syncstream>
+#include "utils/datastruct/SPSCQueue.h"
 
 #pragma comment(lib, "User32.lib")
 
@@ -95,7 +98,7 @@ bool mainLoopFixedTimestamp(float logicHz = 60.0f)
         steps = taskCmd.consume(frameTime);
         for (int i = 0; i < steps; i++) {
 
-            float fps = frames / timer.sinceStart();
+            float fps = (float) (frames / timer.sinceStart());
 
             app.__cmdUpdate((float)taskCmd.getDt(), fps);
         }
@@ -110,6 +113,7 @@ bool mainLoopFixedTimestamp(float logicHz = 60.0f)
 
 bool mainLoopBasic(float dummy)
 {
+
     App& app = App::instance();
     app.init();
 
@@ -133,8 +137,56 @@ bool mainLoopBasic(float dummy)
     return true;
 }
 
+
+
+
+SPSCQueue<int, 256> queue;
+
+void producer() {
+
+    for (int i = 0; i < 100000; i++) {
+
+        queue.pushLoop(i);
+        std::cout << "Producer:" << i << std::endl;
+
+        //if (i % 10 == 0) std::this_thread::sleep_for(std::chrono::milliseconds(100));
+        //if (i % 100 == 0) std::this_thread::sleep_for(std::chrono::milliseconds(1000));
+    }
+
+    queue.pushLoop(-1);
+}
+
+void consumer() {
+
+    while (true) {
+
+        int value;
+        queue.popLoop(value);
+        if (value == -1) return;
+        std::cout << "Consumer: " << value << std::endl;
+    }
+}
+
 int main()
 {
+    std::thread t1(producer);
+    std::thread t2(consumer);
+
+    t1.join();
+    t2.join();
+
+    return 0;
+
+
+
+
+
+
+
+
+
+
+
     WindowBuilder wnd(mainLoopFixedTimestamp, WindowProc);
     //WindowBuilder wnd(mainLoopBasic, WindowProc);
 

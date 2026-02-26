@@ -37,6 +37,9 @@
     <Filter Include="Zdrojové soubory\src\utils\timer">
       <UniqueIdentifier>{acb4f8dc-b220-4a74-b63b-8947c95babf6}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Zdrojové soubory\src\utils\datastruct">
+      <UniqueIdentifier>{0a65b0a3-ce48-49ef-a97d-012141e33bcc}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src/geometry/AABB.cpp">
@@ -130,6 +133,12 @@
     </ClInclude>
     <ClInclude Include="src\core\SceneState.h">
       <Filter>Hlavičkové soubory</Filter>
+    </ClInclude>
+    <ClInclude Include="src\utils\datastruct\SPSCQueue.h">
+      <Filter>Zdrojové soubory\src\utils\datastruct</Filter>
+    </ClInclude>
+    <ClInclude Include="src\utils\cpu_pause.h">
+      <Filter>Zdrojové soubory\src\utils</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>
