@@ -15,32 +15,33 @@ void App::init(int width, int height)
 	float w_half = width / 2.0f;
 	float h_half = height / 2.0f;
 
-    this->sceneState.viewport = Mtx4(
-        w_half,   0.0f,  0.0f, w_half,
-          0.0f, h_half,  0.0f, h_half,
-          0.0f,   0.0f,  1.0f,   0.0f,
-          0.0f,   0.0f,  0.0f,   1.0f
+    float w_4 = width / 4.0f;
+    float h_4 = height / 4.0f;
+
+    this->sceneState.viewportPersp = Mtx4(
+           w_4,   0.0f,  0.0f,   w_4,
+          0.0f,    w_4,  0.0f,   w_4,
+          0.0f,   0.0f,  1.0f,  0.0f,
+          0.0f,   0.0f,  0.0f,  1.0f
+    );
+
+    this->sceneState.viewportTop = Mtx4(
+        w_4, 0.0f, 0.0f, w_4 + w_4,
+        0.0f, w_4, 0.0f, w_4 + w_4,
+        0.0f, 0.0f, 1.0f, 0.0f,
+        0.0f, 0.0f, 0.0f, 1.0f
     );
 
     // Use Mesh helper to compute view matrix that fits mesh into the screen
     const float verticalFovDeg = 45.0f;
     const float verticalFov = verticalFovDeg * 3.14159265358979323846f / 180.0f;
+    float aspect = this->sceneState.viewportPersp.at(0,0) / this->sceneState.viewportPersp.at(1,1);
 
-    // derive aspect from initial viewport stored in sceneState (at this point App no longer has its own viewport)
-    float aspect = this->sceneState.viewport.at(0,0) / this->sceneState.viewport.at(1,1);
+    this->sceneState.viewPersp = Mtx4::lookAt(Vec4(10, 0, 0, 1), Vec4(0, 0, 0, 1), Vec4(0, 1, 0, 0));
+    this->sceneState.viewTop = Mtx4::lookAt(Vec4(0, 50, 0, 1), Vec4(0, 0, 0, 1), Vec4(0, 0, 1, 0));
 
-    // compute view using mesh helper, but include scene transform as well
-    Mtx4 worldM = this->sceneState.transformation * this->sceneState.mesh.transformation;
-    Mesh tmp = this->sceneState.mesh;
-    tmp.transformation = worldM;
-    Mtx4 view = tmp.computeViewMatrixToFillScreen(verticalFov, aspect);
-    
-
-    this->sceneState.lookAt = view;
-    this->mtx = view;
-
-    this->sceneState.projection = Mtx4::perspective(verticalFov, aspect, 0.01f, 1000.0f);
-
+    this->sceneState.projectionPersp = Mtx4::perspective(verticalFov, aspect, 0.01f, 1000.0f);
+    this->sceneState.projectionTop = Mtx4::perspective(verticalFov, aspect, 0.01f, 1000.0f);
 }
 
 void App::update(float dt)
@@ -73,27 +74,46 @@ void App::render()
 
     Mtx4 mshTransformation = this->sceneState.mesh.transformation;
     Mtx4 worldTransformation = this->sceneState.transformation;
-    Mtx4 mvp = this->sceneState.projection * this->sceneState.lookAt * worldTransformation * mshTransformation;
+
+    Mtx4 mvp = this->sceneState.projectionPersp * this->sceneState.viewPersp * worldTransformation * mshTransformation;
+    Mtx4 mvpTop = this->sceneState.projectionTop * this->sceneState.viewTop * worldTransformation * mshTransformation;
 
     const auto& tris = this->sceneState.mesh.tris;
     for (const auto& triangle : tris) {
         
-        Vec4 a_ = mvp * triangle.a.pos;
-        Vec4 b_ = mvp * triangle.b.pos;
-        Vec4 c_ = mvp * triangle.c.pos;
+        Vec4 a_, b_, c_, aP_, bP_, cP_, aT_, bT_, cT_;
+
+        // persp
+        a_ = mvp * triangle.a.pos;
+        b_ = mvp * triangle.b.pos;
+        c_ = mvp * triangle.c.pos;
 
         a_.divideW();
         b_.divideW();
         c_.divideW();
 
-        a_ = this->sceneState.viewport * a_;
-        b_ = this->sceneState.viewport * b_;
-        c_ = this->sceneState.viewport * c_;
+        aP_ = this->sceneState.viewportPersp * a_;
+        bP_ = this->sceneState.viewportPersp * b_;
+        cP_ = this->sceneState.viewportPersp * c_;
+
+        // top
+        a_ = mvpTop * triangle.a.pos;
+        b_ = mvpTop * triangle.b.pos;
+        c_ = mvpTop * triangle.c.pos;
+
+        a_.divideW();
+        b_.divideW();
+        c_.divideW();
+
+        aT_ = this->sceneState.viewportTop * a_;
+        bT_ = this->sceneState.viewportTop * b_;
+        cT_ = this->sceneState.viewportTop * c_;
 
         if (!this->win) continue;
 
         // draw triangle edges
-        this->win->DIB_drawTriangle(a_, b_, c_, 0xffff0000);
+        this->win->DIB_drawTriangle(aP_, bP_, cP_, 0xffff0000);
+        this->win->DIB_drawTriangle(aT_, bT_, cT_, 0xffff0000);
     }
     
 

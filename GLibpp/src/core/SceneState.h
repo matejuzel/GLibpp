@@ -18,16 +18,20 @@ public:
 			.applyTransformation();
 
 		// position the whole scene (or mesh instance) via scene transformation
-		this->transformation = Mtx4::translation(0.0f, 20.0f, 0.0f);
+		this->transformation = Mtx4::translation(0.0f, 0.0f, 0.0f);
 	};
 
 	Mesh mesh;
 	Mtx4 transformation;
 
 	// per-scene view/projection/viewport
-	Mtx4 lookAt;
-	Mtx4 projection;
-	Mtx4 viewport;
+	Mtx4 viewPersp;
+	Mtx4 projectionPersp;
+	Mtx4 viewportPersp;
+
+	Mtx4 viewTop;
+	Mtx4 projectionTop;
+	Mtx4 viewportTop;
 
 	float velocityMove = 0.0f;
 };
