@@ -9,28 +9,37 @@
 
 using namespace std;
 
-void App::init()
+void App::init(int width, int height)
 {
+
+	float w_half = width / 2.0f;
+	float h_half = height / 2.0f;
+
+    this->sceneState.viewport = Mtx4(
+        w_half,   0.0f,  0.0f, w_half,
+          0.0f, h_half,  0.0f, h_half,
+          0.0f,   0.0f,  1.0f,   0.0f,
+          0.0f,   0.0f,  0.0f,   1.0f
+    );
+
     // Use Mesh helper to compute view matrix that fits mesh into the screen
     const float verticalFovDeg = 45.0f;
     const float verticalFov = verticalFovDeg * 3.14159265358979323846f / 180.0f;
 
-    // derive aspect from viewport matrix (viewport.at(0,0) == width/2, viewport.at(1,1) == height/2)
-    float aspect = this->viewport.at(0,0) / this->viewport.at(1,1);
+    // derive aspect from initial viewport stored in sceneState (at this point App no longer has its own viewport)
+    float aspect = this->sceneState.viewport.at(0,0) / this->sceneState.viewport.at(1,1);
 
     // compute view using mesh helper, but include scene transform as well
     Mtx4 worldM = this->sceneState.transformation * this->sceneState.mesh.transformation;
     Mesh tmp = this->sceneState.mesh;
     tmp.transformation = worldM;
     Mtx4 view = tmp.computeViewMatrixToFillScreen(verticalFov, aspect);
-    // store both for rendering and debug (render uses `lookAt` matrix)
-    this->lookAt = view;
+    
+
+    this->sceneState.lookAt = view;
     this->mtx = view;
 
-    // default near/far - good enough for initial scene
-    float nearZ = 0.01f;
-    float farZ = 1000.0f;
-    this->projection = Mtx4::perspective(verticalFov, aspect, nearZ, farZ);
+    this->sceneState.projection = Mtx4::perspective(verticalFov, aspect, 0.01f, 1000.0f);
 
 }
 
@@ -41,8 +50,8 @@ void App::update(float dt)
 
     if (keyboard[KEY_UP]) this->sceneState.velocityMove += factorMove * dt;
     if (keyboard[KEY_DOWN]) this->sceneState.velocityMove -= factorMove * dt;
-    if (keyboard[KEY_LEFT]) this->sceneState.transformation = this->sceneState.transformation * Mtx4::rotationY(factorRotate * dt);
-    if (keyboard[KEY_RIGHT]) this->sceneState.transformation = this->sceneState.transformation * Mtx4::rotationY(-factorRotate * dt);
+    if (keyboard[KEY_LEFT]) this->sceneState.transformation = this->sceneState.transformation * Mtx4::rotationY(-factorRotate * dt);
+    if (keyboard[KEY_RIGHT]) this->sceneState.transformation = this->sceneState.transformation * Mtx4::rotationY(factorRotate * dt);
 
 
     sceneState.transformation = sceneState.transformation * Mtx4::translation(0.0f, 0.0f, dt * sceneState.velocityMove);
@@ -64,7 +73,7 @@ void App::render()
 
     Mtx4 mshTransformation = this->sceneState.mesh.transformation;
     Mtx4 worldTransformation = this->sceneState.transformation;
-    Mtx4 mvp = this->projection * this->lookAt * worldTransformation * mshTransformation;
+    Mtx4 mvp = this->sceneState.projection * this->sceneState.lookAt * worldTransformation * mshTransformation;
 
     const auto& tris = this->sceneState.mesh.tris;
     for (const auto& triangle : tris) {
@@ -77,9 +86,9 @@ void App::render()
         b_.divideW();
         c_.divideW();
 
-        a_ = this->viewport * a_;
-        b_ = this->viewport * b_;
-        c_ = this->viewport * c_;
+        a_ = this->sceneState.viewport * a_;
+        b_ = this->sceneState.viewport * b_;
+        c_ = this->sceneState.viewport * c_;
 
         if (!this->win) continue;
 

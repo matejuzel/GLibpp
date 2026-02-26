@@ -67,7 +67,7 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 bool mainLoopFixedTimestamp(float logicHz = 60.0f)
 {
     App& app = App::instance();
-    app.init();
+    app.init(1200, 800);
 
     MSG msg = {};
 
@@ -118,7 +118,7 @@ bool mainLoopBasic(float dummy)
 {
 
     App& app = App::instance();
-    app.init();
+    app.init(1200, 800);
 
     MSG msg = {};
     while (true)
