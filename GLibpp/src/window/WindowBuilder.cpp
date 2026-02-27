@@ -6,17 +6,15 @@
 #include "core/input/Keymap.h"
 
 
-WindowBuilder::WindowBuilder(MainLoopCallback mainLoopProc, WindowCallback proc)
+WindowBuilder::WindowBuilder(int width, int height, WindowCallback proc)
 {
-    this->mainLoopProc = mainLoopProc;
     this->callback = proc;
-}
-
-bool WindowBuilder::init(int width, int height) {
-
     this->width = width;
     this->height = height;
+}
 
+bool WindowBuilder::build() 
+{
     hInstance = GetModuleHandle(nullptr);
 
     const wchar_t CLASS_NAME[] = L"MyWinAPIWindowClass";
@@ -26,8 +24,14 @@ bool WindowBuilder::init(int width, int height) {
     wc.hInstance = hInstance;
     wc.lpszClassName = CLASS_NAME;
 
-    RegisterClass(&wc);
+    wc.hCursor = LoadCursor(nullptr, IDC_ARROW);
+    wc.hbrBackground = (HBRUSH)(COLOR_WINDOW + 1);
 
+    ATOM cls = RegisterClass(&wc);
+    if (cls == 0) {
+        std::cerr << "RegisterClass failed: " << GetLastError() << std::endl;
+        return false;
+    }
     this->hwnd = CreateWindowEx(
         0,
         CLASS_NAME,
@@ -41,18 +45,17 @@ bool WindowBuilder::init(int width, int height) {
         nullptr
     );
 
-    if (this->hwnd == nullptr) return false;
+    if (this->hwnd == nullptr) {
+        std::cerr << "CreateWindowEx failed: " << GetLastError() << std::endl;
+        return false;
+    }
 
     this->glibRegisterRawInputDevices();
 
-    ShowWindow(this->hwnd, SW_SHOW);
+    ShowWindow(this->hwnd, SW_SHOWNORMAL);
+    UpdateWindow(this->hwnd);
 
     return true;
-}
-
-bool WindowBuilder::run(float logicHz)
-{
-    return this->mainLoopProc(logicHz);
 }
 
 HWND WindowBuilder::getHwnd() const {

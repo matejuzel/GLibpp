@@ -11,12 +11,11 @@ class WindowBuilder {
 public:
 
 	using WindowCallback = LRESULT(CALLBACK*)(HWND, UINT, WPARAM, LPARAM);
-	using MainLoopCallback = bool(*)(float logicHz);
+	//using MainLoopCallback = bool(*)(float logicHz);
 
-	WindowBuilder(MainLoopCallback mainLoopProc, WindowCallback proc);
+	WindowBuilder(int width, int height, WindowCallback proc);
 
-	bool init(int width, int height);
-	bool run(float logicHz);
+	bool build();
 	HWND getHwnd() const;
 
 	static void consoleSetFixedViewport();
@@ -42,7 +41,7 @@ private:
 	
 	HWND hwnd;
 	HINSTANCE hInstance;
-	MainLoopCallback mainLoopProc;
+	//MainLoopCallback mainLoopProc;
 	WindowCallback callback = nullptr;
 
 	HBITMAP hBitmap;

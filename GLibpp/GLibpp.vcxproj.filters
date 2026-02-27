@@ -40,6 +40,9 @@
     <Filter Include="Zdrojové soubory\src\utils\datastruct">
       <UniqueIdentifier>{0a65b0a3-ce48-49ef-a97d-012141e33bcc}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Zdrojové soubory\src\demo">
+      <UniqueIdentifier>{fbc1f50d-ec76-403a-822a-07bfd4954aa0}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src/geometry/AABB.cpp">
@@ -86,6 +89,12 @@
     </ClCompile>
     <ClCompile Include="src\core\SceneState.cpp">
       <Filter>Zdrojové soubory\src\core</Filter>
+    </ClCompile>
+    <ClCompile Include="src\core\GameLoop.cpp">
+      <Filter>Zdrojové soubory\src\core</Filter>
+    </ClCompile>
+    <ClCompile Include="src\demo\DemoRunner.cpp">
+      <Filter>Zdrojové soubory\src\demo</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -139,6 +148,18 @@
     </ClInclude>
     <ClInclude Include="src\utils\cpu_pause.h">
       <Filter>Zdrojové soubory\src\utils</Filter>
+    </ClInclude>
+    <ClInclude Include="src\core\GameLoop.h">
+      <Filter>Zdrojové soubory\src\core</Filter>
+    </ClInclude>
+    <ClInclude Include="src\demo\ProducentConsumentDemo.h">
+      <Filter>Zdrojové soubory\src\demo</Filter>
+    </ClInclude>
+    <ClInclude Include="src\window\WindowProcedure.h">
+      <Filter>Zdrojové soubory\src\window</Filter>
+    </ClInclude>
+    <ClInclude Include="src\demo\DemoRunner.h">
+      <Filter>Zdrojové soubory\src\demo</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

@@ -24,7 +24,6 @@ public:
 	Mesh mesh;
 	Mtx4 transformation;
 
-	// per-scene view/projection/viewport
 	Mtx4 viewPersp;
 	Mtx4 projectionPersp;
 	Mtx4 viewportPersp;

@@ -44,6 +44,10 @@ void App::init(int width, int height)
     this->sceneState.projectionTop = Mtx4::perspective(verticalFov, aspect, 0.01f, 1000.0f);
 }
 
+bool App::runGameLoop() {
+    return this->gameLoop.mainLoopFixedTimestamp();
+}
+
 void App::update(float dt)
 {
     float factorMove = 10.0;
