@@ -22,17 +22,24 @@ int main()
 {
     //DemoRunner::producentConsumentAndDie();
 
+    auto& app = App::instance();
+
     WindowBuilder wnd(1200, 800, WindowProc);
 
     if (!wnd.build())
     {
-        std::cout << "chyba pri vytvoreni WIN onka" << std::endl;
+        std::cerr << "Window build failed" << std::endl;
         return 1;
     }
 
-    wnd.DIB_init();
-    App::instance().setWindow(&wnd);
-    App::instance().runGameLoop();
+    if (!wnd.DIB_init()) 
+    {
+		std::cerr << "DIB_init failed" << std::endl;
+        return 1;
+    }
+
+    app.setWindow(&wnd);
+    app.runGameLoop();
 
     return 0;
 }

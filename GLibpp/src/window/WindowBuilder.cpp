@@ -122,12 +122,8 @@ void WindowBuilder::consoleClear()
     SetConsoleCursorPosition(h, {0, 0});
 }
 
-void WindowBuilder::DIB_init()
+bool WindowBuilder::DIB_init()
 {
-
-    this->width = width;
-    this->height = height;
-
     BITMAPINFO bmi = {};
     bmi.bmiHeader.biSize = sizeof(BITMAPINFOHEADER);
     bmi.bmiHeader.biWidth = width;
@@ -148,6 +144,8 @@ void WindowBuilder::DIB_init()
     );
 
     ReleaseDC(nullptr, screen);
+
+    return true;
 }
 
 void WindowBuilder::DIB_clear(uint32_t color)

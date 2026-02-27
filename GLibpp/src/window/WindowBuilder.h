@@ -22,7 +22,7 @@ public:
 	static void consolePrint(std::string text);
 	static void consoleClear();
 
-	void DIB_init();
+	bool DIB_init();
 	void DIB_clear(uint32_t color);
 	void DIB_putPixel(int x, int y, uint32_t color);
 	void DIB_drawBitmap();
