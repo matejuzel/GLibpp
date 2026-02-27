@@ -27,6 +27,8 @@ public:
 
 	Mesh& addCube(float scaleFactor);
 
+	Mesh& addNet(int divisions);
+
 	Mesh& applyTransformation();
 
 	Mesh& transform(const Mtx4 &m);

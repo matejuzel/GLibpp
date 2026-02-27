@@ -225,4 +225,35 @@ float Mesh::computeCameraDistanceForAABB(const AABB& box, float verticalFovRadia
     return std::max(z_v, z_h);
 }
 
+Mesh& Mesh::addNet(int divisions) {
+
+	// Zajistit alespoò 1 dìlení
+	if (divisions < 1) {
+		divisions = 1;
+	}
+
+	const float step = 1.0f / static_cast<float>(divisions);
+
+	for (int i = 0; i < divisions; ++i) {
+		const float x0 = -0.5f + i * step;
+		const float x1 = x0 + step;
+
+		for (int j = 0; j < divisions; ++j) {
+			const float z0 = -0.5f + j * step;
+			const float z1 = z0 + step;
+
+			// Vytvoøení ètyø vrcholù ètverce na rovinì y = 0
+			Vertex a{ x0, 0.0f, z0 };
+			Vertex b{ x1, 0.0f, z0 };
+			Vertex c{ x1, 0.0f, z1 };
+			Vertex d{ x0, 0.0f, z1 };
+
+			// Pøidat ètverec jako dvì trojúhelníky
+			addQuad(a, b, c, d);
+		}
+	}
+
+	return *this;
+}
+
 

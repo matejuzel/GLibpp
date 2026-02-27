@@ -77,10 +77,57 @@ void App::render()
     this->win->DIB_clear(0x00000000);
 
     Mtx4 mshTransformation = this->sceneState.mesh.transformation;
+    Mtx4 mshFlatTransformation = this->sceneState.flat.transformation;
+
     Mtx4 worldTransformation = this->sceneState.transformation;
 
-    Mtx4 mvp = this->sceneState.projectionPersp * this->sceneState.viewPersp * worldTransformation * mshTransformation;
-    Mtx4 mvpTop = this->sceneState.projectionTop * this->sceneState.viewTop * worldTransformation * mshTransformation;
+    Mtx4 mvp, mvpTop;
+
+    mvp = this->sceneState.projectionPersp;// *this->sceneState.viewPersp;
+    mvpTop = this->sceneState.projectionTop;// *this->sceneState.viewTop;
+
+	const auto& flat = this->sceneState.flat.tris;
+    for (const auto& triangle1 : flat) {
+
+        Vec4 a_, b_, c_, aP_, bP_, cP_, aT_, bT_, cT_;
+
+        // persp
+        a_ = mvp * triangle1.a.pos;
+        b_ = mvp * triangle1.b.pos;
+        c_ = mvp * triangle1.c.pos;
+
+        a_.divideW();
+        b_.divideW();
+        c_.divideW();
+
+        aP_ = this->sceneState.viewportPersp * a_;
+        bP_ = this->sceneState.viewportPersp * b_;
+        cP_ = this->sceneState.viewportPersp * c_;
+
+        // top
+        a_ = mvpTop * triangle1.a.pos;
+        b_ = mvpTop * triangle1.b.pos;
+        c_ = mvpTop * triangle1.c.pos;
+
+        a_.divideW();
+        b_.divideW();
+        c_.divideW();
+
+        aT_ = this->sceneState.viewportTop * a_;
+        bT_ = this->sceneState.viewportTop * b_;
+        cT_ = this->sceneState.viewportTop * c_;
+
+        if (!this->win) continue;
+
+        bool antialiasing = true;
+
+        // draw triangle edges
+        this->win->DIB_drawTriangle(aP_, bP_, cP_, 0xffff0000, antialiasing);
+        this->win->DIB_drawTriangle(aT_, bT_, cT_, 0xffff0000, antialiasing);
+    }
+
+    //mvp = this->sceneState.projectionPersp * this->sceneState.viewPersp * worldTransformation * mshTransformation;
+    //mvpTop = this->sceneState.projectionTop * this->sceneState.viewTop * worldTransformation * mshTransformation;
 
     const auto& tris = this->sceneState.mesh.tris;
     for (const auto& triangle : tris) {
