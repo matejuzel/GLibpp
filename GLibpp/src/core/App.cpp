@@ -115,9 +115,11 @@ void App::render()
 
         if (!this->win) continue;
 
+		bool antialiasing = true;
+
         // draw triangle edges
-        this->win->DIB_drawTriangle(aP_, bP_, cP_, 0xffff0000);
-        this->win->DIB_drawTriangle(aT_, bT_, cT_, 0xffff0000);
+        this->win->DIB_drawTriangle(aP_, bP_, cP_, 0xffff0000, antialiasing);
+        this->win->DIB_drawTriangle(aT_, bT_, cT_, 0xffff0000, antialiasing);
     }
     
 
