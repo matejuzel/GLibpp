@@ -57,7 +57,8 @@ void App::update(float dt)
     if (keyboard[KEY_DOWN]) this->sceneState.velocityMove -= factorMove * dt;
     if (keyboard[KEY_LEFT]) this->sceneState.transformation = this->sceneState.transformation * Mtx4::rotationY(-factorRotate * dt);
     if (keyboard[KEY_RIGHT]) this->sceneState.transformation = this->sceneState.transformation * Mtx4::rotationY(factorRotate * dt);
-
+    if (keyboard[KEY_SPACE]) this->antialiasing = false;
+    if (keyboard[KEY_ENTER]) this->antialiasing = true;
 
     sceneState.transformation = sceneState.transformation * Mtx4::translation(0.0f, 0.0f, dt * sceneState.velocityMove);
 
@@ -73,6 +74,7 @@ void App::update(float dt)
 
 void App::render()
 {
+
     
     this->win->DIB_clear(0x00000000);
 
@@ -83,8 +85,8 @@ void App::render()
 
     Mtx4 mvp, mvpTop;
 
-    mvp = this->sceneState.projectionPersp;// *this->sceneState.viewPersp;
-    mvpTop = this->sceneState.projectionTop;// *this->sceneState.viewTop;
+    mvp = this->sceneState.projectionPersp *this->sceneState.viewPersp;
+    mvpTop = this->sceneState.projectionTop *this->sceneState.viewTop;
 
 	const auto& flat = this->sceneState.flat.tris;
     for (const auto& triangle1 : flat) {
@@ -119,15 +121,14 @@ void App::render()
 
         if (!this->win) continue;
 
-        bool antialiasing = true;
 
         // draw triangle edges
-        this->win->DIB_drawTriangle(aP_, bP_, cP_, 0xffff0000, antialiasing);
-        this->win->DIB_drawTriangle(aT_, bT_, cT_, 0xffff0000, antialiasing);
+        this->win->DIB_drawTriangle(aP_, bP_, cP_, 0xffff0000, this->antialiasing);
+        this->win->DIB_drawTriangle(aT_, bT_, cT_, 0xffff0000, this->antialiasing);
     }
 
-    //mvp = this->sceneState.projectionPersp * this->sceneState.viewPersp * worldTransformation * mshTransformation;
-    //mvpTop = this->sceneState.projectionTop * this->sceneState.viewTop * worldTransformation * mshTransformation;
+    mvp = this->sceneState.projectionPersp * this->sceneState.viewPersp * worldTransformation * mshTransformation;
+    mvpTop = this->sceneState.projectionTop * this->sceneState.viewTop * worldTransformation * mshTransformation;
 
     const auto& tris = this->sceneState.mesh.tris;
     for (const auto& triangle : tris) {
@@ -165,8 +166,8 @@ void App::render()
 		bool antialiasing = true;
 
         // draw triangle edges
-        this->win->DIB_drawTriangle(aP_, bP_, cP_, 0xffff0000, antialiasing);
-        this->win->DIB_drawTriangle(aT_, bT_, cT_, 0xffff0000, antialiasing);
+        this->win->DIB_drawTriangle(aP_, bP_, cP_, 0xffff0000, this->antialiasing);
+        this->win->DIB_drawTriangle(aT_, bT_, cT_, 0xffff0000, this->antialiasing);
     }
     
 

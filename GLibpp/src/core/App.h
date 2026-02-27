@@ -41,5 +41,5 @@ private:
 	GameLoop gameLoop;
 	SceneState sceneState;
 	
-
+	bool antialiasing = true;
 };
