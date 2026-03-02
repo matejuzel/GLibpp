@@ -15,14 +15,13 @@ public:
 		// apply only scaling to mesh vertices (keep translation as scene transformation)
 		mesh.addCube(1)
 			.transform(Mtx4::scaling(1.4, 1.1, 1.2))
-			//.applyTransformation()
+			.applyTransformation()
 			;
 
-		mesh.addNet(10)
-			.transform(Mtx4::scaling(4,4,4))
-			//.applyTransformation()
-			.transform(Mtx4::translation(0,-1,0))
-			//.applyTransformation()
+		flat.addNet(10)
+			.transform(Mtx4::translation(0, -1, 0))
+			.transform(Mtx4::scaling(10,10,10))
+			.applyTransformation()
 			;
 
 	};

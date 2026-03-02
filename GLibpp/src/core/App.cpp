@@ -83,8 +83,8 @@ void App::render()
 
     Mtx4 mvp, mvpTop;
 
-    mvp = this->sceneState.projectionPersp;// *this->sceneState.viewPersp;
-    mvpTop = this->sceneState.projectionTop;// *this->sceneState.viewTop;
+    mvp = this->sceneState.projectionPersp *this->sceneState.viewPersp;
+    mvpTop = this->sceneState.projectionTop *this->sceneState.viewTop;
 
 	const auto& flat = this->sceneState.flat.tris;
     for (const auto& triangle1 : flat) {
@@ -126,8 +126,8 @@ void App::render()
         this->win->DIB_drawTriangle(aT_, bT_, cT_, 0xffff0000, antialiasing);
     }
 
-    //mvp = this->sceneState.projectionPersp * this->sceneState.viewPersp * worldTransformation * mshTransformation;
-    //mvpTop = this->sceneState.projectionTop * this->sceneState.viewTop * worldTransformation * mshTransformation;
+    mvp = this->sceneState.projectionPersp * this->sceneState.viewPersp * worldTransformation * mshTransformation;
+    mvpTop = this->sceneState.projectionTop * this->sceneState.viewTop * worldTransformation * mshTransformation;
 
     const auto& tris = this->sceneState.mesh.tris;
     for (const auto& triangle : tris) {
