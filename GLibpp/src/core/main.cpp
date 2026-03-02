@@ -24,7 +24,7 @@ int main()
 
     auto& app = App::instance();
 
-    WindowBuilder wnd(2000, 800, WindowProc);
+    WindowBuilder wnd(1366, 800, WindowProc);
 
     if (!wnd.build())
     {

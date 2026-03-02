@@ -18,6 +18,8 @@ public:
 			.applyTransformation()
 			;
 
+		mesh2.addCube(0.2);
+
 		flat.addNet(10)
 			.transform(Mtx4::translation(0, -1, 0))
 			.transform(Mtx4::scaling(10,10,10))
@@ -26,7 +28,7 @@ public:
 
 	};
 
-	Mesh mesh;
+	Mesh mesh, mesh2;
 	Mesh flat;
 
 	Mtx4 transformation;

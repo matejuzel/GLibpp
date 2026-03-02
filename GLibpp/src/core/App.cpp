@@ -38,7 +38,7 @@ void App::init(int width, int height)
     float aspect = this->sceneState.viewportPersp.at(0,0) / this->sceneState.viewportPersp.at(1,1);
 
     this->sceneState.viewPersp = Mtx4::lookAt(Vec4(10, 0, 0, 1), Vec4(0, 0, 0, 1), Vec4(0, 1, 0, 0));
-    this->sceneState.viewTop = Mtx4::lookAt(Vec4(0, 50, 0, 1), Vec4(0, 0, 0, 1), Vec4(0, 0, 1, 0));
+    this->sceneState.viewTop = Mtx4::lookAt(Vec4(0, 30, 0, 1), Vec4(0, 0, 0, 1), Vec4(0, 0, 1, 0));
 
     this->sceneState.projectionPersp = Mtx4::perspective(verticalFov, aspect, 0.01f, 1000.0f);
     this->sceneState.projectionTop = Mtx4::perspective(verticalFov, aspect, 0.01f, 1000.0f);
@@ -69,6 +69,8 @@ void App::update(float dt)
     else {
         sceneState.velocityMove = 0.0f;
     }
+
+    sceneState.mesh2.transform(Mtx4::rotationX(0.1f));
 }
 
 
@@ -164,6 +166,49 @@ void App::render()
         if (!this->win) continue;
 
 		bool antialiasing = true;
+
+        // draw triangle edges
+        this->win->DIB_drawTriangle(aP_, bP_, cP_, 0xffff0000, this->antialiasing);
+        this->win->DIB_drawTriangle(aT_, bT_, cT_, 0xffff0000, this->antialiasing);
+    }
+
+    mvp = this->sceneState.projectionPersp * this->sceneState.viewPersp * worldTransformation * sceneState.mesh2.transformation;
+    mvpTop = this->sceneState.projectionTop * this->sceneState.viewTop * worldTransformation * sceneState.mesh2.transformation;
+
+    const auto& tris2 = this->sceneState.mesh2.tris;
+    for (const auto& triangle : tris2) {
+
+        Vec4 a_, b_, c_, aP_, bP_, cP_, aT_, bT_, cT_;
+
+        // persp
+        a_ = mvp * triangle.a.pos;
+        b_ = mvp * triangle.b.pos;
+        c_ = mvp * triangle.c.pos;
+
+        a_.divideW();
+        b_.divideW();
+        c_.divideW();
+
+        aP_ = this->sceneState.viewportPersp * a_;
+        bP_ = this->sceneState.viewportPersp * b_;
+        cP_ = this->sceneState.viewportPersp * c_;
+
+        // top
+        a_ = mvpTop * triangle.a.pos;
+        b_ = mvpTop * triangle.b.pos;
+        c_ = mvpTop * triangle.c.pos;
+
+        a_.divideW();
+        b_.divideW();
+        c_.divideW();
+
+        aT_ = this->sceneState.viewportTop * a_;
+        bT_ = this->sceneState.viewportTop * b_;
+        cT_ = this->sceneState.viewportTop * c_;
+
+        if (!this->win) continue;
+
+        bool antialiasing = true;
 
         // draw triangle edges
         this->win->DIB_drawTriangle(aP_, bP_, cP_, 0xffff0000, this->antialiasing);
