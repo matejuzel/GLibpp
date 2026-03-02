@@ -107,7 +107,7 @@ Mesh& Mesh::transform(const Mtx4& m)
 {
 	this->transformation *= m;
 
-    std::cout << m.toStringDetail() << std::endl;
+    //std::cout << m.toStringDetail() << std::endl;
 
     return *this;
 }

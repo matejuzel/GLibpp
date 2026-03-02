@@ -70,7 +70,7 @@ void App::update(float dt)
         sceneState.velocityMove = 0.0f;
     }
 
-    sceneState.mesh2.transform(Mtx4::rotationX(0.1f));
+    sceneState.mesh2.transform(Mtx4::rotationX(1.0f * dt));
 }
 
 
