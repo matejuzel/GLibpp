@@ -11,7 +11,7 @@ bool GameLoop::mainLoopFixedTimestamp()
     MSG msg = {};
 
     HighResTimer timer;
-    FixedTimestep taskLogic(60.0);
+    FixedTimestep taskLogic(100.0);
     FixedTimestep taskCmd(60.0);
 
     int frames = 0;
