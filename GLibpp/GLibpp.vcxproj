@@ -102,7 +102,7 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>$(ProjectDir)src;$(ProjectDir)src\math;$(ProjectDir)src\geometry;$(ProjectDir)src\core;$(ProjectDir)src\core\input;$(ProjectDir)src\window;$(ProjectDir)src\utils\datastruct;$(ProjectDir)src\demo</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ProjectDir)src;$(ProjectDir)src\math;$(ProjectDir)src\geometry;$(ProjectDir)src\core;$(ProjectDir)src\core\input;$(ProjectDir)src\window;$(ProjectDir)src\utils\datastruct;$(ProjectDir)src\demo;$(ProjectDir)src\core\render</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -117,7 +117,7 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>$(ProjectDir)src;$(ProjectDir)src\math;$(ProjectDir)src\geometry;$(ProjectDir)src\core;$(ProjectDir)src\core\input;$(ProjectDir)src\window;$(ProjectDir)src\utils\datastruct;$(ProjectDir)src\demo</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ProjectDir)src;$(ProjectDir)src\math;$(ProjectDir)src\geometry;$(ProjectDir)src\core;$(ProjectDir)src\core\input;$(ProjectDir)src\window;$(ProjectDir)src\utils\datastruct;$(ProjectDir)src\demo;$(ProjectDir)src\core\render</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -136,6 +136,8 @@
     <ClCompile Include="src/geometry/Triangle.cpp" />
     <ClCompile Include="src/math/Vec4.cpp" />
     <ClCompile Include="src/geometry/Vertex.cpp" />
+    <ClCompile Include="src\core\render\RenderCommand.cpp" />
+    <ClCompile Include="src\core\render\Renderer.cpp" />
     <ClCompile Include="src\core\SceneState.cpp" />
     <ClCompile Include="src\demo\DemoRunner.cpp" />
     <ClCompile Include="src\utils\timer\FixedTimestep.cpp" />
@@ -154,12 +156,15 @@
     <ClInclude Include="src\core\GameLoop.h" />
     <ClInclude Include="src\core\input\Keyboard.h" />
     <ClInclude Include="src\core\input\Keymap.h" />
+    <ClInclude Include="src\core\render\RenderCommand.h" />
+    <ClInclude Include="src\core\render\Renderer.h" />
     <ClInclude Include="src\core\SceneState.h" />
     <ClInclude Include="src\demo\DemoRunner.h" />
     <ClInclude Include="src\demo\ProducentConsumentDemo.h" />
     <ClInclude Include="src\geometry\Material.h" />
     <ClInclude Include="src\utils\cpu_pause.h" />
     <ClInclude Include="src\utils\datastruct\SPSCQueue.h" />
+    <ClInclude Include="src\utils\datastruct\TripleBuffer.h" />
     <ClInclude Include="src\utils\timer\FixedTimestep.h" />
     <ClInclude Include="src\utils\timer\HighResTimer.h" />
     <ClInclude Include="src\window\ConsoleDoubleBuffer.h" />

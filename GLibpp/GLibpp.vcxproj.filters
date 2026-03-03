@@ -43,6 +43,9 @@
     <Filter Include="Zdrojové soubory\src\demo">
       <UniqueIdentifier>{fbc1f50d-ec76-403a-822a-07bfd4954aa0}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Zdrojové soubory\src\core\render">
+      <UniqueIdentifier>{a41bdeca-c216-4287-a38c-bdc0d68f6c39}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src/geometry/AABB.cpp">
@@ -95,6 +98,12 @@
     </ClCompile>
     <ClCompile Include="src\demo\DemoRunner.cpp">
       <Filter>Zdrojové soubory\src\demo</Filter>
+    </ClCompile>
+    <ClCompile Include="src\core\render\RenderCommand.cpp">
+      <Filter>Zdrojové soubory\src\core\render</Filter>
+    </ClCompile>
+    <ClCompile Include="src\core\render\Renderer.cpp">
+      <Filter>Zdrojové soubory\src\core\render</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -160,6 +169,15 @@
     </ClInclude>
     <ClInclude Include="src\demo\DemoRunner.h">
       <Filter>Zdrojové soubory\src\demo</Filter>
+    </ClInclude>
+    <ClInclude Include="src\core\render\RenderCommand.h">
+      <Filter>Zdrojové soubory\src\core\render</Filter>
+    </ClInclude>
+    <ClInclude Include="src\core\render\Renderer.h">
+      <Filter>Zdrojové soubory\src\core\render</Filter>
+    </ClInclude>
+    <ClInclude Include="src\utils\datastruct\TripleBuffer.h">
+      <Filter>Zdrojové soubory\src\utils\datastruct</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>
