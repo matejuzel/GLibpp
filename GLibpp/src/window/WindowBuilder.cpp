@@ -10,10 +10,14 @@
 
 
 WindowBuilder::WindowBuilder(int width, int height, WindowCallback proc)
+    : hwnd(nullptr),
+      hInstance(nullptr),
+      callback(proc),
+      hBitmap(nullptr),
+      framebuffer(nullptr),
+      width(width),
+      height(height)
 {
-    this->callback = proc;
-    this->width = width;
-    this->height = height;
 }
 
 bool WindowBuilder::build() 

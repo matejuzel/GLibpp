@@ -3,7 +3,35 @@
 #include <cstdint>
 #include <vector>
 #include <iostream>
+#include <unordered_map>
+#include <thread>
 
+#include "utils/datastruct/TripleBuffer.h"
+#include "geometry/Mesh.h"
+
+
+class MeshRegistry {
+public:
+
+	void registerMesh(Mesh* mesh, uint32_t meshId) {
+		if (meshId >= meshes.size())
+			meshes.resize(meshId + 1);
+
+		meshes[meshId] = mesh;
+	}
+
+
+	Mesh* get(uint32_t id) const {
+		return id < meshes.size() ? meshes[id] : nullptr;
+	}
+
+private:
+	uint32_t nextId = 0;
+	std::vector<Mesh*> meshes;
+};
+
+
+extern MeshRegistry g_meshRegistry;
 
 namespace RenderCommand {
 
@@ -12,16 +40,27 @@ namespace RenderCommand {
 	enum class CommandType : uintIndex_t {
 		SetClearColor,
 		Clear,
-		//DrawIndexed, //@todo
-		//DrawArrays, //@todo
-		//SetMatrix, //@todo
+
+		RegisterMesh,
+		DrawMesh,
+		
 	};
 
-	struct CommandSetClearColor {
+	struct SetClearColor {
 		int r, g, b;
 	};
 
-	struct CommandClear {
+	struct Clear {
+		// empty
+	};
+
+	struct RegisterMesh {
+		uint32_t meshId;
+		Mesh* mesh;
+	};
+
+	struct DrawMesh {
+		uint32_t meshId;
 	};
 
 	struct Command {
@@ -29,77 +68,99 @@ namespace RenderCommand {
 		CommandType type;
 
 		union {
-			CommandSetClearColor setClearColor;
-			CommandClear clear;
+			SetClearColor setClearColor;
+			Clear clear;
+			RegisterMesh registerMesh;
+			DrawMesh drawMesh;
 		};
+
+		Command() : type(CommandType::Clear), clear{} {}
 	};
 
-	void execSetClearColor(const Command& cmd) {
-		auto& c = cmd.setClearColor;
-		std::cout << "Set clear color to: " << c.r << ", " << c.g << ", " << c.b << std::endl;
-	}
 
-	void execClear(const Command& cmd) {
-		auto& c = cmd.clear;
-		std::cout << "Clear screen" << std::endl;
-		// do clear
-	}
+	void execSetClearColor(const Command& cmd);
+	void execClear(const Command& cmd);
+	void execRegisterMesh(const Command& cmd);
+	void execDrawMesh(const Command& cmd);
 
-	using CommandFunction = void(*)(const Command&);
+	using Function = void(*)(const Command&);
+	extern Function dispatchTable[];
 
-	static CommandFunction dispatchTable[] = {
-		&execSetClearColor,
-		&execClear,
+	void exec(const Command& command);
+
+
+	class Buffer {
+	public:
+
+		bool execute() const {
+
+			if (commands.size() == 0) return false;
+
+			for (const auto& cmd : commands) {
+
+				RenderCommand::exec(cmd);
+			}
+			return true;
+		}
+
+		void clear() {
+			commands.clear();
+		}
+
+		void pushClearColor(int r, int g, int b) {
+			RenderCommand::Command cmd;
+			cmd.type = RenderCommand::CommandType::SetClearColor;
+			cmd.setClearColor = { r, g, b };
+			push(cmd);
+		}
+
+		void pushClear() {
+			RenderCommand::Command cmd;
+			cmd.type = RenderCommand::CommandType::Clear;
+			push(cmd);
+		}
+
+		void pushRegisterMesh(Mesh* mesh, uint32_t meshId) {
+			RenderCommand::Command cmd;
+			cmd.type = RenderCommand::CommandType::RegisterMesh;
+			cmd.registerMesh = { meshId, mesh };
+			push(cmd);
+		}
+
+
+		void pushDrawMesh(uint32_t meshId) {
+			RenderCommand::Command cmd;
+			cmd.type = RenderCommand::CommandType::DrawMesh;
+			cmd.drawMesh = { meshId };
+			push(cmd);
+		}
+
+
+	private:
+		std::vector<RenderCommand::Command> commands;
+
+		/*inline void push(RenderCommand::Command& command) {
+			commands.push_back(command);
+		}
+		*/
+
+		inline void push(const Command& command) {
+			commands.push_back(command);
+		}
 	};
-
-	static void execCommand(const Command & command) {
-		// volani funkce z dispatch table podle typu prikazu (LUT - Look-up Table)
-		dispatchTable[static_cast<uintIndex_t>(command.type)](command);
-	}
 
 }
 
 
-class RenderCommandBuffer {
-public:
+extern std::atomic<bool> done;
+extern TripleBuffer<RenderCommand::Buffer> rcb;
 
-	bool execute() const {
-
-		if (commands.size() == 0) return false;
-
-		for (const auto& cmd : commands) {
-
-			RenderCommand::execCommand(cmd);
-		}
-		return true;
-	}
-
-	void clear() {
-		commands.clear();
-	}
-
-	void pushClearColor(int r, int g, int b) {
-		RenderCommand::Command cmd;
-		cmd.type = RenderCommand::CommandType::SetClearColor;
-		cmd.setClearColor = { r, g, b };
-		push(cmd);
-	}
-
-	void pushClear() {
-		RenderCommand::Command cmd;
-		cmd.type = RenderCommand::CommandType::Clear;
-		push(cmd);
-	}
+void t_produce_render_comands();
 
 
-private:
-	std::vector<RenderCommand::Command> commands;
-
-	inline void push(RenderCommand::Command& command) {
-		commands.push_back(command);
-	}
-};
+void t_consume_render_comands();
 
 
+void t_produce_and_consume();
 
 

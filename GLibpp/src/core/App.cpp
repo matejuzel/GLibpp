@@ -64,7 +64,7 @@ void App::update(float dt)
 
     if (abs(sceneState.velocityMove) > 0.01) {
 
-        sceneState.velocityMove -= sceneState.velocityMove * 0.01;
+        sceneState.velocityMove -= sceneState.velocityMove * 0.01f;
     }
     else {
         sceneState.velocityMove = 0.0f;

@@ -14,11 +14,11 @@ public:
 
 		// apply only scaling to mesh vertices (keep translation as scene transformation)
 		mesh.addCube(1)
-			.transform(Mtx4::scaling(1.4, 1.1, 1.2))
+			.transform(Mtx4::scaling(1.4f, 1.1f, 1.2f))
 			.applyTransformation()
 			;
 
-		mesh2.addCube(0.2);
+		mesh2.addCube(0.2f);
 
 		flat.addNet(10)
 			.transform(Mtx4::translation(0, -1, 0))

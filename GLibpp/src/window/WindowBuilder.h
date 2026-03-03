@@ -39,13 +39,13 @@ public:
 
 private:
 	
-	HWND hwnd;
-	HINSTANCE hInstance;
+	HWND hwnd = nullptr;
+	HINSTANCE hInstance = nullptr;
 	//MainLoopCallback mainLoopProc;
 	WindowCallback callback = nullptr;
 
-	HBITMAP hBitmap;
-	uint32_t* framebuffer;
+	HBITMAP hBitmap = nullptr;
+	uint32_t* framebuffer = nullptr;
 	int width, height;
 
 	void glibRegisterRawInputDevices();

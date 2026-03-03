@@ -20,52 +20,14 @@
 #pragma comment(lib, "User32.lib")
 
 
-TripleBuffer<RenderCommandBuffer> rcb;
-std::atomic <bool> done{ false };
-
-void t_produce_render_comands() 
-{
-
-    for (int i = 0; i < 10; i++) 
-    {
-        auto& buffProducent = rcb.writeBuffer();
-        buffProducent.clear();
-        buffProducent.pushClearColor(255, 0, 0);
-        buffProducent.pushClear();
-        rcb.publish();
-    }
-
-}
-
-void t_consume_render_comands() 
-{
-    while (1) {
-		const auto& buffConsument = rcb.readBuffer();
-        buffConsument.execute();
-
-        if (done.load()) break;
-    }
-}
-
 
 int main()
 {
 
-	//t_produce_render_comands();
-
-    std::thread t1(t_produce_render_comands);
-	std::thread t2(t_consume_render_comands);
-    
-	Sleep(1000); // Simulace nějaké práce, během které se budou produkovat příkazy  
-    done.store(true);
-
-    t1.join();
-    t2.join();
-    
-	std::cout << "Render commands produced and consumed." << std::endl;
-
-
+    t_produce_and_consume();
     return 0;
+
+
 
     //DemoRunner::producentConsumentAndDie();
 
