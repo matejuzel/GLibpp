@@ -2,6 +2,7 @@
 
 #include <cstdlib>
 #include "demo/ProducentConsumentDemo.h";
+#include "demo/RenderLoopDemo.h";
 
 class DemoRunner {
 public:

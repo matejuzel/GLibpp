@@ -18,7 +18,7 @@
 
 int main()
 {
-    int run = 2;
+    int run = 1;
 
     switch (run) {
         case 1: DemoRunner::renderLoopAndDie(); break;

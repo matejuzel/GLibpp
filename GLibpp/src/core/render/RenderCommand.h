@@ -136,6 +136,10 @@ namespace RenderCommand {
 		}
 
 
+		inline void push(const Command& command) {
+			commands.push_back(command);
+		}
+
 	private:
 		std::vector<RenderCommand::Command> commands;
 
@@ -144,23 +148,21 @@ namespace RenderCommand {
 		}
 		*/
 
-		inline void push(const Command& command) {
-			commands.push_back(command);
-		}
+		
 	};
 
 }
 
 
-extern std::atomic<bool> done;
-extern TripleBuffer<RenderCommand::Buffer> rcb;
+//extern std::atomic<bool> done;
+//extern TripleBuffer<RenderCommand::Buffer> rcb;
 
-void t_produce_render_comands();
-
-
-void t_consume_render_comands();
+//void t_produce_render_comands();
 
 
-void t_produce_and_consume();
+//void t_consume_render_comands();
+
+
+//void t_produce_and_consume();
 
 

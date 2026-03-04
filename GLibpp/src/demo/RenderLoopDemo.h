@@ -70,7 +70,34 @@ public:
         }
 
 
+        {
+            RenderCommand::Command cmd;
+            cmd.type = RenderCommand::CommandType::RegisterMesh;
+            cmd.registerMesh.mesh = &mshCube03;
+            cmd.registerMesh.meshId = 3;
+            renderer.getRenderCommandQueue().push(cmd);
+        }
+        {
+            RenderCommand::Command cmd;
+            cmd.type = RenderCommand::CommandType::RegisterMesh;
+            cmd.registerMesh.mesh = &mshCube04;
+            cmd.registerMesh.meshId = 4;
+            renderer.getRenderCommandQueue().push(cmd);
+        }
+
+        // write frame 2
+        {
+            auto& writeBuffer = tb.writeBuffer();
+            writeBuffer.clear();
+            writeBuffer.pushClear();
+            writeBuffer.pushDrawMesh(3);
+            writeBuffer.pushDrawMesh(4);
+            tb.publish();
+        }
+
         std::this_thread::sleep_for(std::chrono::milliseconds(10));
+
+        
 
         renderer.stop();
         consumer.join();
@@ -79,6 +106,8 @@ public:
 
     Renderer renderer;
     Mesh mshCube00, mshCube01, mshCube02;
+
+    Mesh mshCube03, mshCube04;
 };
 
 
