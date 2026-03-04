@@ -10,6 +10,8 @@ public:
         mshCube00.addCube(1.0f).transform(Mtx4::rotationY(0.9f));
         mshCube01.addCube(1.0f).transform(Mtx4::scaling(2.0f, 1.0f, 0.6f));
         mshCube02.addCube(0.5f).transform(Mtx4::translation(1.0f, 0.0f, 1.0f));
+        mshCube03.addCube(0.5f).transform(Mtx4::translation(-1.0f, 0.0f, 1.0f));
+        mshCube04.addCube(0.5f).transform(Mtx4::translation(-1.0f, 1.0f, 0.0f));
 	
 
         auto& tb = renderer.getRenderCommandBufferRef();
