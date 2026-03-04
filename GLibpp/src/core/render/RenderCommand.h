@@ -10,6 +10,10 @@
 #include "geometry/Mesh.h"
 
 
+struct Viewport {
+	uint32_t offsetX, offsetY, width, height;
+};
+
 class MeshRegistry {
 public:
 
@@ -28,6 +32,11 @@ public:
 private:
 	uint32_t nextId = 0;
 	std::vector<Mesh*> meshes;
+
+	Mtx4 projectionMatrix{ Mtx4::identity() };
+	Mtx4 modelViewMatrix{ Mtx4::identity() };
+	Viewport viewport{ 0, 0, 800, 600 };
+	
 };
 
 
