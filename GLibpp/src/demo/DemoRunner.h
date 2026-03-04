@@ -7,5 +7,5 @@ class DemoRunner {
 public:
 
 	void static producentConsumentAndDie();
-
+	void static renderLoopAndDie();
 };

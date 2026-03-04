@@ -9,27 +9,25 @@
 
 #include "core/App.h"
 #include "window/WindowBuilder.h"
-#include "utils/datastruct/SPSCQueue.h"
 #include "demo/ProducentConsumentDemo.h"
 #include "window/WindowProcedure.h"
-
 #include "demo/DemoRunner.h"
-#include <TripleBuffer.h>
-#include <RenderCommand.h>
 
 #pragma comment(lib, "User32.lib")
 
 
-
 int main()
 {
+    int run = 2;
 
-    t_produce_and_consume();
-    return 0;
+    switch (run) {
+        case 1: DemoRunner::renderLoopAndDie(); break;
+        case 2: DemoRunner::producentConsumentAndDie(); break;
 
-
-
-    //DemoRunner::producentConsumentAndDie();
+        case 0:
+        default:
+            break; // default app run
+    }
 
     auto& app = App::instance();
 

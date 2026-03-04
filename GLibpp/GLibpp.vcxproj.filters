@@ -179,5 +179,8 @@
     <ClInclude Include="src\utils\datastruct\TripleBuffer.h">
       <Filter>Zdrojové soubory\src\utils\datastruct</Filter>
     </ClInclude>
+    <ClInclude Include="src\demo\RenderLoopDemo.h">
+      <Filter>Zdrojové soubory\src\demo</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

@@ -159,6 +159,7 @@
     <ClInclude Include="src\core\render\RenderCommand.h" />
     <ClInclude Include="src\core\render\Renderer.h" />
     <ClInclude Include="src\core\SceneState.h" />
+    <ClInclude Include="src\demo\RenderLoopDemo.h" />
     <ClInclude Include="src\demo\DemoRunner.h" />
     <ClInclude Include="src\demo\ProducentConsumentDemo.h" />
     <ClInclude Include="src\geometry\Material.h" />
