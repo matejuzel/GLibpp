@@ -28,11 +28,37 @@ namespace RenderCommand {
         // draw mesh...
     }
 
+    void execSetMatrixProjection(const Command& cmd)
+    {
+        const Mtx4& mtx = cmd.setMatrixProjection.matrix;
+        std::cout << "Set matrix Projection" << std::endl;
+        std::cout << mtx.toString() << std::endl;
+    }
+
+    void execSetMatrixModelview(const Command& cmd)
+    {
+        const Mtx4& mtx = cmd.setMatrixModelView.matrix;
+        std::cout << "Set matrix ModelView" << std::endl;
+        std::cout << mtx.toString() << std::endl;
+    }
+
+    void execSetViewport(const Command& cmd)
+    {
+        uint32_t offsetX = cmd.setViewport.offsetX;
+        uint32_t offsetY = cmd.setViewport.offsetY;
+        uint32_t width = cmd.setViewport.width;
+        uint32_t height = cmd.setViewport.height;
+        std::cout << "Set viewport(" << offsetX << "," << offsetY << "," << width << "," << height << ")" << std::endl;
+    }
+
     Function dispatchTable[] = {
         &execSetClearColor,
         &execClear,
         &execRegisterMesh,
         &execDrawMesh,
+        &execSetMatrixProjection,
+        &execSetMatrixModelview,
+        &execSetViewport,
     };
 
     void exec(const Command& command) {

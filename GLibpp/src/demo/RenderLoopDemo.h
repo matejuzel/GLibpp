@@ -20,10 +20,24 @@ public:
         {
             auto& writeBuffer = tb.writeBuffer();
             writeBuffer.clear();
+
             writeBuffer.pushClearColor(0, 0, 0);
             writeBuffer.pushRegisterMesh(&mshCube00, 0);
             writeBuffer.pushRegisterMesh(&mshCube01, 1);
             writeBuffer.pushRegisterMesh(&mshCube02, 2);
+            
+            writeBuffer.pushSetMatrixModelView(Mtx4::lookAt(
+                Vec4(1.0f, 1.0f, 2.0f, 1.0f), 
+                Vec4(0.0f, 0.0f, 0.0f, 1.0f), 
+                Vec4(0.0f, 1.0f, 0.0f, 0.0f)
+            ));
+            
+            writeBuffer.pushSetMatrixProjection(
+                Mtx4::perspective(45.0f, 16.0f / 9.0f, 0.01f, 1000.0f)
+            );
+
+            writeBuffer.pushSetViewport(0, 0, 1366, 768);
+
             tb.publish();
         }
 

@@ -40,28 +40,36 @@ namespace RenderCommand {
 	enum class CommandType : uintIndex_t {
 		SetClearColor,
 		Clear,
-
 		RegisterMesh,
 		DrawMesh,
-		
+		SetMatrixProjection,
+		SetMatrixModelview,
+		SetViewport,
 	};
 
 	struct SetClearColor {
 		int r, g, b;
 	};
-
 	struct Clear {
 		// empty
 	};
-
 	struct RegisterMesh {
 		uint32_t meshId;
 		Mesh* mesh;
 	};
-
 	struct DrawMesh {
 		uint32_t meshId;
 	};
+	struct SetMatrixProjection {
+		Mtx4 matrix;
+	};
+	struct SetMatrixModelView {
+		Mtx4 matrix;
+	};
+	struct SetViewport {
+		uint32_t offsetX, offsetY, width, height;
+	};
+
 
 	struct Command {
 
@@ -72,6 +80,9 @@ namespace RenderCommand {
 			Clear clear;
 			RegisterMesh registerMesh;
 			DrawMesh drawMesh;
+			SetMatrixProjection setMatrixProjection;
+			SetMatrixModelView setMatrixModelView;
+			SetViewport setViewport;
 		};
 
 		Command() : type(CommandType::Clear), clear{} {}
@@ -82,6 +93,9 @@ namespace RenderCommand {
 	void execClear(const Command& cmd);
 	void execRegisterMesh(const Command& cmd);
 	void execDrawMesh(const Command& cmd);
+	void execSetMatrixProjection(const Command& cmd);
+	void execSetMatrixModelview(const Command& cmd);
+	void execSetViewport(const Command& cmd);
 
 	using Function = void(*)(const Command&);
 	extern Function dispatchTable[];
@@ -135,6 +149,26 @@ namespace RenderCommand {
 			push(cmd);
 		}
 
+		void pushSetMatrixProjection(Mtx4 matrix) {
+			RenderCommand::Command cmd;
+			cmd.type = RenderCommand::CommandType::SetMatrixProjection;
+			cmd.setMatrixProjection = { matrix };
+			push(cmd);
+		}
+
+		void pushSetMatrixModelView(Mtx4 matrix) {
+			RenderCommand::Command cmd;
+			cmd.type = RenderCommand::CommandType::SetMatrixModelview;
+			cmd.setMatrixModelView = { matrix };
+			push(cmd);
+		}
+
+		void pushSetViewport(uint16_t offsetX, uint16_t offsetY, uint16_t width, uint16_t height) {
+			RenderCommand::Command cmd;
+			cmd.type = RenderCommand::CommandType::SetViewport;
+			cmd.setViewport = { offsetX, offsetY, width, height };
+			push(cmd);
+		}
 
 		inline void push(const Command& command) {
 			commands.push_back(command);
