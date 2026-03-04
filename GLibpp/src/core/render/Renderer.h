@@ -2,34 +2,18 @@
 
 #include <iostream>
 #include "core/render/RenderCommand.h"
+#include "utils/datastruct/SPSCQueue.h"
+#include "core/Types.h"
+#include "window/WindowBuilder.h"
 
-typedef SPSCQueue<RenderCommand::Command, 1024> RenderCommandQueueSPSC_t;
-typedef TripleBuffer<RenderCommand::Buffer> RenderCommandBufferTB_t;
+class App; // dopredna deklarace kvuli cyklicke zavislosti s App.h
 
 class Renderer {
 public:
 
 	Renderer():done(false) {}
 
-	void runRenderLoop() {
-
-		while (!done.load(std::memory_order_relaxed)) {
-
-			// precteme a provedeme dynamicke prikazy z fronty
-			while (true) {
-				
-				RenderCommand::Command command;
-				if (!renderCommandQueue.pop(command)) break;
-				RenderCommand::exec(command);
-			}
-
-			// precteme a provedeme staticke prikazy z bufferu
-			const auto& commands = renderCommandBuffer.readBuffer();
-			commands.execute();
-			
-			drawScene();
-		}
-	}
+	void runRenderLoop();
 
 	RenderCommandBufferTB_t& getRenderCommandBufferRef() {
 		return this->renderCommandBuffer;
@@ -45,6 +29,10 @@ public:
 
 	void stop() {
 		done.store(true);
+	}
+
+	bool isRunning() const {
+		return !done.load();
 	}
 
 private:

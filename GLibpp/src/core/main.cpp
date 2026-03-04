@@ -7,6 +7,7 @@
 #include <thread>
 #include <syncstream>
 
+#include "core/Types.h"
 #include "core/App.h"
 #include "window/WindowBuilder.h"
 #include "demo/ProducentConsumentDemo.h"
@@ -15,10 +16,9 @@
 
 #pragma comment(lib, "User32.lib")
 
-
 int main()
 {
-    int run = 1;
+    int run = 0;
 
     switch (run) {
         case 1: DemoRunner::renderLoopAndDie(); break;
@@ -28,6 +28,7 @@ int main()
         default:
             break; // default app run
     }
+
 
     auto& app = App::instance();
 

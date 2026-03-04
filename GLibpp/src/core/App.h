@@ -6,6 +6,7 @@
 #include "window/WindowBuilder.h"
 #include "core/SceneState.h"
 #include "core/GameLoop.h"
+#include "core/render/Renderer.h"
 
 
 class App
@@ -30,16 +31,24 @@ public:
 	void render();
 
 	void setWindow(WindowBuilder* window);
+	WindowBuilder* getWindowPtr() const { return this->win; }
 
 
 	void __work();
 	void __cmdUpdate(float dt, float fps);
+
+	SceneState& getSceneState() { return this->sceneState; }
+
+	void setRendererPtr(Renderer* renderer) {
+		this->renderer = renderer;
+	}
 
 private:
 
 	WindowBuilder* win = nullptr;
 	GameLoop gameLoop;
 	SceneState sceneState;
-	
 	bool antialiasing = true;
+
+	Renderer* renderer = nullptr;
 };

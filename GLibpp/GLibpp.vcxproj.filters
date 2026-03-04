@@ -182,5 +182,8 @@
     <ClInclude Include="src\demo\RenderLoopDemo.h">
       <Filter>Zdrojové soubory\src\demo</Filter>
     </ClInclude>
+    <ClInclude Include="src\core\Types.h">
+      <Filter>Zdrojové soubory\src\core</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

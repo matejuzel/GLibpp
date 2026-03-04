@@ -8,6 +8,7 @@
 
 #include "utils/datastruct/TripleBuffer.h"
 #include "geometry/Mesh.h"
+#include "window/WindowBuilder.h"
 
 
 struct Viewport {
@@ -29,7 +30,44 @@ public:
 		return id < meshes.size() ? meshes[id] : nullptr;
 	}
 
-private:
+	void drawMesh(const Mesh* mesh, Mtx4 matrixMVP, Viewport viewport, WindowBuilder* windowBuilder) {
+
+		float w2 = viewport.width / 2.0f;
+		float h2 = viewport.height / 2.0f;
+
+		Mtx4 viewportMatrix = Mtx4{
+			  w2, 0.0f, 0.0f, w2 + viewport.offsetX,
+			0.0f,   h2, 0.0f, h2 + viewport.offsetY,
+			0.0f, 0.0f, 1.0f, 0.0f,
+			0.0f, 0.0f, 0.0f, 1.0f
+		};
+
+		for (const Triangle& tri : mesh->tris) {
+
+			Vec4 a_ = matrixMVP * tri.a.pos;
+			Vec4 b_ = matrixMVP * tri.b.pos;
+			Vec4 c_ = matrixMVP * tri.c.pos;
+
+			a_.divideW();
+			b_.divideW();
+			c_.divideW();
+
+			a_ = viewportMatrix * a_;
+			b_ = viewportMatrix * b_;
+			c_ = viewportMatrix * c_;
+
+			if (windowBuilder != nullptr) {
+				windowBuilder->DIB_drawTriangle(a_, b_, c_, 0xffff0000, true);
+			}
+			else {
+				std::cout << "RenderCommand::drawMesh windowBuilder is null" << std::endl;
+				
+			}
+			
+		}
+	}
+
+
 	uint32_t nextId = 0;
 	std::vector<Mesh*> meshes;
 

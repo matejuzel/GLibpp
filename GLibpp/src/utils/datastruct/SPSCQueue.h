@@ -3,6 +3,7 @@
 #include <atomic>
 #include "utils/cpu_pause.h"
 
+
 template<typename T, size_t N>
 class SPSCQueue {
 public:
