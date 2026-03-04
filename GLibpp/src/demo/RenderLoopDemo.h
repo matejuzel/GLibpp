@@ -45,7 +45,7 @@ public:
         }
 
         // run reading frames...
-        std::thread consumer(&Renderer::runRenderLoop, &renderer);
+        std::thread t_renderLoop(&Renderer::runRenderLoop, &renderer);
 
 
         std::this_thread::sleep_for(std::chrono::milliseconds(10));
@@ -102,7 +102,7 @@ public:
         
 
         renderer.stop();
-        consumer.join();
+        t_renderLoop.join();
 
 	}
 
