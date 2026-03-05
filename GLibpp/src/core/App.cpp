@@ -10,16 +10,14 @@
 
 using namespace std;
 
-void App::init(int width, int height)
+void App::init()
 {
     auto& rcb = renderCtx->renderer->getRenderCommandBufferRef();
     
     {
         auto& wb = rcb.writeBuffer();
         wb.clear();
-
         wb.pushClear();
-
         
         uint32_t mshIdTmp = 0;
         for (const auto& msh : sceneState.meshesStatic) {

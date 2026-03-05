@@ -51,7 +51,7 @@ int main()
     RenderContext renderCtx(&wnd, &renderer);
 
     App::instance().setRenderContext(&renderCtx);
-    App::instance().init(1200, 800);
+    App::instance().init();
     App::instance().runGameLoop();
 
     return 0;

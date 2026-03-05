@@ -103,7 +103,6 @@ bool GameLoop::mainLoopFixedTimestepBufferedAndQueue()
 bool GameLoop::mainLoopFixedTimestamp()
 {
     App& app = App::instance();
-    app.init(1200, 800);
 
     MSG msg = {};
 
@@ -153,7 +152,6 @@ bool GameLoop::mainLoopFixedTimestamp()
 bool GameLoop::mainLoopBasic()
 {
     App& app = App::instance();
-    app.init(1200, 800);
 
     MSG msg = {};
     while (true)

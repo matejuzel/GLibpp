@@ -21,7 +21,25 @@ void Renderer::runRenderLoop() {
 
 		App::instance().renderCtx->window->DIB_drawBitmap();
 		App::instance().getFps().tick();
-
-		drawScene();
 	}
+}
+
+inline void Renderer::drawScene() {
+
+	// pro jednovlaknovou implementaci (Game loop a rendering v jednom vlakne)
+	
+	// precteme a provedeme dynamicke prikazy z fronty
+	while (true) {
+
+		RenderCommand::Command command;
+		if (!renderCommandQueue.pop(command)) break;
+		RenderCommand::exec(command);
+	}
+
+	// precteme a provedeme staticke prikazy z bufferu
+	const auto& commands = renderCommandBuffer.readBuffer();
+	commands.execute();
+
+	App::instance().renderCtx->window->DIB_drawBitmap();
+	App::instance().getFps().tick();
 }

@@ -28,7 +28,7 @@ public:
 	App() = default;
 
 	void setRenderContext(RenderContext* renderCtx) { this->renderCtx = renderCtx; }
-	void init(int width, int height);
+	void init();
 	bool runGameLoop();
 	void update(float dt);
 	

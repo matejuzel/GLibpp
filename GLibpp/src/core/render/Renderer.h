@@ -23,9 +23,7 @@ public:
 		return this->renderCommandQueue;
 	}
 
-	void drawScene() {
-	
-	}
+	void drawScene();
 
 	void stop() {
 		done.store(true);
