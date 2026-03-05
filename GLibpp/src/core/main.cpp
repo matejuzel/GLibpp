@@ -31,26 +31,27 @@ int main()
     }
 
     // Application entry point
-
-	int width = 2500;
+    int width = 2500;
     int height = 1020;
 
     WindowBuilder wnd(width, height, WindowProc);
-
     if (!wnd.build())
     {
         std::cerr << "Window build failed" << std::endl;
         return 1;
     }
 
-    if (!wnd.DIB_init()) 
+    if (!wnd.DIB_init())
     {
-		std::cerr << "DIB_init failed" << std::endl;
+        std::cerr << "DIB_init failed" << std::endl;
         return 1;
     }
 
-    RenderContext renderCtx(&wnd);
+    Renderer renderer;
+    RenderContext renderCtx(&wnd, &renderer);
+
     App::instance().setRenderContext(&renderCtx);
+    App::instance().init(1200, 800);
     App::instance().runGameLoop();
 
     return 0;

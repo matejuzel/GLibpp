@@ -5,8 +5,9 @@
 class RenderContext {
 public:
 
-	RenderContext(WindowBuilder* window) : 
+	RenderContext(WindowBuilder* window, Renderer* renderer) : 
 		window(window),
+		renderer(renderer),
 		viewport{ 0, 0, 800, 600 },
 		projection{ Mtx4::identity() },
 		modelview{ Mtx4::identity() }
@@ -35,6 +36,7 @@ public:
 	}
 
 	WindowBuilder* window;
+	Renderer* renderer;
 
 private:
 

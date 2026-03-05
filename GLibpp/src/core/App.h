@@ -36,10 +36,6 @@ public:
 
 	//SceneState& getSceneState() { return this->sceneState; }
 
-	void setRendererPtr(Renderer* renderer) {
-		this->renderer = renderer;
-	}
-
 	Fps& getFps() { return this->fps; }
 
 
@@ -52,7 +48,7 @@ private:
 	
 	bool antialiasing = true;
 
-	Renderer* renderer = nullptr;
+	//Renderer* renderer = nullptr;
 
 	Fps fps;
 	Fps fpsLogic;

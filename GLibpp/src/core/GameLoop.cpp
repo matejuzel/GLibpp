@@ -9,11 +9,9 @@ bool GameLoop::mainLoopFixedTimestepBufferedAndQueue()
 {
 
     App& app = App::instance();
-
-    Renderer renderer;
-	app.setRendererPtr(&renderer);
-
-    app.init(1200, 800);
+    auto& renderer = *app.renderCtx->renderer;
+    
+    
 
     {
 		auto& sceneState = app.sceneState;

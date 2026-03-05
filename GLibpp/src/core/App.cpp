@@ -12,8 +12,8 @@ using namespace std;
 
 void App::init(int width, int height)
 {
-    auto& rcb = renderer->getRenderCommandBufferRef();
-
+    auto& rcb = renderCtx->renderer->getRenderCommandBufferRef();
+    
     {
         auto& wb = rcb.writeBuffer();
         wb.clear();
@@ -59,7 +59,7 @@ void App::update(float dt)
         sceneState.velocityMove = 0.0f;
     }
 
-    auto& cmdQ = renderer->getRenderCommandQueue();
+    auto& cmdQ = renderCtx->renderer->getRenderCommandQueue();
     {
         RenderCommand::Command cmd;
         cmd.type = RenderCommand::CommandType::SetMatrixModelview;
