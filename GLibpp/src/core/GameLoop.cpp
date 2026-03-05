@@ -5,6 +5,72 @@
 #include <RenderCommand.h>
 #include <Renderer.h>
 
+
+bool GameLoop::mainLoopFixedTimestepBufferedAndQueueInterpolated()
+{
+    App& app = App::instance();
+    auto& renderer = *app.renderCtx->renderer;
+
+    std::thread t_renderLoop(&Renderer::runRenderLoop, &renderer);
+
+    MSG msg = {};
+
+    const double dt = 1.0 / 60.0;
+    double accumulatorLogic = 0.0;
+    double accumulatorCmd = 0.0;
+
+    HighResTimer timer;
+    timer.tick(); // reset
+
+    while (renderer.isRunning())
+    {
+        // Windows messages
+        while (PeekMessage(&msg, nullptr, 0, 0, PM_REMOVE))
+        {
+            if (msg.message == WM_QUIT) {
+                renderer.stop();
+                break;
+            }
+            TranslateMessage(&msg);
+            DispatchMessage(&msg);
+        }
+
+        // èas
+        double frameTime = timer.tick();
+        if (frameTime > 0.25) frameTime = 0.25;
+
+        accumulatorLogic += frameTime;
+        accumulatorCmd += frameTime;
+
+        // --- LOGIC UPDATE ---
+        while (accumulatorLogic >= dt)
+        {
+            app.update((float)dt);
+            accumulatorLogic -= dt;
+        }
+
+        // --- COMMAND UPDATE ---
+        while (accumulatorCmd >= dt)
+        {
+            app.__cmdUpdate((float)dt);
+            accumulatorCmd -= dt;
+        }
+
+        // --- INTERPOLACE PRO RENDER ---
+        float alpha = (float)(accumulatorLogic / dt);
+
+        // bezpeèné pøedání interpolace rendereru
+        // @todo
+        //renderer.setInterpolationAlpha(alpha);
+    }
+
+    renderer.stop();
+    t_renderLoop.join();
+
+    return true;
+}
+
+
 bool GameLoop::mainLoopFixedTimestepBufferedAndQueue() 
 {
 
@@ -51,7 +117,6 @@ bool GameLoop::mainLoopFixedTimestepBufferedAndQueue()
     }
 
 	renderer.stop();
-	
     t_renderLoop.join();
 
     return true;

@@ -72,8 +72,8 @@ void App::init()
 bool App::runGameLoop() {
 
     //return this->gameLoop.mainLoopBasic();
-    return this->gameLoop.mainLoopFixedTimestamp();
-    //return this->gameLoop.mainLoopFixedTimestepBufferedAndQueue();
+    //return this->gameLoop.mainLoopFixedTimestamp();
+    return this->gameLoop.mainLoopFixedTimestepBufferedAndQueue();
 }
 
 void App::update(float dt)
@@ -107,6 +107,10 @@ void App::update(float dt)
         cmdQ.push(cmd);
     }
     
+    
+    //std::this_thread::sleep_for(std::chrono::milliseconds(1 + (rand() % 20)));
+
+
 	fpsLogic.tick();
 }
 
