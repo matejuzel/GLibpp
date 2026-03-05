@@ -110,51 +110,6 @@
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="src/geometry/AABB.h">
-      <Filter>Hlavičkové soubory</Filter>
-    </ClInclude>
-    <ClInclude Include="src/geometry/Mesh.h">
-      <Filter>Hlavičkové soubory</Filter>
-    </ClInclude>
-    <ClInclude Include="src/math/Mtx4.h">
-      <Filter>Hlavičkové soubory</Filter>
-    </ClInclude>
-    <ClInclude Include="src/geometry/Triangle.h">
-      <Filter>Hlavičkové soubory</Filter>
-    </ClInclude>
-    <ClInclude Include="src/math/Vec4.h">
-      <Filter>Hlavičkové soubory</Filter>
-    </ClInclude>
-    <ClInclude Include="src/geometry/Vertex.h">
-      <Filter>Hlavičkové soubory</Filter>
-    </ClInclude>
-    <ClInclude Include="src\geometry\Material.h">
-      <Filter>Hlavičkové soubory</Filter>
-    </ClInclude>
-    <ClInclude Include="src/core/App.h">
-      <Filter>Hlavičkové soubory</Filter>
-    </ClInclude>
-    <ClInclude Include="src\core\input\Keyboard.h">
-      <Filter>Hlavičkové soubory</Filter>
-    </ClInclude>
-    <ClInclude Include="src\core\input\Keymap.h">
-      <Filter>Hlavičkové soubory</Filter>
-    </ClInclude>
-    <ClInclude Include="src\window\WindowBuilder.h">
-      <Filter>Hlavičkové soubory</Filter>
-    </ClInclude>
-    <ClInclude Include="src\utils\timer\HighResTimer.h">
-      <Filter>Hlavičkové soubory</Filter>
-    </ClInclude>
-    <ClInclude Include="src\utils\timer\FixedTimestep.h">
-      <Filter>Hlavičkové soubory</Filter>
-    </ClInclude>
-    <ClInclude Include="src\window\ConsoleDoubleBuffer.h">
-      <Filter>Hlavičkové soubory</Filter>
-    </ClInclude>
-    <ClInclude Include="src\core\SceneState.h">
-      <Filter>Hlavičkové soubory</Filter>
-    </ClInclude>
     <ClInclude Include="src\utils\datastruct\SPSCQueue.h">
       <Filter>Zdrojové soubory\src\utils\datastruct</Filter>
     </ClInclude>
@@ -190,6 +145,51 @@
     </ClInclude>
     <ClInclude Include="src\utils\timer\Fps.h">
       <Filter>Zdrojové soubory\src\utils\timer</Filter>
+    </ClInclude>
+    <ClInclude Include="src\core\SceneState.h">
+      <Filter>Zdrojové soubory\src\core</Filter>
+    </ClInclude>
+    <ClInclude Include="src/core/App.h">
+      <Filter>Zdrojové soubory\src\core</Filter>
+    </ClInclude>
+    <ClInclude Include="src\core\input\Keyboard.h">
+      <Filter>Zdrojové soubory\src\core\input</Filter>
+    </ClInclude>
+    <ClInclude Include="src/geometry/AABB.h">
+      <Filter>Zdrojové soubory\src\geometry</Filter>
+    </ClInclude>
+    <ClInclude Include="src\geometry\Material.h">
+      <Filter>Zdrojové soubory\src\geometry</Filter>
+    </ClInclude>
+    <ClInclude Include="src/geometry/Mesh.h">
+      <Filter>Zdrojové soubory\src\geometry</Filter>
+    </ClInclude>
+    <ClInclude Include="src/geometry/Triangle.h">
+      <Filter>Zdrojové soubory\src\geometry</Filter>
+    </ClInclude>
+    <ClInclude Include="src/geometry/Vertex.h">
+      <Filter>Zdrojové soubory\src\geometry</Filter>
+    </ClInclude>
+    <ClInclude Include="src/math/Mtx4.h">
+      <Filter>Zdrojové soubory\src\math</Filter>
+    </ClInclude>
+    <ClInclude Include="src/math/Vec4.h">
+      <Filter>Zdrojové soubory\src\math</Filter>
+    </ClInclude>
+    <ClInclude Include="src\utils\timer\FixedTimestep.h">
+      <Filter>Zdrojové soubory\src\utils\timer</Filter>
+    </ClInclude>
+    <ClInclude Include="src\window\ConsoleDoubleBuffer.h">
+      <Filter>Zdrojové soubory\src\window</Filter>
+    </ClInclude>
+    <ClInclude Include="src\utils\timer\HighResTimer.h">
+      <Filter>Zdrojové soubory\src\utils\timer</Filter>
+    </ClInclude>
+    <ClInclude Include="src\window\WindowBuilder.h">
+      <Filter>Zdrojové soubory\src\window</Filter>
+    </ClInclude>
+    <ClInclude Include="src\core\input\Keymap.h">
+      <Filter>Zdrojové soubory\src\core\input</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>
