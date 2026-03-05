@@ -137,6 +137,7 @@
     <ClCompile Include="src/math/Vec4.cpp" />
     <ClCompile Include="src/geometry/Vertex.cpp" />
     <ClCompile Include="src\core\render\RenderCommand.cpp" />
+    <ClCompile Include="src\core\render\RenderContext.cpp" />
     <ClCompile Include="src\core\render\Renderer.cpp" />
     <ClCompile Include="src\core\SceneState.cpp" />
     <ClCompile Include="src\demo\DemoRunner.cpp" />
@@ -158,6 +159,7 @@
     <ClInclude Include="src\core\input\Keyboard.h" />
     <ClInclude Include="src\core\input\Keymap.h" />
     <ClInclude Include="src\core\render\RenderCommand.h" />
+    <ClInclude Include="src\core\render\RenderContext.h" />
     <ClInclude Include="src\core\render\Renderer.h" />
     <ClInclude Include="src\core\SceneState.h" />
     <ClInclude Include="src\core\Types.h" />

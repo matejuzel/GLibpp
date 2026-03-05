@@ -108,6 +108,9 @@
     <ClCompile Include="src\utils\timer\Fps.cpp">
       <Filter>Zdrojové soubory\src\utils\timer</Filter>
     </ClCompile>
+    <ClCompile Include="src\core\render\RenderContext.cpp">
+      <Filter>Zdrojové soubory\src\core\render</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\utils\datastruct\SPSCQueue.h">
@@ -190,6 +193,9 @@
     </ClInclude>
     <ClInclude Include="src\core\input\Keymap.h">
       <Filter>Zdrojové soubory\src\core\input</Filter>
+    </ClInclude>
+    <ClInclude Include="src\core\render\RenderContext.h">
+      <Filter>Zdrojové soubory\src\core\render</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>
