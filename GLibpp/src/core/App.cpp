@@ -27,11 +27,53 @@ void App::init()
     }
     rcb.publish();
 
+    {
+        auto& cmdQ = renderCtx->renderer->getRenderCommandQueue();
+
+        {
+            RenderCommand::Command cmd;
+            cmd.type = RenderCommand::CommandType::SetMatrixProjection;
+            cmd.setMatrixProjection.matrix = sceneState.projection;
+            cmdQ.push(cmd);
+        }
+
+        {
+            RenderCommand::Command cmd;
+            cmd.type = RenderCommand::CommandType::SetMatrixModelview;
+            cmd.setMatrixModelView.matrix = sceneState.view;
+            cmdQ.push(cmd);
+        }
+
+        {
+            RenderCommand::Command cmd;
+            cmd.type = RenderCommand::CommandType::SetViewport;
+            cmd.setViewport.offsetX = sceneState.viewport.offsetX;
+            cmd.setViewport.offsetY = sceneState.viewport.offsetY;
+            cmd.setViewport.width = sceneState.viewport.width;
+            cmd.setViewport.height = sceneState.viewport.height;
+            cmdQ.push(cmd);
+        }
+
+        uint32_t idTmp = 0;
+        for (const Mesh& msh : sceneState.meshesStatic) {
+
+            {
+                RenderCommand::Command cmd;
+                cmd.type = RenderCommand::CommandType::RegisterMesh;
+                cmd.registerMesh.mesh = const_cast<Mesh*>(&msh);
+                cmd.registerMesh.meshId = idTmp++;
+                cmdQ.push(cmd);
+            }
+        }
+    }
+
 }
 
 bool App::runGameLoop() {
-    //return this->gameLoop.mainLoopFixedTimestamp();
-    return this->gameLoop.mainLoopFixedTimestepBufferedAndQueue();
+
+    //return this->gameLoop.mainLoopBasic();
+    return this->gameLoop.mainLoopFixedTimestamp();
+    //return this->gameLoop.mainLoopFixedTimestepBufferedAndQueue();
 }
 
 void App::update(float dt)

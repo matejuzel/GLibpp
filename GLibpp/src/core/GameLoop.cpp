@@ -11,49 +11,6 @@ bool GameLoop::mainLoopFixedTimestepBufferedAndQueue()
     App& app = App::instance();
     auto& renderer = *app.renderCtx->renderer;
     
-    
-
-    {
-		auto& sceneState = app.sceneState;
-        auto& cmdQ = renderer.getRenderCommandQueue();
-
-        {
-            RenderCommand::Command cmd;
-            cmd.type = RenderCommand::CommandType::SetMatrixProjection;
-            cmd.setMatrixProjection.matrix = sceneState.projection;
-            cmdQ.push(cmd);
-        }
-
-        {
-            RenderCommand::Command cmd;
-            cmd.type = RenderCommand::CommandType::SetMatrixModelview;
-			cmd.setMatrixModelView.matrix = sceneState.view;
-            cmdQ.push(cmd);
-        }
-        
-        {
-            RenderCommand::Command cmd;
-            cmd.type = RenderCommand::CommandType::SetViewport;
-            cmd.setViewport.offsetX = sceneState.viewport.offsetX;
-            cmd.setViewport.offsetY = sceneState.viewport.offsetY;
-            cmd.setViewport.width = sceneState.viewport.width;
-            cmd.setViewport.height = sceneState.viewport.height;
-            cmdQ.push(cmd);
-        }
-
-        uint32_t idTmp = 0;
-        for (const Mesh& msh : sceneState.meshesStatic) {
-
-            {
-                RenderCommand::Command cmd;
-                cmd.type = RenderCommand::CommandType::RegisterMesh;
-				cmd.registerMesh.mesh = const_cast<Mesh*>(&msh);
-				cmd.registerMesh.meshId = idTmp++;
-                cmdQ.push(cmd);
-            }
-        }
-    }
-
     std::thread t_renderLoop(&Renderer::runRenderLoop, &renderer);
 
     MSG msg = {};
@@ -141,7 +98,7 @@ bool GameLoop::mainLoopFixedTimestamp()
             app.__cmdUpdate((float)taskCmd.getDt());
         }
 
-        // render ...
+        app.renderCtx->renderer->drawScene();
 
         frames++;
     }
@@ -165,7 +122,8 @@ bool GameLoop::mainLoopBasic()
         }
 
         app.update(0.01f);
-        // render ...
+        
+		app.renderCtx->renderer->drawScene();
 
         Sleep(10);
     }

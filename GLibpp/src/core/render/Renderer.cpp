@@ -24,7 +24,7 @@ void Renderer::runRenderLoop() {
 	}
 }
 
-inline void Renderer::drawScene() {
+void Renderer::drawScene() {
 
 	// pro jednovlaknovou implementaci (Game loop a rendering v jednom vlakne)
 	
