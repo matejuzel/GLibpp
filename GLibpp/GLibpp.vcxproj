@@ -141,6 +141,7 @@
     <ClCompile Include="src\core\SceneState.cpp" />
     <ClCompile Include="src\demo\DemoRunner.cpp" />
     <ClCompile Include="src\utils\timer\FixedTimestep.cpp" />
+    <ClCompile Include="src\utils\timer\Fps.cpp" />
     <ClCompile Include="src\utils\timer\HighResTimer.cpp" />
     <ClCompile Include="src\window\ConsoleDoubleBuffer.cpp" />
     <ClCompile Include="src\window\WindowBuilder.cpp" />
@@ -168,6 +169,7 @@
     <ClInclude Include="src\utils\datastruct\SPSCQueue.h" />
     <ClInclude Include="src\utils\datastruct\TripleBuffer.h" />
     <ClInclude Include="src\utils\timer\FixedTimestep.h" />
+    <ClInclude Include="src\utils\timer\Fps.h" />
     <ClInclude Include="src\utils\timer\HighResTimer.h" />
     <ClInclude Include="src\window\ConsoleDoubleBuffer.h" />
     <ClInclude Include="src\window\WindowBuilder.h" />

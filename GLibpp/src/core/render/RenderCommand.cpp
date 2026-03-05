@@ -9,7 +9,7 @@ namespace RenderCommand {
 
     void execSetClearColor(const Command& cmd) {
         auto& c = cmd.setClearColor;
-        std::cout << "Set clear color to: " << c.r << ", " << c.g << ", " << c.b << std::endl;
+        //std::cout << "Set clear color to: " << c.r << ", " << c.g << ", " << c.b << std::endl;
 
 
     }
@@ -24,14 +24,14 @@ namespace RenderCommand {
 
     void execRegisterMesh(const Command& cmd) {
         g_meshRegistry.registerMesh(cmd.registerMesh.mesh, cmd.registerMesh.meshId);
-        std::cout << "Registered mesh with ID: " << cmd.registerMesh.meshId << std::endl;
+        //std::cout << "Registered mesh with ID: " << cmd.registerMesh.meshId << std::endl;
     }
 
     void execDrawMesh(const Command& cmd) {
         
         Mesh* mesh = g_meshRegistry.get(cmd.drawMesh.meshId);
         if (!mesh) {
-            std::cout << "Mesh ID not found: " << cmd.drawMesh.meshId << std::endl;
+            //std::cout << "Mesh ID not found: " << cmd.drawMesh.meshId << std::endl;
             return;
         }
 		//std::cout << "Drawing mesh with ID: " << cmd.drawMesh.meshId << std::endl;
@@ -48,8 +48,8 @@ namespace RenderCommand {
     void execSetMatrixProjection(const Command& cmd)
     {
         const Mtx4& mtx = cmd.setMatrixProjection.matrix;
-        std::cout << "Set matrix Projection" << std::endl;
-        std::cout << mtx.toString() << std::endl;
+        //std::cout << "Set matrix Projection" << std::endl;
+        //std::cout << mtx.toString() << std::endl;
 
         g_meshRegistry.projectionMatrix = cmd.setMatrixProjection.matrix;
 
@@ -58,8 +58,8 @@ namespace RenderCommand {
     void execSetMatrixModelview(const Command& cmd)
     {
         const Mtx4& mtx = cmd.setMatrixModelView.matrix;
-        std::cout << "Set matrix ModelView" << std::endl;
-        std::cout << mtx.toString() << std::endl;
+        //std::cout << "Set matrix ModelView" << std::endl;
+        //std::cout << mtx.toString() << std::endl;
 
         g_meshRegistry.modelViewMatrix = cmd.setMatrixModelView.matrix;
     }
@@ -70,7 +70,7 @@ namespace RenderCommand {
         uint32_t offsetY = cmd.setViewport.offsetY;
         uint32_t width = cmd.setViewport.width;
         uint32_t height = cmd.setViewport.height;
-        std::cout << "Set viewport(" << offsetX << "," << offsetY << "," << width << "," << height << ")" << std::endl;
+        //std::cout << "Set viewport(" << offsetX << "," << offsetY << "," << width << "," << height << ")" << std::endl;
 
 		g_meshRegistry.viewport.offsetX = offsetX;
         g_meshRegistry.viewport.offsetY = offsetY;

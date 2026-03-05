@@ -64,7 +64,7 @@ bool GameLoop::mainLoopFixedTimestepBufferedAndQueue()
     FixedTimestep taskLogic(60.0);
     FixedTimestep taskCmd(60.0);
 
-    int frames = 0;
+    //int frames = 0;
     
     while (renderer.isRunning())
     {
@@ -94,13 +94,13 @@ bool GameLoop::mainLoopFixedTimestepBufferedAndQueue()
         steps = taskCmd.consume(frameTime);
         for (int i = 0; i < steps; i++) {
 
-            float fps = (float)(frames / timer.sinceStart());
+            //float fps = (float)(frames / timer.sinceStart());
 
-            app.__cmdUpdate((float)taskCmd.getDt(), fps);
+            app.__cmdUpdate((float)taskCmd.getDt());
         }
         //*/
 
-        frames++;
+        //frames++;
     }
 
 	renderer.stop();
@@ -149,7 +149,7 @@ bool GameLoop::mainLoopFixedTimestamp()
 
             float fps = (float)(frames / timer.sinceStart());
 
-            app.__cmdUpdate((float)taskCmd.getDt(), fps);
+            app.__cmdUpdate((float)taskCmd.getDt());
         }
 
         // render

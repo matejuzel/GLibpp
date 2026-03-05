@@ -1,6 +1,7 @@
 
 #include "core/App.h" 
 #include "core/render/Renderer.h"
+#include "utils/timer/Fps.h"
 
 void Renderer::runRenderLoop() {
 
@@ -19,7 +20,7 @@ void Renderer::runRenderLoop() {
 		commands.execute();
 
 		App::instance().getWindowPtr()->DIB_drawBitmap();
-		//this->win->DIB_drawBitmap();
+		App::instance().getFps().tick();
 
 		drawScene();
 	}

@@ -105,6 +105,9 @@
     <ClCompile Include="src\core\render\Renderer.cpp">
       <Filter>Zdrojové soubory\src\core\render</Filter>
     </ClCompile>
+    <ClCompile Include="src\utils\timer\Fps.cpp">
+      <Filter>Zdrojové soubory\src\utils\timer</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src/geometry/AABB.h">
@@ -184,6 +187,9 @@
     </ClInclude>
     <ClInclude Include="src\core\Types.h">
       <Filter>Zdrojové soubory\src\core</Filter>
+    </ClInclude>
+    <ClInclude Include="src\utils\timer\Fps.h">
+      <Filter>Zdrojové soubory\src\utils\timer</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

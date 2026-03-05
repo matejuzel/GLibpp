@@ -6,6 +6,7 @@
 #include <Keymap.h>
 #include "window/ConsoleDoubleBuffer.h"
 #include "window/WindowBuilder.h"
+#include "utils/timer/Fps.h"
 
 using namespace std;
 
@@ -77,21 +78,20 @@ void App::render()
 
 
 
-void App::__cmdUpdate(float dt, float fps)
+void App::__cmdUpdate(float dt)
 {
-
     console.clearBack();
+
     console.write(0, "Matrix:");
     console.write(1, this->sceneState.view.toString());
 
     console.write(6, "Stisknuto: " + this->keyboard.toString());
     console.write(7, "velocity move: " + std::to_string(this->sceneState.velocityMove));
-    console.write(8, "FPS: " + std::to_string(fps));
-    //console.write(8, "velocity move: " + std::to_string(this->sceneState.velocityRotation));
+    console.write(8, "Renderer FPS       : " + std::to_string(this->getFps().getFps()));
+    console.write(9, "Renderer FPS (1%)  : " + std::to_string(this->getFps().getLow1Percent()));
+    console.write(10, "Renderer FPS (0.1%): " + std::to_string(this->getFps().getLowPoint1Percent()));
 
     console.present();
-
-    //WindowBuilder::consolePrint(mtx.toString());
 }
 
 
