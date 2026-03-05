@@ -15,11 +15,7 @@ namespace RenderCommand {
     }
 
     void execClear(const Command& cmd) {
-        //std::cout << "Clear screen\n";
-        
-        //if (App::instance().getWindowPtr()) {
-             App::instance().getWindowPtr()->DIB_clear(0x00000000);
-		//}
+         App::instance().renderCtx->window->DIB_clear(0x00000000);
     }
 
     void execRegisterMesh(const Command& cmd) {
@@ -41,7 +37,7 @@ namespace RenderCommand {
             mesh,
             g_meshRegistry.projectionMatrix * g_meshRegistry.modelViewMatrix,
             g_meshRegistry.viewport,
-            App::instance().getWindowPtr()
+			App::instance().renderCtx->window
         );
     }
 

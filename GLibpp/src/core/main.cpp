@@ -36,9 +36,6 @@ int main()
     int height = 1020;
 
     WindowBuilder wnd(width, height, WindowProc);
-    RenderContext renderCtx(&wnd);
-
-    auto& app = App::instance();
 
     if (!wnd.build())
     {
@@ -52,8 +49,9 @@ int main()
         return 1;
     }
 
-    app.setWindow(&wnd);
-    app.runGameLoop();
+    RenderContext renderCtx(&wnd);
+    App::instance().setRenderContext(&renderCtx);
+    App::instance().runGameLoop();
 
     return 0;
 }

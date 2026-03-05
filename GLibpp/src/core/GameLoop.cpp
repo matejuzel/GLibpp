@@ -16,7 +16,7 @@ bool GameLoop::mainLoopFixedTimestepBufferedAndQueue()
     app.init(1200, 800);
 
     {
-		auto& sceneState = app.getSceneState();
+		auto& sceneState = app.sceneState;
         auto& cmdQ = renderer.getRenderCommandQueue();
 
         {
@@ -44,7 +44,7 @@ bool GameLoop::mainLoopFixedTimestepBufferedAndQueue()
         }
 
         uint32_t idTmp = 0;
-        for (const Mesh& msh : app.getSceneState().meshesStatic) {
+        for (const Mesh& msh : sceneState.meshesStatic) {
 
             {
                 RenderCommand::Command cmd;
@@ -63,8 +63,6 @@ bool GameLoop::mainLoopFixedTimestepBufferedAndQueue()
     HighResTimer timer;
     FixedTimestep taskLogic(60.0);
     FixedTimestep taskCmd(60.0);
-
-    //int frames = 0;
     
     while (renderer.isRunning())
     {
@@ -90,17 +88,11 @@ bool GameLoop::mainLoopFixedTimestepBufferedAndQueue()
             app.update((float)taskLogic.getDt());
         }
 
-        //*
         steps = taskCmd.consume(frameTime);
         for (int i = 0; i < steps; i++) {
 
-            //float fps = (float)(frames / timer.sinceStart());
-
             app.__cmdUpdate((float)taskCmd.getDt());
         }
-        //*/
-
-        //frames++;
     }
 
 	renderer.stop();
@@ -152,8 +144,8 @@ bool GameLoop::mainLoopFixedTimestamp()
             app.__cmdUpdate((float)taskCmd.getDt());
         }
 
-        // render
-        app.render();
+        // render ...
+
         frames++;
     }
 
@@ -177,7 +169,7 @@ bool GameLoop::mainLoopBasic()
         }
 
         app.update(0.01f);
-        app.render();
+        // render ...
 
         Sleep(10);
     }

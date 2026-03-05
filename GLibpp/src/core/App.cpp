@@ -67,66 +67,31 @@ void App::update(float dt)
         cmdQ.push(cmd);
     }
     
+	fpsLogic.tick();
 }
-
-
-void App::render()
-{
-
-
-}
-
 
 
 void App::__cmdUpdate(float dt)
 {
     console.clearBack();
 
-    console.write(0, "Matrix:");
-    console.write(1, this->sceneState.view.toString());
+    int line = 0;
+    console.write(line++, "Matrix:");
+    console.write(line++, this->sceneState.view.toString());
 
-    console.write(6, "Stisknuto: " + this->keyboard.toString());
-    console.write(7, "velocity move: " + std::to_string(this->sceneState.velocityMove));
-    console.write(8, "Renderer FPS       : " + std::to_string(this->getFps().getFps()));
-    console.write(9, "Renderer FPS (1%)  : " + std::to_string(this->getFps().getLow1Percent()));
-    console.write(10, "Renderer FPS (0.1%): " + std::to_string(this->getFps().getLowPoint1Percent()));
+    line += 5;
+
+    console.write(line++, "Stisknuto: " + this->keyboard.toString());
+    console.write(line++, "velocity move: " + std::to_string(this->sceneState.velocityMove));
+    console.write(line++, "Renderer FPS        : " + std::to_string(fps.getFps()));
+    console.write(line++, "Renderer FPS (1%)   : " + std::to_string(fps.getLow1Percent()));
+    console.write(line++, "Renderer FPS (0.1%): " + std::to_string(fps.getLowPoint1Percent()));
+    line++;
+    console.write(line++, "Logic FPS           : " + std::to_string(fpsLogic.getFps()));
+    console.write(line++, "Logic FPS (1%)      : " + std::to_string(fpsLogic.getLow1Percent()));
+    console.write(line++, "Logic FPS (0.1%)    : " + std::to_string(fpsLogic.getLowPoint1Percent()));
 
     console.present();
 }
 
-
-
-void App::setWindow(WindowBuilder *window)
-{
-    this->win = window;
-}
-
-void App::__work()
-{
-
-    /*
-    Mtx4 m;
-
-    m.translate(1, 2, 3);
-    m.rotateX(0.3f);
-    m.rotateY(0.21f);
-
-    cout << m.toStringDetail() << endl;
-
-    Mesh msh = Mesh();
-    msh.addCube(1).transform(
-        Mtx4::identity()
-        .translate(0.2f, 0.1f, -0.1f)
-        .rotateX(0.01f)
-        .rotateY(-0.14f)
-        .rotateZ(0.02f)
-        .translate(0.32f, 0.0f, 0.0f)
-        .scale(3.0f, 0.5f, 1.0f)
-    );
-
-    msh.applyTransformation();
-
-    cout << msh.computeAABB().toString() << endl;
-    */
-}
 

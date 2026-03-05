@@ -34,9 +34,11 @@ public:
 		}
 	}
 
+	WindowBuilder* window;
+
 private:
 
-	WindowBuilder* window;
+	
 	std::unordered_map<uint32_t, Mesh*> meshes;
 	Viewport viewport;
 	Mtx4 projection;

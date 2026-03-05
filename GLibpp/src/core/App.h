@@ -7,6 +7,7 @@
 #include "core/SceneState.h"
 #include "core/GameLoop.h"
 #include "core/render/Renderer.h"
+#include "core/render/RenderContext.h"
 #include <utils/timer/Fps.h>
 
 
@@ -26,19 +27,14 @@ public:
 
 	App() = default;
 
+	void setRenderContext(RenderContext* renderCtx) { this->renderCtx = renderCtx; }
 	void init(int width, int height);
 	bool runGameLoop();
 	void update(float dt);
-	void render();
-
-	void setWindow(WindowBuilder* window);
-	WindowBuilder* getWindowPtr() const { return this->win; }
-
-
-	void __work();
+	
 	void __cmdUpdate(float dt);
 
-	SceneState& getSceneState() { return this->sceneState; }
+	//SceneState& getSceneState() { return this->sceneState; }
 
 	void setRendererPtr(Renderer* renderer) {
 		this->renderer = renderer;
@@ -46,14 +42,18 @@ public:
 
 	Fps& getFps() { return this->fps; }
 
+
+	RenderContext* renderCtx;
+	SceneState sceneState;
+
 private:
 
-	WindowBuilder* win = nullptr;
 	GameLoop gameLoop;
-	SceneState sceneState;
+	
 	bool antialiasing = true;
 
 	Renderer* renderer = nullptr;
 
 	Fps fps;
+	Fps fpsLogic;
 };

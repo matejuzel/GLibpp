@@ -19,7 +19,7 @@ void Renderer::runRenderLoop() {
 		const auto& commands = renderCommandBuffer.readBuffer();
 		commands.execute();
 
-		App::instance().getWindowPtr()->DIB_drawBitmap();
+		App::instance().renderCtx->window->DIB_drawBitmap();
 		App::instance().getFps().tick();
 
 		drawScene();
