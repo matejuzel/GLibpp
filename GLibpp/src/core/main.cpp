@@ -13,6 +13,7 @@
 #include "demo/ProducentConsumentDemo.h"
 #include "window/WindowProcedure.h"
 #include "demo/DemoRunner.h"
+#include "core/render/RenderContext.h"
 
 #pragma comment(lib, "User32.lib")
 
@@ -29,10 +30,15 @@ int main()
             break; // default app run
     }
 
+    // Application entry point
+
+	int width = 2500;
+    int height = 1020;
+
+    WindowBuilder wnd(width, height, WindowProc);
+    RenderContext renderCtx(&wnd);
 
     auto& app = App::instance();
-
-    WindowBuilder wnd(1366, 800, WindowProc);
 
     if (!wnd.build())
     {
