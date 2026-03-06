@@ -10,7 +10,7 @@ void DemoRunner::producentConsumentAndDie()
 
 void DemoRunner::renderLoopAndDie()
 {
-	RenderLoopDemo demo;
-	demo.run();
+	//RenderLoopDemo demo;
+	//demo.run();
 	std::exit(EXIT_SUCCESS);
 }

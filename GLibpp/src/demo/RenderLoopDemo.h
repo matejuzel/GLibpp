@@ -5,7 +5,7 @@ class RenderLoopDemo
 {
 public:
 	void run() {
-	
+	/*
         // init meshes
         mshCube00.addCube(1.0f).transform(Mtx4::rotationY(0.9f));
         mshCube01.addCube(1.0f).transform(Mtx4::scaling(2.0f, 1.0f, 0.6f));
@@ -117,7 +117,7 @@ public:
 
         renderer.stop();
         t_renderLoop.join();
-
+        */
 	}
 
     Renderer renderer;

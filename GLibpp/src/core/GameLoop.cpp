@@ -9,7 +9,8 @@
 bool GameLoop::mainLoopFixedTimestepBufferedAndQueueInterpolated()
 {
     App& app = App::instance();
-    auto& renderer = *app.renderCtx->renderer;
+
+    auto& renderer = *app.renderer;
 
     std::thread t_renderLoop(&Renderer::runRenderLoop, &renderer);
 
@@ -75,7 +76,7 @@ bool GameLoop::mainLoopFixedTimestepBufferedAndQueue()
 {
 
     App& app = App::instance();
-    auto& renderer = *app.renderCtx->renderer;
+    auto& renderer = *app.renderer;
     
     std::thread t_renderLoop(&Renderer::runRenderLoop, &renderer);
 
@@ -163,7 +164,7 @@ bool GameLoop::mainLoopFixedTimestamp()
             app.__cmdUpdate((float)taskCmd.getDt());
         }
 
-        app.renderCtx->renderer->drawScene();
+        app.renderer->drawScene();
 
         frames++;
     }
@@ -188,7 +189,7 @@ bool GameLoop::mainLoopBasic()
 
         app.update(0.01f);
         
-		app.renderCtx->renderer->drawScene();
+		app.renderer->drawScene();
 
         Sleep(10);
     }

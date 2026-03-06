@@ -7,28 +7,29 @@
 #include "window/ConsoleDoubleBuffer.h"
 #include "window/WindowBuilder.h"
 #include "utils/timer/Fps.h"
+#include "core/Types.h"
 
 using namespace std;
 
 void App::init()
 {
-    auto& rcb = renderCtx->renderer->getRenderCommandBufferRef();
+    auto& rcb = renderer->getRenderCommandBufferRef();
     
     {
         auto& wb = rcb.writeBuffer();
         wb.clear();
-        wb.pushClear();
+        wb.pushClear(0, 0, 0);
         
         uint32_t mshIdTmp = 0;
         for (const auto& msh : sceneState.meshesStatic) {
-            wb.pushDrawMesh(mshIdTmp++);
+            wb.pushDrawMesh(mshIdTmp++, msh.transformation);
         }
 
     }
     rcb.publish();
 
     {
-        auto& cmdQ = renderCtx->renderer->getRenderCommandQueue();
+        auto& cmdQ = renderer->getRenderCommandQueue();
 
         {
             RenderCommand::Command cmd;
@@ -99,7 +100,7 @@ void App::update(float dt)
         sceneState.velocityMove = 0.0f;
     }
 
-    auto& cmdQ = renderCtx->renderer->getRenderCommandQueue();
+    auto& cmdQ = renderer->getRenderCommandQueue();
     {
         RenderCommand::Command cmd;
         cmd.type = RenderCommand::CommandType::SetMatrixModelview;

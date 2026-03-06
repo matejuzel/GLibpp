@@ -27,7 +27,6 @@ public:
 
 	App() = default;
 
-	void setRenderContext(RenderContext* renderCtx) { this->renderCtx = renderCtx; }
 	void init();
 	bool runGameLoop();
 	void update(float dt);
@@ -39,7 +38,7 @@ public:
 	Fps& getFps() { return this->fps; }
 
 
-	RenderContext* renderCtx;
+	Renderer* renderer;
 	SceneState sceneState;
 
 private:

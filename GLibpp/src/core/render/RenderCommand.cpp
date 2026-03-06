@@ -7,71 +7,51 @@ MeshRegistry g_meshRegistry;
 
 namespace RenderCommand {
 
-    void execSetClearColor(const Command& cmd) {
+    void execSetClearColor(const Command& cmd, Renderer& renderer) {
         auto& c = cmd.setClearColor;
         //std::cout << "Set clear color to: " << c.r << ", " << c.g << ", " << c.b << std::endl;
 
 
     }
 
-    void execClear(const Command& cmd) {
-         App::instance().renderCtx->window->DIB_clear(0x00000000);
-    }
-
-    void execRegisterMesh(const Command& cmd) {
-        g_meshRegistry.registerMesh(cmd.registerMesh.mesh, cmd.registerMesh.meshId);
-        //std::cout << "Registered mesh with ID: " << cmd.registerMesh.meshId << std::endl;
-    }
-
-    void execDrawMesh(const Command& cmd) {
-        
-        Mesh* mesh = g_meshRegistry.get(cmd.drawMesh.meshId);
-        if (!mesh) {
-            //std::cout << "Mesh ID not found: " << cmd.drawMesh.meshId << std::endl;
-            return;
-        }
-		//std::cout << "Drawing mesh with ID: " << cmd.drawMesh.meshId << std::endl;
-        // draw mesh...
-
-        g_meshRegistry.drawMesh(
-            mesh,
-            g_meshRegistry.projectionMatrix * g_meshRegistry.modelViewMatrix,
-            g_meshRegistry.viewport,
-			App::instance().renderCtx->window
-        );
-    }
-
-    void execSetMatrixProjection(const Command& cmd)
+    void execClear(const Command& cmd, Renderer& renderer) 
     {
-        const Mtx4& mtx = cmd.setMatrixProjection.matrix;
-        //std::cout << "Set matrix Projection" << std::endl;
-        //std::cout << mtx.toString() << std::endl;
-
-        g_meshRegistry.projectionMatrix = cmd.setMatrixProjection.matrix;
-
+		renderer.window->DIB_clear(0x00000000);
     }
 
-    void execSetMatrixModelview(const Command& cmd)
+    void execRegisterMesh(const Command& cmd, Renderer& renderer)
     {
-        const Mtx4& mtx = cmd.setMatrixModelView.matrix;
-        //std::cout << "Set matrix ModelView" << std::endl;
-        //std::cout << mtx.toString() << std::endl;
+        auto id = cmd.registerMesh.meshId;
+        if (id >= renderer.meshRegistry.size())
+            renderer.meshRegistry.resize(id + 1, nullptr);
 
-        g_meshRegistry.modelViewMatrix = cmd.setMatrixModelView.matrix;
+        renderer.meshRegistry[id] = cmd.registerMesh.mesh;
     }
 
-    void execSetViewport(const Command& cmd)
-    {
-        uint32_t offsetX = cmd.setViewport.offsetX;
-        uint32_t offsetY = cmd.setViewport.offsetY;
-        uint32_t width = cmd.setViewport.width;
-        uint32_t height = cmd.setViewport.height;
-        //std::cout << "Set viewport(" << offsetX << "," << offsetY << "," << width << "," << height << ")" << std::endl;
 
-		g_meshRegistry.viewport.offsetX = offsetX;
-        g_meshRegistry.viewport.offsetY = offsetY;
-        g_meshRegistry.viewport.width = width;
-        g_meshRegistry.viewport.height = height;
+    void execDrawMesh(const Command& cmd, Renderer& renderer) 
+    {
+		renderer.drawMesh(cmd.drawMesh.meshId, cmd.drawMesh.transformation);
+    }
+
+    void execSetMatrixProjection(const Command& cmd, Renderer& renderer)
+    {
+        renderer.renderContext.projection = cmd.setMatrixProjection.matrix;
+    }
+
+    void execSetMatrixModelview(const Command& cmd, Renderer& renderer)
+    {
+        renderer.renderContext.modelview = cmd.setMatrixModelView.matrix;
+    }
+
+    void execSetViewport(const Command& cmd, Renderer& renderer)
+    {
+        /*
+        renderer.renderContext.viewport.offsetX = cmd.setViewport.offsetX;
+        renderer.renderContext.viewport.offsetY = cmd.setViewport.offsetY;
+        renderer.renderContext.viewport.width = cmd.setViewport.width;
+        renderer.renderContext.viewport.height = cmd.setViewport.height;
+        */
     }
 
     Function dispatchTable[] = {
@@ -84,8 +64,8 @@ namespace RenderCommand {
         &execSetViewport,
     };
 
-    void exec(const Command& command) {
-        dispatchTable[(uintIndex_t)command.type](command);
+    void exec(const Command& command, Renderer& renderer) {
+        dispatchTable[(uintIndex_t)command.type](command, renderer);
     }
 
 }

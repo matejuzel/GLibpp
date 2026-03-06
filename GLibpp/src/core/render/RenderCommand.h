@@ -1,5 +1,7 @@
 #pragma once
 
+class Renderer;
+
 #include <cstdint>
 #include <vector>
 #include <iostream>
@@ -9,6 +11,7 @@
 #include "utils/datastruct/TripleBuffer.h"
 #include "geometry/Mesh.h"
 #include "window/WindowBuilder.h"
+//#include "core/render/Renderer.h"
 
 
 struct Viewport {
@@ -98,7 +101,7 @@ namespace RenderCommand {
 		int r, g, b;
 	};
 	struct Clear {
-		// empty
+		int r, g, b;
 	};
 	struct RegisterMesh {
 		uint32_t meshId;
@@ -106,6 +109,7 @@ namespace RenderCommand {
 	};
 	struct DrawMesh {
 		uint32_t meshId;
+		Mtx4 transformation;
 	};
 	struct SetMatrixProjection {
 		Mtx4 matrix;
@@ -136,30 +140,30 @@ namespace RenderCommand {
 	};
 
 
-	void execSetClearColor(const Command& cmd);
-	void execClear(const Command& cmd);
-	void execRegisterMesh(const Command& cmd);
-	void execDrawMesh(const Command& cmd);
-	void execSetMatrixProjection(const Command& cmd);
-	void execSetMatrixModelview(const Command& cmd);
-	void execSetViewport(const Command& cmd);
+	void execSetClearColor(const Command& cmd, Renderer& renderer);
+	void execClear(const Command& cmd, Renderer& renderer);
+	void execRegisterMesh(const Command& cmd, Renderer& renderer);
+	void execDrawMesh(const Command& cmd, Renderer& renderer);
+	void execSetMatrixProjection(const Command& cmd, Renderer& renderer);
+	void execSetMatrixModelview(const Command& cmd, Renderer& renderer);
+	void execSetViewport(const Command& cmd, Renderer& renderer);
 
-	using Function = void(*)(const Command&);
+	using Function = void(*)(const Command&, Renderer&);
 	extern Function dispatchTable[];
 
-	void exec(const Command& command);
+	void exec(const Command& command, Renderer& renderer);
 
 
 	class Buffer {
 	public:
 
-		bool execute() const {
+		bool execute(Renderer& renderer) const {
 
 			if (commands.size() == 0) return false;
 
 			for (const auto& cmd : commands) {
 
-				RenderCommand::exec(cmd);
+				RenderCommand::exec(cmd, renderer);
 			}
 			return true;
 		}
@@ -175,12 +179,6 @@ namespace RenderCommand {
 			push(cmd);
 		}
 
-		void pushClear() {
-			RenderCommand::Command cmd;
-			cmd.type = RenderCommand::CommandType::Clear;
-			push(cmd);
-		}
-
 		void pushRegisterMesh(Mesh* mesh, uint32_t meshId) {
 			RenderCommand::Command cmd;
 			cmd.type = RenderCommand::CommandType::RegisterMesh;
@@ -188,11 +186,17 @@ namespace RenderCommand {
 			push(cmd);
 		}
 
+		void pushClear(int r, int g, int b) {
+			RenderCommand::Command cmd;
+			cmd.type = RenderCommand::CommandType::Clear;
+			cmd.clear = { r, g, b };
+			push(cmd);
+		}
 
-		void pushDrawMesh(uint32_t meshId) {
+		void pushDrawMesh(uint32_t meshId, Mtx4 transformation) {
 			RenderCommand::Command cmd;
 			cmd.type = RenderCommand::CommandType::DrawMesh;
-			cmd.drawMesh = { meshId };
+			cmd.drawMesh = { meshId, transformation };
 			push(cmd);
 		}
 
@@ -224,26 +228,11 @@ namespace RenderCommand {
 	private:
 		std::vector<RenderCommand::Command> commands;
 
-		/*inline void push(RenderCommand::Command& command) {
-			commands.push_back(command);
-		}
-		*/
 
 		
 	};
 
 }
 
-
-//extern std::atomic<bool> done;
-//extern TripleBuffer<RenderCommand::Buffer> rcb;
-
-//void t_produce_render_comands();
-
-
-//void t_consume_render_comands();
-
-
-//void t_produce_and_consume();
 
 
