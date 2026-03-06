@@ -19,18 +19,9 @@
 
 int main()
 {
-    int run = 0;
+    //DemoRunner::renderLoopAndDie();
+    //DemoRunner::producentConsumentAndDie();
 
-    switch (run) {
-        case 1: DemoRunner::renderLoopAndDie(); break;
-        case 2: DemoRunner::producentConsumentAndDie(); break;
-
-        case 0:
-        default:
-            break; // default app run
-    }
-
-    // Application entry point
     int width = 1920;
     int height = 1080;
 
