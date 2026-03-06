@@ -17,7 +17,7 @@ class Renderer;
 struct Viewport {
 	uint32_t offsetX, offsetY, width, height;
 };
-
+/*
 class MeshRegistry {
 public:
 
@@ -82,13 +82,13 @@ public:
 
 
 extern MeshRegistry g_meshRegistry;
-
+*/
 namespace RenderCommand {
 
 	typedef uint8_t uintIndex_t;
 
 	enum class CommandType : uintIndex_t {
-		SetClearColor,
+		//SetClearColor,
 		Clear,
 		RegisterMesh,
 		DrawMesh,
@@ -97,9 +97,7 @@ namespace RenderCommand {
 		SetViewport,
 	};
 
-	struct SetClearColor {
-		int r, g, b;
-	};
+	
 	struct Clear {
 		int r, g, b;
 	};
@@ -127,7 +125,7 @@ namespace RenderCommand {
 		CommandType type;
 
 		union {
-			SetClearColor setClearColor;
+			//SetClearColor setClearColor;
 			Clear clear;
 			RegisterMesh registerMesh;
 			DrawMesh drawMesh;
@@ -140,7 +138,7 @@ namespace RenderCommand {
 	};
 
 
-	void execSetClearColor(const Command& cmd, Renderer& renderer);
+	//void execSetClearColor(const Command& cmd, Renderer& renderer);
 	void execClear(const Command& cmd, Renderer& renderer);
 	void execRegisterMesh(const Command& cmd, Renderer& renderer);
 	void execDrawMesh(const Command& cmd, Renderer& renderer);
@@ -172,13 +170,14 @@ namespace RenderCommand {
 			commands.clear();
 		}
 
+		/*
 		void pushClearColor(int r, int g, int b) {
 			RenderCommand::Command cmd;
 			cmd.type = RenderCommand::CommandType::SetClearColor;
 			cmd.setClearColor = { r, g, b };
 			push(cmd);
 		}
-
+		*/
 		void pushRegisterMesh(Mesh* mesh, uint32_t meshId) {
 			RenderCommand::Command cmd;
 			cmd.type = RenderCommand::CommandType::RegisterMesh;

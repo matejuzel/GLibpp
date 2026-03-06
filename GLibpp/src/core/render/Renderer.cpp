@@ -56,12 +56,14 @@ void Renderer::drawMesh(uint32_t meshId, Mtx4 transformation) {
 		
 	auto& mesh = *meshRegistry[meshId];
 
-	float w2 = 400;
-	float h2 = 300;
+	float x = (float)renderContext.viewport.offsetX;
+	float y = (float)renderContext.viewport.offsetY;
+	float w2 = (float)renderContext.viewport.width / 2.0f;
+	float h2 = (float)renderContext.viewport.height / 2.0f;
 
 	Mtx4 viewportMatrix = Mtx4{
-		  w2, 0.0f, 0.0f, w2 + 400,
-		0.0f,   h2, 0.0f, h2 + 300,
+		  w2, 0.0f, 0.0f, w2 + x,
+		0.0f,   h2, 0.0f, h2 + y,
 		0.0f, 0.0f, 1.0f, 0.0f,
 		0.0f, 0.0f, 0.0f, 1.0f
 	};

@@ -31,8 +31,8 @@ int main()
     }
 
     // Application entry point
-    int width = 1200;
-    int height = 900;
+    int width = 1920;
+    int height = 1080;
 
     WindowBuilder wnd(width, height, WindowProc);
     if (!wnd.build())
@@ -48,7 +48,7 @@ int main()
     }
 
     Renderer renderer(&wnd);
-
+;
     App::instance().renderer = &renderer;
     App::instance().init();
     App::instance().runGameLoop();

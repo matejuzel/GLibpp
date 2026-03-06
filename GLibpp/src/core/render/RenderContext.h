@@ -12,7 +12,7 @@ public:
           modelview( Mtx4::identity())
     {}
 
-    //Viewport vp;
+    Viewport viewport;
     Mtx4 projection;
     Mtx4 modelview;
 };

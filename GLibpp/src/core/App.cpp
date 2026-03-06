@@ -13,6 +13,41 @@ using namespace std;
 
 void App::init()
 {
+
+    // iniciace Scene State
+    sceneState.viewport = {
+        0,0,
+        this->renderer->window->getWidth(),
+        this->renderer->window->getHeight()
+    };
+
+    sceneState.projection = Mtx4::perspective(
+        45.0f * 3.14159f / 180.0f,
+        sceneState.width / (float)sceneState.height,
+        0.01f,
+        1000.0f
+    );
+
+    sceneState.view = Mtx4::lookAt(
+        Vec4(10.0f, 1.0f, 3.0f, 1.0f),
+        Vec4(0.0f, 0.0f, 0.0f, 1.0f),
+        Vec4(0.0f, 1.0f, 0.0f, 0.0f)
+    );
+
+    sceneState.meshesStatic = {
+        Mesh().addNet(20).transform(Mtx4::scaling(5.0f, 5.0f, 5.0f)).applyTransformation(),
+        Mesh().addCube(1.0f).transform(Mtx4::rotationY(0.9f)).applyTransformation(),
+        Mesh().addCube(0.3f).transform(Mtx4::translation(2.0f, 1.0f, 0.6f)).applyTransformation(),
+    };
+
+    sceneState.meshesDynamic = {
+        Mesh().addCube(0.5f),
+    };
+
+    sceneState.velocityMove = 0.0f;
+
+
+    // nakrmeni Render Command Bufferu
     auto& rcb = renderer->getRenderCommandBufferRef();
     
     {
@@ -28,6 +63,7 @@ void App::init()
     }
     rcb.publish();
 
+    // nakrmeni Render Command Queue
     {
         auto& cmdQ = renderer->getRenderCommandQueue();
 

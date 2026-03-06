@@ -3,16 +3,9 @@
 #include <WindowBuilder.h>
 #include <App.h>
 
-MeshRegistry g_meshRegistry;
+//MeshRegistry g_meshRegistry;
 
 namespace RenderCommand {
-
-    void execSetClearColor(const Command& cmd, Renderer& renderer) {
-        auto& c = cmd.setClearColor;
-        //std::cout << "Set clear color to: " << c.r << ", " << c.g << ", " << c.b << std::endl;
-
-
-    }
 
     void execClear(const Command& cmd, Renderer& renderer) 
     {
@@ -46,16 +39,14 @@ namespace RenderCommand {
 
     void execSetViewport(const Command& cmd, Renderer& renderer)
     {
-        /*
         renderer.renderContext.viewport.offsetX = cmd.setViewport.offsetX;
         renderer.renderContext.viewport.offsetY = cmd.setViewport.offsetY;
         renderer.renderContext.viewport.width = cmd.setViewport.width;
         renderer.renderContext.viewport.height = cmd.setViewport.height;
-        */
     }
 
     Function dispatchTable[] = {
-        &execSetClearColor,
+        //&execSetClearColor,
         &execClear,
         &execRegisterMesh,
         &execDrawMesh,

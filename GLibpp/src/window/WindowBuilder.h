@@ -35,7 +35,8 @@ public:
 					DIB_putPixel(cx + x, cy + y, color);
 	}
 
-
+	uint32_t getWidth() const { return static_cast<uint32_t>(width); }
+	uint32_t getHeight() const { return static_cast<uint32_t>(height); }
 
 private:
 	
