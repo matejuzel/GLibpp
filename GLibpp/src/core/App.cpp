@@ -25,7 +25,7 @@ void App::init()
         45.0f * 3.14159f / 180.0f,
         sceneState.width / (float)sceneState.height,
         0.01f,
-        1000.0f
+        20.0f
     );
 
     sceneState.view = Mtx4::lookAt(
@@ -35,7 +35,7 @@ void App::init()
     );
 
     sceneState.meshesStatic = {
-        Mesh().addNet(20).transform(Mtx4::scaling(5.0f, 5.0f, 5.0f)).applyTransformation(),
+        Mesh().addNet(100).transform(Mtx4::scaling(5.0f, 0.0f, 5.0f)).applyTransformation(),
         Mesh().addCube(1.0f).transform(Mtx4::rotationY(0.9f)).applyTransformation(),
         Mesh().addCube(0.3f).transform(Mtx4::translation(2.0f, 1.0f, 0.6f)).applyTransformation(),
     };
@@ -121,8 +121,8 @@ void App::update(float dt)
 
     if (keyboard[KEY_UP]) this->sceneState.velocityMove += factorMove * dt;
     if (keyboard[KEY_DOWN]) this->sceneState.velocityMove -= factorMove * dt;
-    if (keyboard[KEY_LEFT]) this->sceneState.view = this->sceneState.view * Mtx4::rotationY(-factorRotate * dt);
-    if (keyboard[KEY_RIGHT]) this->sceneState.view = this->sceneState.view * Mtx4::rotationY(factorRotate * dt);
+    if (keyboard[KEY_LEFT]) this->sceneState.view = this->sceneState.view * Mtx4::rotationY(factorRotate * dt);
+    if (keyboard[KEY_RIGHT]) this->sceneState.view = this->sceneState.view * Mtx4::rotationY(-factorRotate * dt);
     if (keyboard[KEY_SPACE]) this->antialiasing = false;
     if (keyboard[KEY_ENTER]) this->antialiasing = true;
 

@@ -22,8 +22,8 @@ int main()
     //DemoRunner::renderLoopAndDie();
     //DemoRunner::producentConsumentAndDie();
 
-    int width = 1920;
-    int height = 1080;
+    int width = 1600;
+    int height = 900;
 
     WindowBuilder wnd(width, height, WindowProc);
     if (!wnd.build())

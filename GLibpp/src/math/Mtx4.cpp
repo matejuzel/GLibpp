@@ -487,8 +487,8 @@
         return Mtx4(
             f / aspect, 0, 0, 0,
             0, f, 0, 0,
-            0, 0, farZ / (farZ - nearZ), (-farZ * nearZ) / (farZ - nearZ),
-            0, 0, 1, 0
+            0, 0, (farZ + nearZ) / (nearZ - farZ), (2 * farZ * nearZ) / (nearZ - farZ),
+            0, 0, -1, 0
         );
     }
 

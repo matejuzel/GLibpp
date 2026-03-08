@@ -11,8 +11,8 @@ public:
 	
 	SceneState() = default;
 
-	uint32_t width = 1920;
-	uint32_t height = 1080;
+	uint32_t width = 1600;
+	uint32_t height = 900;
 	Mtx4 projection;
 	Mtx4 view;
 	std::vector<Mesh> meshesStatic;
