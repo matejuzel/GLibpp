@@ -39,18 +39,26 @@ bool WindowBuilder::build()
         std::cerr << "RegisterClass failed: " << GetLastError() << std::endl;
         return false;
     }
+    
+    // timto zjsitime jak velke se ma okno vytvorit (klientska oblast + vse ostatni jako okraje, ramecek, lista, ...)
+    RECT rect = { 0, 0, width, height };
+    AdjustWindowRectEx(&rect, WS_OVERLAPPEDWINDOW, FALSE, 0);
+    int winWidth = rect.right - rect.left;
+    int winHeight = rect.bottom - rect.top;
+
     this->hwnd = CreateWindowEx(
         0,
         CLASS_NAME,
         L"Moje WinAPI okno",
         WS_OVERLAPPEDWINDOW,
         CW_USEDEFAULT, CW_USEDEFAULT,
-        this->width, this->height,
+        winWidth, winHeight,
         nullptr,
         nullptr,
         hInstance,
         nullptr
     );
+
 
     if (this->hwnd == nullptr) {
         std::cerr << "CreateWindowEx failed: " << GetLastError() << std::endl;
