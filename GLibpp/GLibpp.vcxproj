@@ -141,6 +141,7 @@
     <ClCompile Include="src\core\render\Renderer.cpp" />
     <ClCompile Include="src\core\SceneState.cpp" />
     <ClCompile Include="src\demo\DemoRunner.cpp" />
+    <ClCompile Include="src\geometry\Entity.cpp" />
     <ClCompile Include="src\utils\timer\FixedTimestep.cpp" />
     <ClCompile Include="src\utils\timer\Fps.cpp" />
     <ClCompile Include="src\utils\timer\HighResTimer.cpp" />
@@ -166,8 +167,10 @@
     <ClInclude Include="src\demo\RenderLoopDemo.h" />
     <ClInclude Include="src\demo\DemoRunner.h" />
     <ClInclude Include="src\demo\ProducentConsumentDemo.h" />
+    <ClInclude Include="src\geometry\Entity.h" />
     <ClInclude Include="src\geometry\Material.h" />
     <ClInclude Include="src\utils\cpu_pause.h" />
+    <ClInclude Include="src\utils\datastruct\AssetRegistry.h" />
     <ClInclude Include="src\utils\datastruct\SPSCQueue.h" />
     <ClInclude Include="src\utils\datastruct\TripleBuffer.h" />
     <ClInclude Include="src\utils\timer\FixedTimestep.h" />

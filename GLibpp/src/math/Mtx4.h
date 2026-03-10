@@ -1,5 +1,6 @@
 #pragma once
 #include <string>
+#include <cstring>
 #include <cmath>
 #include "Vec4.h"
 
@@ -20,6 +21,19 @@ public:
         float m20, float m21, float m22, float m23,
         float m30, float m31, float m32, float m33
     );
+
+    Mtx4(const Mtx4& other)
+    {
+        std::memcpy(data, other.data, sizeof(data));
+    }
+
+    Mtx4& operator=(const Mtx4& other)
+    {
+        if (this != &other)
+            std::memcpy(data, other.data, sizeof(data));
+        return *this;
+    }
+
 
     float& at(int r, int c);
     float  at(int r, int c) const;

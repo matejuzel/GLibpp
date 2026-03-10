@@ -111,6 +111,9 @@
     <ClCompile Include="src\core\render\RenderContext.cpp">
       <Filter>Zdrojové soubory\src\core\render</Filter>
     </ClCompile>
+    <ClCompile Include="src\geometry\Entity.cpp">
+      <Filter>Zdrojové soubory\src\geometry</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\utils\datastruct\SPSCQueue.h">
@@ -196,6 +199,12 @@
     </ClInclude>
     <ClInclude Include="src\core\render\RenderContext.h">
       <Filter>Zdrojové soubory\src\core\render</Filter>
+    </ClInclude>
+    <ClInclude Include="src\utils\datastruct\AssetRegistry.h">
+      <Filter>Zdrojové soubory\src\utils\datastruct</Filter>
+    </ClInclude>
+    <ClInclude Include="src\geometry\Entity.h">
+      <Filter>Zdrojové soubory\src\geometry</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>
