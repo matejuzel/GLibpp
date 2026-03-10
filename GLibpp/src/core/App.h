@@ -43,7 +43,6 @@ public:
 private:
 
 	SceneState sceneState;
-
 	AssetRegistry<Material> materialRegistry;
 	AssetRegistry<Mesh> meshRegistry;
 

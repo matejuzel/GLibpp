@@ -102,7 +102,7 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>$(ProjectDir)src;$(ProjectDir)src\math;$(ProjectDir)src\geometry;$(ProjectDir)src\core;$(ProjectDir)src\core\input;$(ProjectDir)src\window;$(ProjectDir)src\utils\datastruct;$(ProjectDir)src\demo;$(ProjectDir)src\core\render</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ProjectDir)src;$(ProjectDir)src\math;$(ProjectDir)src\geometry;$(ProjectDir)src\core;$(ProjectDir)src\core\input;$(ProjectDir)src\window;$(ProjectDir)src\utils\datastruct;$(ProjectDir)src\demo;$(ProjectDir)src\core\render;$(ProjectDir)src\scene</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -139,10 +139,12 @@
     <ClCompile Include="src\core\render\RenderCommand.cpp" />
     <ClCompile Include="src\core\render\RenderContext.cpp" />
     <ClCompile Include="src\core\render\Renderer.cpp" />
-    <ClCompile Include="src\core\SceneState.cpp" />
     <ClCompile Include="src\demo\DemoRunner.cpp" />
     <ClCompile Include="src\geometry\Color.cpp" />
-    <ClCompile Include="src\geometry\Entity.cpp" />
+    <ClCompile Include="src\geometry\MeshInstance.cpp" />
+    <ClCompile Include="src\scene\Camera.cpp" />
+    <ClCompile Include="src\scene\Light.cpp" />
+    <ClCompile Include="src\scene\SceneState.cpp" />
     <ClCompile Include="src\utils\timer\FixedTimestep.cpp" />
     <ClCompile Include="src\utils\timer\Fps.cpp" />
     <ClCompile Include="src\utils\timer\HighResTimer.cpp" />
@@ -163,14 +165,16 @@
     <ClInclude Include="src\core\render\RenderCommand.h" />
     <ClInclude Include="src\core\render\RenderContext.h" />
     <ClInclude Include="src\core\render\Renderer.h" />
-    <ClInclude Include="src\core\SceneState.h" />
     <ClInclude Include="src\core\Types.h" />
     <ClInclude Include="src\demo\RenderLoopDemo.h" />
     <ClInclude Include="src\demo\DemoRunner.h" />
     <ClInclude Include="src\demo\ProducentConsumentDemo.h" />
     <ClInclude Include="src\geometry\Color.h" />
-    <ClInclude Include="src\geometry\Entity.h" />
     <ClInclude Include="src\geometry\Material.h" />
+    <ClInclude Include="src\geometry\MeshInstance.h" />
+    <ClInclude Include="src\scene\Camera.h" />
+    <ClInclude Include="src\scene\Light.h" />
+    <ClInclude Include="src\scene\SceneState.h" />
     <ClInclude Include="src\utils\cpu_pause.h" />
     <ClInclude Include="src\utils\datastruct\AssetRegistry.h" />
     <ClInclude Include="src\utils\datastruct\SPSCQueue.h" />

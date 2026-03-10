@@ -46,6 +46,9 @@
     <Filter Include="Zdrojové soubory\src\core\render">
       <UniqueIdentifier>{a41bdeca-c216-4287-a38c-bdc0d68f6c39}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Zdrojové soubory\src\scene">
+      <UniqueIdentifier>{e05a5324-21df-4c1d-93b6-a635f1dab62d}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src/geometry/AABB.cpp">
@@ -90,9 +93,6 @@
     <ClCompile Include="src\window\ConsoleDoubleBuffer.cpp">
       <Filter>Zdrojové soubory\src\window</Filter>
     </ClCompile>
-    <ClCompile Include="src\core\SceneState.cpp">
-      <Filter>Zdrojové soubory\src\core</Filter>
-    </ClCompile>
     <ClCompile Include="src\core\GameLoop.cpp">
       <Filter>Zdrojové soubory\src\core</Filter>
     </ClCompile>
@@ -111,10 +111,19 @@
     <ClCompile Include="src\core\render\RenderContext.cpp">
       <Filter>Zdrojové soubory\src\core\render</Filter>
     </ClCompile>
-    <ClCompile Include="src\geometry\Entity.cpp">
+    <ClCompile Include="src\geometry\Color.cpp">
       <Filter>Zdrojové soubory\src\geometry</Filter>
     </ClCompile>
-    <ClCompile Include="src\geometry\Color.cpp">
+    <ClCompile Include="src\scene\Camera.cpp">
+      <Filter>Zdrojové soubory\src\scene</Filter>
+    </ClCompile>
+    <ClCompile Include="src\scene\Light.cpp">
+      <Filter>Zdrojové soubory\src\scene</Filter>
+    </ClCompile>
+    <ClCompile Include="src\scene\SceneState.cpp">
+      <Filter>Zdrojové soubory\src\scene</Filter>
+    </ClCompile>
+    <ClCompile Include="src\geometry\MeshInstance.cpp">
       <Filter>Zdrojové soubory\src\geometry</Filter>
     </ClCompile>
   </ItemGroup>
@@ -154,9 +163,6 @@
     </ClInclude>
     <ClInclude Include="src\utils\timer\Fps.h">
       <Filter>Zdrojové soubory\src\utils\timer</Filter>
-    </ClInclude>
-    <ClInclude Include="src\core\SceneState.h">
-      <Filter>Zdrojové soubory\src\core</Filter>
     </ClInclude>
     <ClInclude Include="src/core/App.h">
       <Filter>Zdrojové soubory\src\core</Filter>
@@ -206,14 +212,23 @@
     <ClInclude Include="src\utils\datastruct\AssetRegistry.h">
       <Filter>Zdrojové soubory\src\utils\datastruct</Filter>
     </ClInclude>
-    <ClInclude Include="src\geometry\Entity.h">
-      <Filter>Zdrojové soubory\src\geometry</Filter>
-    </ClInclude>
     <ClInclude Include="src\geometry\Color.h">
       <Filter>Zdrojové soubory\src\geometry</Filter>
     </ClInclude>
     <ClInclude Include="src\utils\datastruct\Viewport.h">
       <Filter>Zdrojové soubory\src\utils\datastruct</Filter>
+    </ClInclude>
+    <ClInclude Include="src\scene\Camera.h">
+      <Filter>Zdrojové soubory\src\scene</Filter>
+    </ClInclude>
+    <ClInclude Include="src\scene\Light.h">
+      <Filter>Zdrojové soubory\src\scene</Filter>
+    </ClInclude>
+    <ClInclude Include="src\scene\SceneState.h">
+      <Filter>Zdrojové soubory\src\scene</Filter>
+    </ClInclude>
+    <ClInclude Include="src\geometry\MeshInstance.h">
+      <Filter>Zdrojové soubory\src\geometry</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

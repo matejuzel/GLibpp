@@ -7,7 +7,7 @@
 #include "utils/datastruct/Viewport.h"
 #include "scene/Camera.h"
 #include "scene/Light.h"
-#include "geometry/Entity.h"
+#include "geometry/MeshInstance.h"
 
 class SceneState {
 
@@ -15,7 +15,7 @@ public:
 	
 	SceneState() = default;
 
-	void addEntity(const Entity& entity) {
+	void addEntity(const MeshInstance& entity) {
 		entities.push_back(entity);
 	}
 
@@ -36,7 +36,7 @@ public:
 private:
 
 	Camera camera;
-	std::vector<Entity> entities;
+	std::vector<MeshInstance> entities;
 	std::vector<Light> lights;
 
 
