@@ -4,7 +4,7 @@
 #include "math/Mtx4.h"
 #include "window/ConsoleDoubleBuffer.h"
 #include "window/WindowBuilder.h"
-#include "core/SceneState.h"
+#include "scene/SceneState.h"
 #include "core/GameLoop.h"
 #include "core/render/Renderer.h"
 #include "core/render/RenderContext.h"
@@ -33,7 +33,6 @@ public:
 	
 	void __cmdUpdate(float dt);
 
-	//SceneState& getSceneState() { return this->sceneState; }
 
 	Fps& getFps() { return this->fps; }
 
@@ -43,8 +42,14 @@ public:
 
 private:
 
+	SceneState sceneState;
+
+	AssetRegistry<Material> materialRegistry;
+	AssetRegistry<Mesh> meshRegistry;
+
+
+
 	GameLoop gameLoop;
-	
 	bool antialiasing = true;
 
 	//Renderer* renderer = nullptr;

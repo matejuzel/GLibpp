@@ -4,6 +4,7 @@
 #include "utils/timer/FixedTimestep.h"
 #include <RenderCommand.h>
 #include <Renderer.h>
+#include <thread>
 
 
 bool GameLoop::mainLoopFixedTimestepBufferedAndQueueInterpolated()
@@ -164,7 +165,7 @@ bool GameLoop::mainLoopFixedTimestamp()
             app.__cmdUpdate((float)taskCmd.getDt());
         }
 
-        app.renderer->drawScene();
+        //app.renderer->drawScene();
 
         frames++;
     }
@@ -189,7 +190,7 @@ bool GameLoop::mainLoopBasic()
 
         app.update(0.01f);
         
-		app.renderer->drawScene();
+		//app.renderer->drawScene();
 
         Sleep(10);
     }

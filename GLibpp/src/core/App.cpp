@@ -8,12 +8,94 @@
 #include "window/WindowBuilder.h"
 #include "utils/timer/Fps.h"
 #include "core/Types.h"
+#include "geometry/MeshInstance.h"
 
 using namespace std;
 
 void App::init()
 {
 
+    {
+        
+        const auto& camera = sceneState.getCamera();
+
+        {
+            auto mat01 = materialRegistry.add(
+                Material::Create(Color(0x00ff0000))
+            );
+            auto mshNet = meshRegistry.add(
+                Mesh::Net(10)
+            );
+            auto mshCub01 = meshRegistry.add(
+                Mesh::Cube(1.0f)
+            );
+
+            
+            auto ent = MeshInstance(mshNet, mat01, Mtx4::identity().rotateY(3.14159f * 2.0f / 4.0f));
+            auto subent = MeshInstance(mshCub01, mat01)
+
+            sceneState.addEntity();
+            sceneState.addEntity(std::move(entity));
+            
+
+
+            /*entity.addChild(
+                Entity::Make()
+            );*/
+        }
+
+
+
+
+
+        /*
+
+
+        auto mat01 = materialRegistry.add(std::make_unique<Material>());
+        auto mat02 = materialRegistry.add(std::make_unique<Material>());
+
+        auto msh01 = meshRegistry.add(
+            Mesh::Net(10)
+        );
+
+        auto msh02 = meshRegistry.add(
+            Mesh::Cube(1.0f)
+        );
+
+        auto msh03 = meshRegistry.add(
+            Mesh::Cube(1.0f)
+        );
+
+
+        Entity ent01(msh01, 0, Mtx4::identity());
+
+
+        const auto& a = ent01.getChildren();
+        a[0]->transform(Mtx4::rotationX(0.01f));
+
+        ent01.addChild(Entity::Make(msh02, mat01, Mtx4::identity().translate(-1.0f, 0.0f, 0.0f)));
+        ent01.addChild(Entity::Make(msh02, mat02, Mtx4::identity().translate(1.0f, 0.0f, 0.0f)));
+        ent01.addChild(Entity::Make(msh03, mat02, Mtx4::identity().translate(0.0f, 1.0f, 0.0f).rotateY(2.0f * 3.14159f / 4.0f)));
+
+        auto* mesh = meshRegistry.get(ent01.getMeshHandle());
+
+
+
+        meshRegistry.iterate([](Mesh& mesh) {
+            mesh.addCube(1.0f);
+        });
+        */
+    }
+
+
+
+
+
+
+
+
+
+    /*
     // iniciace Scene State
     sceneState.viewport = {
         0,0,
@@ -103,19 +185,20 @@ void App::init()
             }
         }
     }
-
+    */
 }
 
 bool App::runGameLoop() {
 
     //return this->gameLoop.mainLoopBasic();
     //return this->gameLoop.mainLoopFixedTimestamp();
-    return this->gameLoop.mainLoopFixedTimestepBufferedAndQueue();
+    //return this->gameLoop.mainLoopFixedTimestepBufferedAndQueue();
+    return true;
 }
 
 void App::update(float dt)
 {
-
+    /*
     float factorMove = 10.0;
     float factorRotate = 4.0;
 
@@ -149,11 +232,13 @@ void App::update(float dt)
 
 
 	fpsLogic.tick();
+    */
 }
 
 
 void App::__cmdUpdate(float dt)
 {
+    /*
     console.clearBack();
 
     int line = 0;
@@ -173,6 +258,7 @@ void App::__cmdUpdate(float dt)
     console.write(line++, "Logic FPS (0.1%)    : " + std::to_string(fpsLogic.getLowPoint1Percent()));
 
     console.present();
+    */
 }
 
 

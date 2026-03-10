@@ -2,6 +2,8 @@
 
 #include "RenderCommand.h"
 #include "Renderer.h"
+#include "utils/datastruct/Viewport.h"
+#include "math/Mtx4.h"
 
 class RenderContext {
 public:

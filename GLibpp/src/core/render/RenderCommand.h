@@ -1,5 +1,6 @@
 #pragma once
 
+/*
 class Renderer;
 
 #include <cstdint>
@@ -14,75 +15,8 @@ class Renderer;
 //#include "core/render/Renderer.h"
 
 
-struct Viewport {
-	uint32_t offsetX, offsetY, width, height;
-};
-/*
-class MeshRegistry {
-public:
-
-	void registerMesh(Mesh* mesh, uint32_t meshId) {
-		if (meshId >= meshes.size())
-			meshes.resize(meshId + 1);
-
-		meshes[meshId] = mesh;
-	}
 
 
-	Mesh* get(uint32_t id) const {
-		return id < meshes.size() ? meshes[id] : nullptr;
-	}
-
-	void drawMesh(const Mesh* mesh, Mtx4 matrixMVP, Viewport viewport, WindowBuilder* windowBuilder) {
-
-		float w2 = viewport.width / 2.0f;
-		float h2 = viewport.height / 2.0f;
-
-		Mtx4 viewportMatrix = Mtx4{
-			  w2, 0.0f, 0.0f, w2 + viewport.offsetX,
-			0.0f,   h2, 0.0f, h2 + viewport.offsetY,
-			0.0f, 0.0f, 1.0f, 0.0f,
-			0.0f, 0.0f, 0.0f, 1.0f
-		};
-
-		for (const Triangle& tri : mesh->tris) {
-
-			Vec4 a_ = matrixMVP * tri.a.pos;
-			Vec4 b_ = matrixMVP * tri.b.pos;
-			Vec4 c_ = matrixMVP * tri.c.pos;
-
-			a_.divideW();
-			b_.divideW();
-			c_.divideW();
-
-			a_ = viewportMatrix * a_;
-			b_ = viewportMatrix * b_;
-			c_ = viewportMatrix * c_;
-
-			if (windowBuilder != nullptr) {
-				windowBuilder->DIB_drawTriangle(a_, b_, c_, 0xffff0000, true);
-			}
-			else {
-				std::cout << "RenderCommand::drawMesh windowBuilder is null" << std::endl;
-				
-			}
-			
-		}
-	}
-
-
-	uint32_t nextId = 0;
-	std::vector<Mesh*> meshes;
-
-	Mtx4 projectionMatrix{ Mtx4::identity() };
-	Mtx4 modelViewMatrix{ Mtx4::identity() };
-	Viewport viewport{ 0, 0, 800, 600 };
-	
-};
-
-
-extern MeshRegistry g_meshRegistry;
-*/
 namespace RenderCommand {
 
 	typedef uint8_t uintIndex_t;
@@ -170,14 +104,6 @@ namespace RenderCommand {
 			commands.clear();
 		}
 
-		/*
-		void pushClearColor(int r, int g, int b) {
-			RenderCommand::Command cmd;
-			cmd.type = RenderCommand::CommandType::SetClearColor;
-			cmd.setClearColor = { r, g, b };
-			push(cmd);
-		}
-		*/
 		void pushRegisterMesh(Mesh* mesh, uint32_t meshId) {
 			RenderCommand::Command cmd;
 			cmd.type = RenderCommand::CommandType::RegisterMesh;
@@ -233,5 +159,5 @@ namespace RenderCommand {
 
 }
 
-
+*/
 

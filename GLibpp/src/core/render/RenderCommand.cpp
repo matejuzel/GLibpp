@@ -1,3 +1,5 @@
+
+/*
 #include "RenderCommand.h"
 #include "math/Mtx4.h"
 #include <WindowBuilder.h>
@@ -62,3 +64,4 @@ namespace RenderCommand {
 }
 
 
+*/
