@@ -126,6 +126,9 @@
     <ClCompile Include="src\geometry\MeshInstance.cpp">
       <Filter>Zdrojové soubory\src\geometry</Filter>
     </ClCompile>
+    <ClCompile Include="src\core\MeshInstanceRegistry.cpp">
+      <Filter>Zdrojové soubory\src\core</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\utils\datastruct\SPSCQueue.h">
@@ -229,6 +232,9 @@
     </ClInclude>
     <ClInclude Include="src\geometry\MeshInstance.h">
       <Filter>Zdrojové soubory\src\geometry</Filter>
+    </ClInclude>
+    <ClInclude Include="src\core\MeshInstanceRegistry.h">
+      <Filter>Zdrojové soubory\src\core</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

@@ -8,11 +8,7 @@
 class RenderContext {
 public:
 
-    RenderContext()
-        : 
-          projection(Mtx4::identity()),
-          modelview( Mtx4::identity())
-    {}
+    RenderContext() : viewport(0,0,800,600), projection(Mtx4::identity()), modelview(Mtx4::identity()) {}
 
     Viewport viewport;
     Mtx4 projection;

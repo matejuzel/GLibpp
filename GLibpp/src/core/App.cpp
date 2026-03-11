@@ -20,9 +20,15 @@ void App::init()
         const auto& camera = sceneState.getCamera();
 
         {
-            auto mat01 = materialRegistry.add(
-                Material::Create(Color(0x00ff0000))
+            constexpr float twoPi = 3.14159f * 2.0f;
+
+            auto matRed = materialRegistry.add(
+                Material::Create(Color::Red())
             );
+            auto matWhite = materialRegistry.add(
+                Material::Create(Color::White())
+            );
+
             auto mshNet = meshRegistry.add(
                 Mesh::Net(10)
             );
@@ -30,14 +36,53 @@ void App::init()
                 Mesh::Cube(1.0f)
             );
 
-            
-            auto ent = MeshInstance(mshNet, mat01, Mtx4::identity().rotateY(3.14159f * 2.0f / 4.0f));
-            auto subent = MeshInstance(mshCub01, mat01)
 
-            sceneState.addEntity();
-            sceneState.addEntity(std::move(entity));
+            auto hParent = meshInstanceRegistry.create(mshNet, matRed, Mtx4::identity());
+            auto hChild01 = meshInstanceRegistry.create(mshNet, matRed, Mtx4::identity());
+            auto hChild02 = meshInstanceRegistry.create(mshNet, matRed, Mtx4::identity());
+
+            meshInstanceRegistry.get(hParent).addChild(hChild02);
+
+
+
+            /*
+            auto ent = MeshInstance(mshNet, matRed, Mtx4::identity());
+            auto subent = MeshInstance(mshCub01, matWhite);
+
+            std::vector<MeshInstance> meshInstances;
+
+            meshInstances.push_back(MeshInstance(mshNet, matRed, Mtx4::identity()));
+            mesh_instance_handle_t meshInstance01 = meshInstances.size() - 1;
+
+            meshInstances.push_back(MeshInstance(mshCub01, matWhite, Mtx4::identity().rotateY(twoPi / 3.0f)));
+            mesh_instance_handle_t meshInstance02 = meshInstances.size() - 1;
+
+            meshInstances.push_back(MeshInstance(mshCub01, matWhite, Mtx4::identity().rotateY(twoPi / 5.0f)));
+            mesh_instance_handle_t meshInstance03 = meshInstances.size() - 1;
+
+            meshInstances[meshInstance01].addChild(meshInstance02);
+            meshInstances[meshInstance01].addChild(meshInstance03);
+
+            {
+                auto& parent = meshInstances[meshInstance01];
+
+                std::cout << parent.getTransform().toString() << std::endl;
+
+                auto& children = parent.getChildren();
+                for (int i = 0; i < children.size(); i++) {
+                    auto child_handle = children[i];
+                    auto& child = meshInstances[child_handle];
+                    
+                    std::cout << child.getTransform().toString() << std::endl;
+                }
+
+            }
             
 
+
+            //sceneState.addEntity(std::move(entity));
+            
+            */
 
             /*entity.addChild(
                 Entity::Make()

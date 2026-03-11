@@ -9,6 +9,7 @@
 #include "core/render/Renderer.h"
 #include "core/render/RenderContext.h"
 #include <utils/timer/Fps.h>
+#include "core/MeshInstanceRegistry.h"
 
 
 class App
@@ -38,13 +39,14 @@ public:
 
 
 	Renderer* renderer;
-	SceneState sceneState;
 
 private:
 
 	SceneState sceneState;
 	AssetRegistry<Material> materialRegistry;
 	AssetRegistry<Mesh> meshRegistry;
+
+	MeshInstanceRegistry meshInstanceRegistry;
 
 
 

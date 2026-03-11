@@ -1,8 +1,8 @@
 #pragma once
 
 #include <cstdlib>
-#include "demo/ProducentConsumentDemo.h";
-#include "demo/RenderLoopDemo.h";
+#include "demo/ProducentConsumentDemo.h"
+#include "demo/RenderLoopDemo.h"
 
 class DemoRunner {
 public:

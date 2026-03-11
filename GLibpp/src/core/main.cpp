@@ -15,8 +15,6 @@
 //#include "demo/DemoRunner.h"
 //#include "core/render/RenderContext.h"
 
-#include "geometry/Entity.h"
-
 #pragma comment(lib, "User32.lib")
 
 int main()
