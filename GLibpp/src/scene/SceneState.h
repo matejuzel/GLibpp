@@ -15,9 +15,11 @@ public:
 	
 	SceneState() = default;
 
+	/*
 	void addEntity(const MeshInstance& entity) {
 		entities.push_back(entity);
 	}
+	*/
 
 	void addLight(const Light& light) {
 		lights.push_back(light);
@@ -36,7 +38,7 @@ public:
 private:
 
 	Camera camera;
-	std::vector<MeshInstance> entities;
+	//std::vector<MeshInstance> entities;
 	std::vector<Light> lights;
 
 

@@ -1,6 +1,7 @@
 #pragma once
 
 #include <windows.h>
+#include <vector>
 #include "core/input/Keymap.h"
 
 LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
@@ -37,10 +38,14 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 
             KeyMap key = KEYMAP[vk];
 
-            if (isUp)
-                App::instance().keyboard.keyUp((size_t)key);
-            else
-                App::instance().keyboard.keyDown((size_t)key);
+            if (isUp) {
+                //App::instance().keyboard.keyUp((size_t)key);
+            }
+            else 
+            {
+                //App::instance().keyboard.keyDown((size_t)key);
+            }
+                
         }
 
     }

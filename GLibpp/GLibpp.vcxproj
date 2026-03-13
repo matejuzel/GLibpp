@@ -150,7 +150,9 @@
     <ClCompile Include="src\utils\timer\Fps.cpp" />
     <ClCompile Include="src\utils\timer\HighResTimer.cpp" />
     <ClCompile Include="src\window\ConsoleDoubleBuffer.cpp" />
-    <ClCompile Include="src\window\WindowBuilder.cpp" />
+    <ClCompile Include="src\window\DIB\DIBFramebuffer.cpp" />
+    <ClCompile Include="src\window\DIB\DIBRenderer.cpp" />
+    <ClCompile Include="src\window\WindowWin32.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src/core/App.h" />
@@ -186,8 +188,10 @@
     <ClInclude Include="src\utils\timer\Fps.h" />
     <ClInclude Include="src\utils\timer\HighResTimer.h" />
     <ClInclude Include="src\window\ConsoleDoubleBuffer.h" />
-    <ClInclude Include="src\window\WindowBuilder.h" />
+    <ClInclude Include="src\window\DIB\DIBFramebuffer.h" />
+    <ClInclude Include="src\window\DIB\DIBRenderer.h" />
     <ClInclude Include="src\window\WindowProcedure.h" />
+    <ClInclude Include="src\window\WindowWin32.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

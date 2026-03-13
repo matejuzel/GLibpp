@@ -3,7 +3,7 @@
 #include "core/input/Keyboard.h"
 #include "math/Mtx4.h"
 #include "window/ConsoleDoubleBuffer.h"
-#include "window/WindowBuilder.h"
+#include "window/WindowWin32.h"
 #include "scene/SceneState.h"
 #include "core/GameLoop.h"
 #include "core/render/Renderer.h"
@@ -26,7 +26,7 @@ public:
 
 	ConsoleDoubleBuffer console;
 
-	App() = default;
+	//App() = default;
 
 	void init();
 	bool runGameLoop();
@@ -46,7 +46,7 @@ private:
 	AssetRegistry<Material> materialRegistry;
 	AssetRegistry<Mesh> meshRegistry;
 
-	MeshInstanceRegistry meshInstanceRegistry;
+	//MeshInstanceRegistry meshInstanceRegistry;
 
 
 

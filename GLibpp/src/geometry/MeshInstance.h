@@ -12,9 +12,12 @@ struct MeshInstanceHandle {
 
 static constexpr MeshInstanceHandle INVALID_MESH_INSTANCE = { UINT32_MAX, UINT32_MAX };
 
+/*
 class MeshInstance {
 public:
     MeshInstance() = default;
+    ~MeshInstance() = default;
+
 
     MeshInstance(const MeshInstance&) = delete;
     MeshInstance& operator=(const MeshInstance&) = delete;
@@ -53,3 +56,4 @@ private:
     MeshInstanceHandle parent;
     std::vector<MeshInstanceHandle> children;
 };
+*/

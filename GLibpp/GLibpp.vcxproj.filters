@@ -49,6 +49,9 @@
     <Filter Include="Zdrojové soubory\src\scene">
       <UniqueIdentifier>{e05a5324-21df-4c1d-93b6-a635f1dab62d}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Zdrojové soubory\src\window\DIB">
+      <UniqueIdentifier>{5a02653f-2002-4c5c-b9c1-dddc4e7aacfa}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src/geometry/AABB.cpp">
@@ -80,9 +83,6 @@
     </ClCompile>
     <ClCompile Include="src\core\input\Keyboard.cpp">
       <Filter>Zdrojové soubory\src\core\input</Filter>
-    </ClCompile>
-    <ClCompile Include="src\window\WindowBuilder.cpp">
-      <Filter>Zdrojové soubory\src\window</Filter>
     </ClCompile>
     <ClCompile Include="src\utils\timer\HighResTimer.cpp">
       <Filter>Zdrojové soubory\src\utils\timer</Filter>
@@ -128,6 +128,15 @@
     </ClCompile>
     <ClCompile Include="src\core\MeshInstanceRegistry.cpp">
       <Filter>Zdrojové soubory\src\core</Filter>
+    </ClCompile>
+    <ClCompile Include="src\window\WindowWin32.cpp">
+      <Filter>Zdrojové soubory\src\window</Filter>
+    </ClCompile>
+    <ClCompile Include="src\window\DIB\DIBRenderer.cpp">
+      <Filter>Zdrojové soubory\src\window\DIB</Filter>
+    </ClCompile>
+    <ClCompile Include="src\window\DIB\DIBFramebuffer.cpp">
+      <Filter>Zdrojové soubory\src\window\DIB</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -203,9 +212,6 @@
     <ClInclude Include="src\utils\timer\HighResTimer.h">
       <Filter>Zdrojové soubory\src\utils\timer</Filter>
     </ClInclude>
-    <ClInclude Include="src\window\WindowBuilder.h">
-      <Filter>Zdrojové soubory\src\window</Filter>
-    </ClInclude>
     <ClInclude Include="src\core\input\Keymap.h">
       <Filter>Zdrojové soubory\src\core\input</Filter>
     </ClInclude>
@@ -235,6 +241,15 @@
     </ClInclude>
     <ClInclude Include="src\core\MeshInstanceRegistry.h">
       <Filter>Zdrojové soubory\src\core</Filter>
+    </ClInclude>
+    <ClInclude Include="src\window\WindowWin32.h">
+      <Filter>Zdrojové soubory\src\window</Filter>
+    </ClInclude>
+    <ClInclude Include="src\window\DIB\DIBRenderer.h">
+      <Filter>Zdrojové soubory\src\window\DIB</Filter>
+    </ClInclude>
+    <ClInclude Include="src\window\DIB\DIBFramebuffer.h">
+      <Filter>Zdrojové soubory\src\window\DIB</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

@@ -56,7 +56,7 @@ void Renderer::registerMesh(Mesh* mesh, uint32_t meshId) {
 }
 */
 
-void Renderer::drawMesh(WindowBuilder* window, const Mesh& mesh, const Mtx4& matrixMVP, const Material& material) const
+void Renderer::drawMesh(WindowWin32* window, const Mesh& mesh, const Mtx4& matrixMVP, const Material& material) const
 {
 	if (window == nullptr) return;
 
@@ -119,7 +119,7 @@ void Renderer::drawMesh(WindowBuilder* window, const Mesh& mesh, const Mtx4& mat
 		c_.y = c_.y * -h2 + (h2 + y);
 
 		// Draw
-		window->DIB_drawTriangle(a_, b_, c_, 0xffff0000, true);
+		//window->DIB_drawTriangle(a_, b_, c_, 0xffff0000, true);
 	}
 }
 

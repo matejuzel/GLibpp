@@ -4,23 +4,23 @@
 #include <windows.h>
 #include <string>
 #include <iostream>
-#include "WindowBuilder.h"
+#include "WindowWin32.h"
 #include "core/App.h"
 #include "core/input/Keymap.h"
 
 
-WindowBuilder::WindowBuilder(int width, int height, WindowCallback proc)
+WindowWin32::WindowWin32(int width, int height, WindowCallback proc)
     : hwnd(nullptr),
       hInstance(nullptr),
       callback(proc),
-      hBitmap(nullptr),
-      framebuffer(nullptr),
+      //hBitmap(nullptr),
+      //framebuffer(nullptr),
       width(width),
       height(height)
 {
 }
 
-bool WindowBuilder::build() 
+bool WindowWin32::build()
 {
     hInstance = GetModuleHandle(nullptr);
 
@@ -67,17 +67,17 @@ bool WindowBuilder::build()
 
     this->glibRegisterRawInputDevices();
 
-    ShowWindow(this->hwnd, SW_SHOWNORMAL);
+    ShowWindow(this->hwnd, SW_MAXIMIZE);
     UpdateWindow(this->hwnd);
 
     return true;
 }
 
-HWND WindowBuilder::getHwnd() const {
+HWND WindowWin32::getHwnd() const {
     return this->hwnd;
 }
 
-void WindowBuilder::glibRegisterRawInputDevices()
+void WindowWin32::glibRegisterRawInputDevices()
 {
     // registrace Raw Input Devices - pro lepsi odchytavani stisku klaves
 
@@ -90,7 +90,7 @@ void WindowBuilder::glibRegisterRawInputDevices()
     RegisterRawInputDevices(&rid, 1, sizeof(rid));
 }
 
-void WindowBuilder::consoleSetFixedViewport()
+void WindowWin32::consoleSetFixedViewport()
 {
     // nastavime konzoli na fixed viewport (vypne scrollovani)
     HANDLE h = GetStdHandle(STD_OUTPUT_HANDLE);
@@ -111,7 +111,7 @@ void WindowBuilder::consoleSetFixedViewport()
     SetConsoleCursorInfo(h, &cursorInfo);
 }
 
-void WindowBuilder::consolePrint(std::string text)
+void WindowWin32::consolePrint(std::string text)
 {
     HANDLE h = GetStdHandle(STD_OUTPUT_HANDLE);
     COORD pos = { 0, 0 };
@@ -120,7 +120,7 @@ void WindowBuilder::consolePrint(std::string text)
     std::cout << text;
 }
 
-void WindowBuilder::consoleClear()
+void WindowWin32::consoleClear()
 {
     HANDLE h = GetStdHandle(STD_OUTPUT_HANDLE);
 
@@ -137,7 +137,8 @@ void WindowBuilder::consoleClear()
     SetConsoleCursorPosition(h, {0, 0});
 }
 
-bool WindowBuilder::DIB_init()
+/*
+bool WindowWin32::DIB_init()
 {
     BITMAPINFO bmi = {};
     bmi.bmiHeader.biSize = sizeof(BITMAPINFOHEADER);
@@ -161,15 +162,16 @@ bool WindowBuilder::DIB_init()
     ReleaseDC(nullptr, screen);
 
     return true;
-}
+}*/
 
-void WindowBuilder::DIB_clear(uint32_t color)
+/*
+void WindowWin32::DIB_clear(uint32_t color)
 {
     for (int i = 0; i < width * height; i++)
         framebuffer[i] = color;
 }
 
-void WindowBuilder::DIB_putPixel(int x, int y, uint32_t color)
+void WindowWin32::DIB_putPixel(int x, int y, uint32_t color)
 {
     if (x < 0 || y < 0 || x >= width || y >= height) return;
     framebuffer[y * width + x] = color;
@@ -303,7 +305,7 @@ static void drawLineWithAntialiasing(uint32_t* framebuffer, int fbWidth, int fbH
     }
 }
 
-void WindowBuilder::DIB_drawTriangle(const Vec4& a, const Vec4& b, const Vec4& c, uint32_t color, bool useAntialiasing)
+void WindowWin32::DIB_drawTriangle(const Vec4& a, const Vec4& b, const Vec4& c, uint32_t color, bool useAntialiasing)
 {
     int ax = (int)std::lround(a.x);
     int ay = (int)std::lround(a.y);
@@ -314,7 +316,7 @@ void WindowBuilder::DIB_drawTriangle(const Vec4& a, const Vec4& b, const Vec4& c
 
     if (useAntialiasing) 
     {
-        drawLineWithAntialiasing(framebuffer, this->width, this->height, ax, ay, bx, by, color);
+        drawLineWithAntialiasing(fbuff->framebuffer, fbuff->width, this->height, ax, ay, bx, by, color);
         drawLineWithAntialiasing(framebuffer, this->width, this->height, bx, by, cx, cy, color);
         drawLineWithAntialiasing(framebuffer, this->width, this->height, cx, cy, ax, ay, color);
     } 
@@ -327,18 +329,4 @@ void WindowBuilder::DIB_drawTriangle(const Vec4& a, const Vec4& b, const Vec4& c
 
     
 }
-
-void WindowBuilder::DIB_drawBitmap()
-{
-    HDC dc = GetDC(this->hwnd);
-
-    HDC memDC = CreateCompatibleDC(dc);
-    HBITMAP old = (HBITMAP)SelectObject(memDC, hBitmap);
-
-    BitBlt(dc, 0, 0, this->width, this->height, memDC, 0, 0, SRCCOPY);
-
-    SelectObject(memDC, old);
-    DeleteDC(memDC);
-
-    ReleaseDC(hwnd, dc);
-}
+*/

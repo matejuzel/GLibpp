@@ -5,11 +5,7 @@
 #include <cassert>
 #include "MeshInstance.h"
 
-struct MeshInstanceHandle {
-    uint32_t index;
-    uint32_t generation;
-};
-
+/*
 class MeshInstanceRegistry {
 public:
     static constexpr MeshInstanceHandle INVALID = { UINT32_MAX, UINT32_MAX };
@@ -33,13 +29,22 @@ public:
 
         }
         else {
-            Slot slot;
-            slot.generation = 0;
-            slot.alive = true;
+            //Slot slot;
+            //slot.generation = 0;
+            //slot.alive = true;
+            //new (&slot.instance) MeshInstance(mesh, material, transform);
+            //slots.push_back(std::move(slot));
 
-            new (&slot.instance) MeshInstance(mesh, material, transform);
 
-            slots.push_back(std::move(slot));
+            slots.emplace_back();
+            Slot& slotRef = slots.back();
+            slotRef.generation = 0;
+            slotRef.alive = true;
+
+            new (&slotRef.instance) MeshInstance(mesh, material, transform);
+
+
+
             index = slots.size() - 1;
         }
 
@@ -92,3 +97,4 @@ private:
     std::vector<Slot> slots;
     std::vector<uint32_t> freeList;
 };
+*/

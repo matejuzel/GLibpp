@@ -6,14 +6,14 @@
 #include <string>
 #include "math/Vec4.h"
 
-class WindowBuilder {
+class WindowWin32 {
 
 public:
 
 	using WindowCallback = LRESULT(CALLBACK*)(HWND, UINT, WPARAM, LPARAM);
 	//using MainLoopCallback = bool(*)(float logicHz);
 
-	WindowBuilder(int width, int height, WindowCallback proc);
+	WindowWin32(int width, int height, WindowCallback proc);
 
 	bool build();
 	HWND getHwnd() const;
@@ -22,10 +22,36 @@ public:
 	static void consolePrint(std::string text);
 	static void consoleClear();
 
-	bool DIB_init();
+	//bool DIB_init();
+
+	void DIB_removeOverlapProperty() {
+		// odebere oknu ramecek
+		LONG style = GetWindowLong(hwnd, GWL_STYLE);
+		style &= ~WS_OVERLAPPEDWINDOW;
+		SetWindowLong(hwnd, GWL_STYLE, style);
+	}
+
+	void resizeWindowToFillScreen() {
+		HMONITOR monitor = MonitorFromWindow(hwnd, MONITOR_DEFAULTTONEAREST);
+		MONITORINFO mi = {};
+		mi.cbSize = sizeof(mi);
+		GetMonitorInfo(monitor, &mi);
+		RECT r = mi.rcMonitor;
+
+		SetWindowPos(
+			hwnd, 
+			nullptr, 
+			r.left, 
+			r.top, 
+			r.right - r.left, 
+			r.bottom - r.top,
+			SWP_FRAMECHANGED | SWP_NOZORDER
+		);
+	}
+
 	void DIB_clear(uint32_t color);
 	void DIB_putPixel(int x, int y, uint32_t color);
-	void DIB_drawBitmap();
+	
 	void DIB_drawTriangle(const Vec4& a, const Vec4& b, const Vec4& c, uint32_t color = 0xffffffff, bool useAntialiasing = false);
 	void DIB_drawCircle(int cx, int cy, int r, uint32_t color)
 	{
@@ -45,8 +71,8 @@ private:
 	//MainLoopCallback mainLoopProc;
 	WindowCallback callback = nullptr;
 
-	HBITMAP hBitmap = nullptr;
-	uint32_t* framebuffer = nullptr;
+	//HBITMAP hBitmap = nullptr;
+	//uint32_t* framebuffer = nullptr;
 	int width, height;
 
 	void glibRegisterRawInputDevices();

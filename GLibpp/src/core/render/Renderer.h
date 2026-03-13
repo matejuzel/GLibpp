@@ -5,7 +5,7 @@
 #include "core/render/RenderContext.h"
 #include "utils/datastruct/SPSCQueue.h"
 #include "core/Types.h"
-#include "window/WindowBuilder.h"
+#include "window/WindowWin32.h"
 #include "geometry/Mesh.h"
 
 class App; // dopredna deklarace kvuli cyklicke zavislosti s App.h
@@ -13,7 +13,7 @@ class App; // dopredna deklarace kvuli cyklicke zavislosti s App.h
 class Renderer {
 public:
 
-	Renderer(WindowBuilder* window) : window(window), done(false) {}
+	Renderer(WindowWin32* window) : window(window), done(false) {}
 
 	void runRenderLoop() {}
 
@@ -33,7 +33,7 @@ public:
 
 	
 
-	void drawMesh(WindowBuilder* window, const Mesh& mesh, const Mtx4& matrixMVP, const Material& material) const;
+	void drawMesh(WindowWin32* window, const Mesh& mesh, const Mtx4& matrixMVP, const Material& material) const;
 
 	void stop() {
 		done.store(true);
@@ -45,7 +45,7 @@ public:
 
 
 
-	WindowBuilder* window;
+	WindowWin32* window;
 	RenderContext renderContext;
 
 	std::atomic<bool> done;

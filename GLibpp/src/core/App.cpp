@@ -5,7 +5,7 @@
 #include "math/Mtx4.h"
 #include <Keymap.h>
 #include "window/ConsoleDoubleBuffer.h"
-#include "window/WindowBuilder.h"
+#include "window/WindowWin32.h"
 #include "utils/timer/Fps.h"
 #include "core/Types.h"
 #include "geometry/MeshInstance.h"
@@ -37,11 +37,11 @@ void App::init()
             );
 
 
-            auto hParent = meshInstanceRegistry.create(mshNet, matRed, Mtx4::identity());
-            auto hChild01 = meshInstanceRegistry.create(mshNet, matRed, Mtx4::identity());
-            auto hChild02 = meshInstanceRegistry.create(mshNet, matRed, Mtx4::identity());
+            //auto hParent = meshInstanceRegistry.create(mshNet, matRed, Mtx4::identity());
+            //auto hChild01 = meshInstanceRegistry.create(mshNet, matRed, Mtx4::identity());
+            //auto hChild02 = meshInstanceRegistry.create(mshNet, matRed, Mtx4::identity());
 
-            meshInstanceRegistry.get(hParent).addChild(hChild02);
+            //meshInstanceRegistry.get(hParent).addChild(hChild02);
 
 
 
