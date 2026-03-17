@@ -8,38 +8,41 @@
 #include "core/App.h"
 #include "core/input/Keymap.h"
 
+ bool WindowWin32::RegisterWindowClass(HINSTANCE hInstance, WindowCallback callback) {
 
-WindowWin32::WindowWin32(int width, int height, WindowCallback proc)
-    : hwnd(nullptr),
-      hInstance(nullptr),
-      callback(proc),
-      //hBitmap(nullptr),
-      //framebuffer(nullptr),
-      width(width),
-      height(height)
-{
+    // staticky atribut deklarovany v teto staticke metode se provede pouze pri prvnim volani metody (function-local static v C++)
+    // zaroven v C++11+ by to melo byt thread safe - takze neni potreba resit atomic
+    static bool registered = false; 
+    if (registered) return true;
+
+    WNDCLASS wc = {};
+    wc.lpfnWndProc = callback;
+    wc.hInstance = hInstance;
+    wc.lpszClassName = GetClassName();
+
+    wc.hCursor = LoadCursor(nullptr, IDC_ARROW);
+    wc.hbrBackground = (HBRUSH)(COLOR_WINDOW + 1);
+
+    ATOM cls = RegisterClass(&wc);
+    if (cls == 0) return false;
+
+    registered = true;
+
+    return true;
 }
 
 bool WindowWin32::build()
 {
     hInstance = GetModuleHandle(nullptr);
 
-    const wchar_t CLASS_NAME[] = L"MyWinAPIWindowClass";
+    //const wchar_t CLASS_NAME[] = L"MyWinAPIWindowClass";
 
-    WNDCLASS wc = {};
-    wc.lpfnWndProc = this->callback;
-    wc.hInstance = hInstance;
-    wc.lpszClassName = CLASS_NAME;
-
-    wc.hCursor = LoadCursor(nullptr, IDC_ARROW);
-    wc.hbrBackground = (HBRUSH)(COLOR_WINDOW + 1);
-
-    ATOM cls = RegisterClass(&wc);
-    if (cls == 0) {
+    if (!RegisterWindowClass(hInstance, callback))
+    {
         std::cerr << "RegisterClass failed: " << GetLastError() << std::endl;
         return false;
     }
-    
+
     // timto zjsitime jak velke se ma okno vytvorit (klientska oblast + vse ostatni jako okraje, ramecek, lista, ...)
     RECT rect = { 0, 0, width, height };
     AdjustWindowRectEx(&rect, WS_OVERLAPPEDWINDOW, FALSE, 0);
@@ -48,7 +51,7 @@ bool WindowWin32::build()
 
     this->hwnd = CreateWindowEx(
         0,
-        CLASS_NAME,
+        GetClassName(),
         L"Moje WinAPI okno",
         WS_OVERLAPPEDWINDOW,
         CW_USEDEFAULT, CW_USEDEFAULT,
@@ -67,7 +70,10 @@ bool WindowWin32::build()
 
     this->glibRegisterRawInputDevices();
 
-    ShowWindow(this->hwnd, SW_MAXIMIZE);
+    auto winShowMode = SW_SHOWNORMAL;
+    if (maximized) winShowMode = SW_MAXIMIZE;
+
+    ShowWindow(this->hwnd, winShowMode);
     UpdateWindow(this->hwnd);
 
     return true;
@@ -131,202 +137,34 @@ void WindowWin32::consoleClear()
     DWORD written;
 
     FillConsoleOutputCharacter(h, ' ', cellCount, {0, 0}, &written);
-
     FillConsoleOutputAttribute(h, csbi.wAttributes, cellCount, {0, 0}, &written);
-
     SetConsoleCursorPosition(h, {0, 0});
 }
 
-/*
-bool WindowWin32::DIB_init()
+void WindowWin32::removeOverlapProperty() 
 {
-    BITMAPINFO bmi = {};
-    bmi.bmiHeader.biSize = sizeof(BITMAPINFOHEADER);
-    bmi.bmiHeader.biWidth = width;
-    bmi.bmiHeader.biHeight = -height; // top-down bitmap
-    bmi.bmiHeader.biPlanes = 1;
-    bmi.bmiHeader.biBitCount = 32;
-    bmi.bmiHeader.biCompression = BI_RGB;
+    // odebere oknu ramecek
+    LONG style = GetWindowLong(hwnd, GWL_STYLE);
+    style &= ~WS_OVERLAPPEDWINDOW;
+    SetWindowLong(hwnd, GWL_STYLE, style);
+}
 
-    HDC screen = GetDC(nullptr);
+void WindowWin32::resizeWindowToFillScreen() 
+{
+    HMONITOR monitor = MonitorFromWindow(hwnd, MONITOR_DEFAULTTONEAREST);
+    MONITORINFO mi = {};
+    mi.cbSize = sizeof(mi);
+    GetMonitorInfo(monitor, &mi);
+    RECT r = mi.rcMonitor;
 
-    hBitmap = CreateDIBSection(
-        screen,
-        &bmi,
-        DIB_RGB_COLORS,
-        (void**)&framebuffer,
+    SetWindowPos(
+        hwnd,
         nullptr,
-        0
+        r.left,
+        r.top,
+        r.right - r.left,
+        r.bottom - r.top,
+        SWP_FRAMECHANGED | SWP_NOZORDER
     );
-
-    ReleaseDC(nullptr, screen);
-
-    return true;
-}*/
-
-/*
-void WindowWin32::DIB_clear(uint32_t color)
-{
-    for (int i = 0; i < width * height; i++)
-        framebuffer[i] = color;
 }
 
-void WindowWin32::DIB_putPixel(int x, int y, uint32_t color)
-{
-    if (x < 0 || y < 0 || x >= width || y >= height) return;
-    framebuffer[y * width + x] = color;
-}
-
-// jednoduchá pomocná funkce pro blend (50%)
-// vstupní formát pøedpokládá 0xAARRGGBB
-static inline uint32_t blend50(uint32_t dst, uint32_t src)
-{
-    uint8_t sr = (src >> 16) & 0xFF;
-    uint8_t sg = (src >> 8) & 0xFF;
-    uint8_t sb = (src) & 0xFF;
-
-    uint8_t dr = (dst >> 16) & 0xFF;
-    uint8_t dg = (dst >> 8) & 0xFF;
-    uint8_t db = (dst) & 0xFF;
-
-    uint8_t r = (uint8_t)((sr + dr) / 2);
-    uint8_t g = (uint8_t)((sg + dg) / 2);
-    uint8_t b = (uint8_t)((sb + db) / 2);
-
-    return (0xFFu << 24) | (r << 16) | (g << 8) | b;
-}
-
-// Bresenham line algorithm
-static void drawLine(uint32_t* framebuffer, int fbWidth, int fbHeight, int x0, int y0, int x1, int y1, uint32_t color)
-{
-    int dx = abs(x1 - x0);
-    int sx = x0 < x1 ? 1 : -1;
-    int dy = -abs(y1 - y0);
-    int sy = y0 < y1 ? 1 : -1;
-    int err = dx + dy;
-
-    while (true) {
-        if (x0 >= 0 && y0 >= 0 && x0 < fbWidth && y0 < fbHeight)
-            framebuffer[y0 * fbWidth + x0] = color;
-        if (x0 == x1 && y0 == y1) break;
-        int e2 = 2 * err;
-        if (e2 >= dy) { err += dy; x0 += sx; }
-        if (e2 <= dx) { err += dx; y0 += sy; }
-    }
-}
-
-// Pomocné funkce pro Wuùv algoritmus
-static inline int ipart(float x) { return (int)std::floor(x); }
-static inline float fpart(float x) { return x - std::floor(x); }
-static inline float rfpart(float x) { return 1.0f - fpart(x); }
-
-// Blend src color over dst with given coverage (0.0 .. 1.0). Vrací výslednou 0xAARRGGBB (alpha nastavíme na 0xFF).
-static inline uint32_t blendWithCoverage(uint32_t dst, uint32_t src, float coverage)
-{
-    coverage = std::max(0.0f, std::min(1.0f, coverage));
-    uint8_t sr = (src >> 16) & 0xFF;
-    uint8_t sg = (src >> 8) & 0xFF;
-    uint8_t sb = (src) & 0xFF;
-
-    uint8_t dr = (dst >> 16) & 0xFF;
-    uint8_t dg = (dst >> 8) & 0xFF;
-    uint8_t db = (dst) & 0xFF;
-
-    uint8_t r = (uint8_t)(sr * coverage + dr * (1.0f - coverage));
-    uint8_t g = (uint8_t)(sg * coverage + dg * (1.0f - coverage));
-    uint8_t b = (uint8_t)(sb * coverage + db * (1.0f - coverage));
-
-    return (0xFFu << 24) | (r << 16) | (g << 8) | b;
-}
-
-// Xiaolin Wu antialiased line algorithm
-static void drawLineWithAntialiasing(uint32_t* framebuffer, int fbWidth, int fbHeight, int x0, int y0, int x1, int y1, uint32_t color)
-{
-    // Implementace upravená pro integer framebuffer s 0xAARRGGBB komponentami.
-    bool steep = std::abs(y1 - y0) > std::abs(x1 - x0);
-
-    if (steep) {
-        std::swap(x0, y0);
-        std::swap(x1, y1);
-    }
-    if (x0 > x1) {
-        std::swap(x0, x1);
-        std::swap(y0, y1);
-    }
-
-    float dx = (float)(x1 - x0);
-    float dy = (float)(y1 - y0);
-    float gradient = (dx == 0.0f) ? 1.0f : (dy / dx);
-
-    // handle first endpoint
-    float xend = std::round((float)x0);
-    float yend = y0 + gradient * (xend - x0);
-    float xgap = rfpart((float)x0 + 0.5f);
-    int xpxl1 = (int)xend;
-    int ypxl1 = ipart(yend);
-
-    auto plot = [&](int x, int y, float c) {
-        if (c <= 0.0f) return;
-        if (c > 1.0f) c = 1.0f;
-        if (steep) {
-            // swapped back: x -> y, y -> x
-            if (x >= 0 && x < fbHeight && y >= 0 && y < fbWidth) {
-                size_t idx = (size_t)x * fbWidth + y;
-                framebuffer[idx] = blendWithCoverage(framebuffer[idx], color, c);
-            }
-        }
-        else {
-            if (x >= 0 && x < fbWidth && y >= 0 && y < fbHeight) {
-                size_t idx = (size_t)y * fbWidth + x;
-                framebuffer[idx] = blendWithCoverage(framebuffer[idx], color, c);
-            }
-        }
-        };
-
-    plot(xpxl1, ypxl1, rfpart(yend) * xgap);
-    plot(xpxl1, ypxl1 + 1, fpart(yend) * xgap);
-    float intery = yend + gradient;
-
-    // handle second endpoint
-    xend = std::round((float)x1);
-    yend = y1 + gradient * (xend - x1);
-    xgap = fpart((float)x1 + 0.5f);
-    int xpxl2 = (int)xend;
-    int ypxl2 = ipart(yend);
-
-    plot(xpxl2, ypxl2, rfpart(yend) * xgap);
-    plot(xpxl2, ypxl2 + 1, fpart(yend) * xgap);
-
-    // main loop
-    for (int x = xpxl1 + 1; x <= xpxl2 - 1; x++) {
-        plot(x, ipart(intery), rfpart(intery));
-        plot(x, ipart(intery) + 1, fpart(intery));
-        intery = intery + gradient;
-    }
-}
-
-void WindowWin32::DIB_drawTriangle(const Vec4& a, const Vec4& b, const Vec4& c, uint32_t color, bool useAntialiasing)
-{
-    int ax = (int)std::lround(a.x);
-    int ay = (int)std::lround(a.y);
-    int bx = (int)std::lround(b.x);
-    int by = (int)std::lround(b.y);
-    int cx = (int)std::lround(c.x);
-    int cy = (int)std::lround(c.y);
-
-    if (useAntialiasing) 
-    {
-        drawLineWithAntialiasing(fbuff->framebuffer, fbuff->width, this->height, ax, ay, bx, by, color);
-        drawLineWithAntialiasing(framebuffer, this->width, this->height, bx, by, cx, cy, color);
-        drawLineWithAntialiasing(framebuffer, this->width, this->height, cx, cy, ax, ay, color);
-    } 
-    else 
-    {
-        drawLine(framebuffer, this->width, this->height, ax, ay, bx, by, color);
-        drawLine(framebuffer, this->width, this->height, bx, by, cx, cy, color);
-        drawLine(framebuffer, this->width, this->height, cx, cy, ax, ay, color);
-    }
-
-    
-}
-*/
