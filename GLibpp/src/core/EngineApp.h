@@ -1,7 +1,9 @@
 #pragma once
 
-#include "window/WindowProcedure.h"
 #include "window/WindowWin32.h"
+
+#include "core/input/Keymap.h"
+#include "core/input/Keyboard.h"
 
 #include <windows.h>
 #include <iostream>
@@ -10,6 +12,8 @@ class EngineApp
 {
 private:
 	std::unique_ptr<WindowWin32> window;
+	Keyboard keyboard;
+	bool running;
 
 
 public:
@@ -19,7 +23,26 @@ public:
 
 	bool init()
 	{
-		window = std::make_unique<WindowWin32>(800, 600, WindowProc, false);
+		window = std::make_unique<WindowWin32>(800, 600, false);
+
+		window->setOnCloseCallback(
+			[this]() {
+				this->running = false;
+			}
+		);
+
+		window->setKeyCallback(
+			[this](KeyMap key, bool pressed) {
+				if (pressed) 
+				{
+					this->keyboard.keyDown(key);	
+				}
+				else
+				{
+					this->keyboard.keyUp(key);
+				}
+			}
+		);
 
 		if (!buildWindow())
 		{
@@ -34,12 +57,13 @@ public:
 	bool runLoop()
 	{
 		MSG msg = {};
-		bool running = true;
+		running = true;
+		
+		while (running) {
+		
+			window->pollEvents();
+			if (keyboard[KeyMap::KEY_ESC]) running = false;
 
-		while (GetMessage(&msg, nullptr, 0, 0) > 0)
-		{
-			TranslateMessage(&msg);
-			DispatchMessage(&msg);
 		}
 
 		return true;

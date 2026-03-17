@@ -8,7 +8,7 @@
 #include "core/App.h"
 #include "core/input/Keymap.h"
 
- bool WindowWin32::RegisterWindowClass(HINSTANCE hInstance, WindowCallback callback) {
+ bool WindowWin32::RegisterWindowClass(HINSTANCE hInstance) {
 
     // staticky atribut deklarovany v teto staticke metode se provede pouze pri prvnim volani metody (function-local static v C++)
     // zaroven v C++11+ by to melo byt thread safe - takze neni potreba resit atomic
@@ -16,7 +16,7 @@
     if (registered) return true;
 
     WNDCLASS wc = {};
-    wc.lpfnWndProc = callback;
+    wc.lpfnWndProc = WindowProc;
     wc.hInstance = hInstance;
     wc.lpszClassName = GetClassName();
 
@@ -37,7 +37,7 @@ bool WindowWin32::build()
 
     //const wchar_t CLASS_NAME[] = L"MyWinAPIWindowClass";
 
-    if (!RegisterWindowClass(hInstance, callback))
+    if (!RegisterWindowClass(hInstance))
     {
         std::cerr << "RegisterClass failed: " << GetLastError() << std::endl;
         return false;
@@ -49,7 +49,7 @@ bool WindowWin32::build()
     int winWidth = rect.right - rect.left;
     int winHeight = rect.bottom - rect.top;
 
-    this->hwnd = CreateWindowEx(
+    CreateWindowEx(
         0,
         GetClassName(),
         L"Moje WinAPI okno",
@@ -59,7 +59,7 @@ bool WindowWin32::build()
         nullptr,
         nullptr,
         hInstance,
-        nullptr
+        this
     );
 
 
@@ -168,3 +168,24 @@ void WindowWin32::resizeWindowToFillScreen()
     );
 }
 
+LRESULT WindowProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
+{
+    WindowWin32* window = nullptr;
+
+    if (msg == WM_NCCREATE)
+    {
+        CREATESTRUCT* cs = reinterpret_cast<CREATESTRUCT*>(lParam);
+        window = reinterpret_cast<WindowWin32*>(cs->lpCreateParams);
+
+        SetWindowLongPtr(hwnd, GWLP_USERDATA, (LONG_PTR)window);
+        window->setHwnd(hwnd);
+    }
+    else
+    {
+        window = reinterpret_cast<WindowWin32*>(GetWindowLongPtr(hwnd, GWLP_USERDATA));
+    }
+
+    if (window) return window->handleMessage(msg, wParam, lParam);
+
+    return DefWindowProc(hwnd, msg, wParam, lParam);
+}

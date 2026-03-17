@@ -9,7 +9,6 @@
 #include <thread>
 
 #include "window/WindowWin32.h"
-#include "window/WindowProcedure.h"
 #include "window/DIB/DIBFramebuffer.h"
 #include "window/DIB/DIBRenderer.h"
 
@@ -21,7 +20,7 @@ void aaa() {
     const uint32_t width = 400;
     const uint32_t height = 320;
 
-    WindowWin32 win(width, height, WindowProc, false);
+    WindowWin32 win(width, height, false);
     win.build();
 
     DIBFramebuffer fb(width, height, 32);
