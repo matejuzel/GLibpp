@@ -6,8 +6,6 @@
 bool EngineApp::init()
 {
 	window = std::make_unique<WindowWin32>(1366, 768, false);
-	renderer = std::make_unique<Renderer>(window.get());
-	renderer->resize(window->getWidth(), window->getHeight());
 
 	window->setOnCloseCallback(
 		[this]() {
@@ -35,12 +33,14 @@ bool EngineApp::init()
 		return false;
 	}
 
+	renderer = std::make_unique<Renderer>(window.get());
+	renderer->init(window->getWidth(), window->getHeight());
+
 	return true;
 }
 
 bool EngineApp::runLoop()
 {
-	
 	std::thread threadRender = std::thread(&Renderer::runRenderLoop, renderer.get());
 
 	MSG msg = {};

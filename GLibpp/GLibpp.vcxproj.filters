@@ -141,6 +141,9 @@
     <ClCompile Include="src\core\EngineApp.cpp">
       <Filter>Zdrojové soubory\src\core</Filter>
     </ClCompile>
+    <ClCompile Include="src\core\render\RenderDevice.cpp">
+      <Filter>Zdrojové soubory\src\core\render</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\utils\datastruct\SPSCQueue.h">
@@ -256,6 +259,9 @@
     </ClInclude>
     <ClInclude Include="src\core\EngineApp.h">
       <Filter>Zdrojové soubory\src\core</Filter>
+    </ClInclude>
+    <ClInclude Include="src\core\render\RenderDevice.h">
+      <Filter>Zdrojové soubory\src\core\render</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

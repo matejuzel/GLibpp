@@ -5,6 +5,7 @@
 #include "window/DIB/DIBFramebuffer.h"
 #include "window/DIB/DIBRenderer.h"
 #include "window/WindowWin32.h"
+#include "core/render/RenderDevice.h"
 #include "math/Mtx4.h"
 #include <memory>
 
@@ -18,11 +19,7 @@ private:
     Mtx4 projection;
     Mtx4 view;
 
-public:
-
-    // framebuffer a dibRenderer by mel pak vlastnit RenderDevice
-    std::unique_ptr<DIBFramebuffer> framebuffer;
-    std::unique_ptr<DIBRenderer> dibRenderer;
+    RenderDevice* device = nullptr;
 
 public:
     RenderContext() :
@@ -31,28 +28,21 @@ public:
         view(Mtx4::identity())
     {}
 
+    void setDevice(RenderDevice* device) {
+        this->device = device;
+    }
+
     uint32_t getFrameCount() const noexcept { return frameCount; }
     const Viewport& getViewport() const noexcept { return viewport; }
 
-    void init(WindowWin32* window)
-    {
-        framebuffer = std::make_unique<DIBFramebuffer>(viewport.width, viewport.height, 32);
-        framebuffer->init(window->getHwnd());
-        
-        dibRenderer = std::make_unique<DIBRenderer>(*framebuffer.get());
-        dibRenderer->clear(0x00000000);
-
-        framebuffer->present();
-    }
-
     void beginFrame()
     {
-        clear();
+        device->clear();
     }
 
     void endFrame()
     {
-        present();
+        device->present();
         frameCount++;
     }
 
@@ -63,24 +53,18 @@ public:
         viewport.height = height;
     }
 
-
-    // presunout do RenderDevice
-    void clear()
+    void paint()
     {
-        dibRenderer->clear(0x00000000);
+
+        device->draw2dCircle(
+            (getFrameCount()) % getViewport().width,
+            (getFrameCount() / 10 % getViewport().height),
+            10,
+            0x00ff0000
+        );
     }
 
-    // presunout do RenderDevice
-    void draw2dCircle(uint32_t x, uint32_t y, uint32_t size, uint32_t color)
-    {
-        dibRenderer->drawCircle(x, y, size, color);
-    }
 
-    // presunout do RenderDevice
-    void present()
-    {
-        framebuffer.get()->present();
-    }
 
 
 };
