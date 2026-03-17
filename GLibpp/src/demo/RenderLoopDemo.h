@@ -120,10 +120,12 @@ public:
         */
 	}
 
+    /*
     Renderer renderer;
     Mesh mshCube00, mshCube01, mshCube02;
 
     Mesh mshCube03, mshCube04;
+    */
 };
 
 

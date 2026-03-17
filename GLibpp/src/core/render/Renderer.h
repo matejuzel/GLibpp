@@ -1,58 +1,63 @@
 #pragma once
 
-#include <iostream>
-#include "core/render/RenderCommand.h"
-#include "core/render/RenderContext.h"
-#include "utils/datastruct/SPSCQueue.h"
-#include "core/Types.h"
+#include <atomic>
 #include "window/WindowWin32.h"
-#include "geometry/Mesh.h"
-
-class App; // dopredna deklarace kvuli cyklicke zavislosti s App.h
+#include "core/render/RenderContext.h"
 
 class Renderer {
+private:
+
+	std::atomic<bool> running{false};
+	WindowWin32* window = nullptr;
+	RenderContext context;
+
 public:
 
-	Renderer(WindowWin32* window) : window(window), done(false) {}
+	Renderer() = delete;
 
-	void runRenderLoop() {}
+	Renderer(WindowWin32* window) : window(window) {}
 
-	/*
-	RenderCommandBufferTB_t& getRenderCommandBufferRef() {
-		return this->renderCommandBuffer;
+	void resize(uint32_t width, uint32_t height) 
+	{
+		context.setViewport(0, 0, width, height);
 	}
 
-	RenderCommandQueueSPSC_t& getRenderCommandQueue() {
-		return this->renderCommandQueue;
+	void runRenderLoop() 
+	{	
+		context.init(window);
+
+		running.store(true, std::memory_order_relaxed);
+		while (isRunning()) 
+		{
+			context.beginFrame();
+			/* // toto postupne pridame
+			while (queue.pop(cmd)) {
+				execute(cmd);
+			}
+			*/
+			paint(); // toto bude nahrazeno spsc queue uz s konkretnimi renderovacimi prikazy
+
+			context.endFrame();
+		}
 	}
 
-	void drawScene();
-
-	void registerMesh(Mesh* mesh, uint32_t meshId);
-	*/
-
-	
-
-	void drawMesh(WindowWin32* window, const Mesh& mesh, const Mtx4& matrixMVP, const Material& material) const;
+	void paint() 
+	{
+		context.draw2dCircle(
+			(context.getFrameCount()) % context.getViewport().width, 
+			(context.getFrameCount()/10 % context.getViewport().height),
+			10, 
+			0x00ff0000
+		);
+	}
 
 	void stop() {
-		done.store(true);
+		running.store(false, std::memory_order_relaxed);
 	}
 
-	bool isRunning() const {
-		return !done.load();
+	inline bool isRunning() const noexcept {
+		return running.load(std::memory_order_relaxed);
 	}
 
-
-
-	WindowWin32* window;
-	RenderContext renderContext;
-
-	std::atomic<bool> done;
-
-	/*
-	RenderCommandBufferTB_t renderCommandBuffer;
-	RenderCommandQueueSPSC_t renderCommandQueue;
-	*/
 };
 

@@ -1,6 +1,6 @@
 
-#include "core/App.h" 
 #include "core/render/Renderer.h"
+//#include "core/App.h" 
 #include "utils/timer/Fps.h"
 
 /*
@@ -56,6 +56,7 @@ void Renderer::registerMesh(Mesh* mesh, uint32_t meshId) {
 }
 */
 
+/*
 void Renderer::drawMesh(WindowWin32* window, const Mesh& mesh, const Mtx4& matrixMVP, const Material& material) const
 {
 	if (window == nullptr) return;
@@ -122,7 +123,7 @@ void Renderer::drawMesh(WindowWin32* window, const Mesh& mesh, const Mtx4& matri
 		//window->DIB_drawTriangle(a_, b_, c_, 0xffff0000, true);
 	}
 }
-
+*/
 /* //puvodni verze
 void Renderer::drawMesh(uint32_t meshId, Mtx4 transformation) {
 		
