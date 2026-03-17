@@ -127,6 +127,7 @@
   <ItemGroup>
     <ClCompile Include="src/core/App.cpp" />
     <ClCompile Include="src/geometry/AABB.cpp" />
+    <ClCompile Include="src\core\EngineApp.cpp" />
     <ClCompile Include="src\core\GameLoop.cpp" />
     <ClCompile Include="src\core\input\Keyboard.cpp" />
     <ClCompile Include="src\core\main.cpp" />
@@ -162,6 +163,7 @@
     <ClInclude Include="src/geometry/Triangle.h" />
     <ClInclude Include="src/math/Vec4.h" />
     <ClInclude Include="src/geometry/Vertex.h" />
+    <ClInclude Include="src\core\EngineApp.h" />
     <ClInclude Include="src\core\GameLoop.h" />
     <ClInclude Include="src\core\input\Keyboard.h" />
     <ClInclude Include="src\core\input\Keymap.h" />

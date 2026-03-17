@@ -30,6 +30,14 @@ public:
 		maximized(maximized)
 	{}
 
+	~WindowWin32() 
+	{
+		if (hwnd) {
+			DestroyWindow(hwnd);
+			hwnd = nullptr;
+		}
+	}
+
 	static const wchar_t* GetClassName() {
 		return L"EngineWindowClass";
 	}

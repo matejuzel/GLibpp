@@ -13,6 +13,8 @@
 #include "window/DIB/DIBFramebuffer.h"
 #include "window/DIB/DIBRenderer.h"
 
+#include "core/EngineApp.h"
+
 #pragma comment(lib, "User32.lib")
 
 void aaa() {
@@ -46,6 +48,13 @@ void aaa() {
 int main()
 {
 
+    EngineApp app;
+
+    app.init();
+    app.runLoop();
+
+
+    /*
     const uint32_t width = 400;
     const uint32_t height = 320;
 
@@ -73,7 +82,7 @@ int main()
     }
 
     
-
+    */
     return 0;
 
 }

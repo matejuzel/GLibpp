@@ -138,6 +138,9 @@
     <ClCompile Include="src\window\DIB\DIBFramebuffer.cpp">
       <Filter>Zdrojové soubory\src\window\DIB</Filter>
     </ClCompile>
+    <ClCompile Include="src\core\EngineApp.cpp">
+      <Filter>Zdrojové soubory\src\core</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\utils\datastruct\SPSCQueue.h">
@@ -250,6 +253,9 @@
     </ClInclude>
     <ClInclude Include="src\window\DIB\DIBFramebuffer.h">
       <Filter>Zdrojové soubory\src\window\DIB</Filter>
+    </ClInclude>
+    <ClInclude Include="src\core\EngineApp.h">
+      <Filter>Zdrojové soubory\src\core</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>
