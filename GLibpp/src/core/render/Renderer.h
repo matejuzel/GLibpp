@@ -8,10 +8,11 @@
 class Renderer {
 private:
 
-	std::atomic<bool> running{false};
-	WindowWin32* window = nullptr;
-	RenderContext context;
 	RenderDevice device;
+	RenderContext context;
+
+	WindowWin32* window = nullptr;
+	std::atomic<bool> running{ false };
 
 public:
 
