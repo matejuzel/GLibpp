@@ -16,7 +16,10 @@ private:
 	std::unique_ptr<WindowWin32> window = nullptr;
 	std::unique_ptr<Renderer> renderer = nullptr;
 	Keyboard keyboard;
-	bool running;
+	bool running = false;
+
+	uint32_t width = 200;
+	uint32_t height = 160;
 
 public:
 
@@ -25,9 +28,5 @@ public:
 
 	bool init();
 	bool runLoop();
-
-private:
-
-	bool buildWindow();
 
 };

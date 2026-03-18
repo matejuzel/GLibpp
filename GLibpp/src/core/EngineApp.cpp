@@ -5,7 +5,7 @@
 
 bool EngineApp::init()
 {
-	window = std::make_unique<WindowWin32>(1366, 768, false);
+	window = std::make_unique<WindowWin32>(width, height, false);
 
 	window->setOnCloseCallback(
 		[this]() {
@@ -27,7 +27,7 @@ bool EngineApp::init()
 		}
 	);
 
-	if (!window->build()) 
+	if (!window->build())
 	{
 		std::cerr << "Chyba pri vytvareni okna" << std::endl;
 		return false;

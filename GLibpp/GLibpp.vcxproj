@@ -130,7 +130,6 @@
     <ClCompile Include="src\core\EngineApp.cpp" />
     <ClCompile Include="src\core\GameLoop.cpp" />
     <ClCompile Include="src\core\input\Keyboard.cpp" />
-    <ClCompile Include="src\core\main.cpp" />
     <ClCompile Include="src/geometry/Material.cpp" />
     <ClCompile Include="src/geometry/Mesh.cpp" />
     <ClCompile Include="src/math/Mtx4.cpp" />
@@ -145,6 +144,7 @@
     <ClCompile Include="src\demo\DemoRunner.cpp" />
     <ClCompile Include="src\geometry\Color.cpp" />
     <ClCompile Include="src\geometry\MeshInstance.cpp" />
+    <ClCompile Include="src\main.cpp" />
     <ClCompile Include="src\scene\Camera.cpp" />
     <ClCompile Include="src\scene\Light.cpp" />
     <ClCompile Include="src\scene\SceneState.cpp" />
