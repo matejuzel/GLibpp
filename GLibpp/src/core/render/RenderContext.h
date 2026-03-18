@@ -46,27 +46,14 @@ public:
         frameCount++;
     }
 
-    void setViewport(uint32_t offsetX, uint32_t offsetY, uint32_t width, uint32_t height) {
+    void setViewport(uint32_t offsetX, uint32_t offsetY, uint32_t width, uint32_t height) 
+    {
         viewport.offsetX = offsetX;
         viewport.offsetY = offsetY;
         viewport.width = width;
         viewport.height = height;
+
+        device->setViewport(offsetX, offsetY, width, height);
     }
-
-    void paint()
-    {
-
-        device->draw2dCircle(
-            (getFrameCount()) % getViewport().width,
-            (getFrameCount() / 10 % getViewport().height),
-            10,
-            0x00ff0000
-        );
-    }
-
-
-
 
 };
-
-

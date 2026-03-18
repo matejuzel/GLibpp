@@ -1,8 +1,5 @@
 #pragma once
 
-#include <memory>
-
-// dopredne deklarace zavislosti (misto includu)
 class WindowWin32;
 class Mesh;
 class Material;

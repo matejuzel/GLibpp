@@ -32,12 +32,22 @@ public:
 		while (isRunning())
 		{
 			context.beginFrame();
-			/* // toto postupne pridame
+
+			/* // tady pak bude tripple buffered render command buffer
 			while (queue.pop(cmd)) {
 				execute(cmd);
 			}
 			*/
-			context.paint(); // toto bude nahrazeno spsc queue uz s konkretnimi renderovacimi prikazy
+
+			{
+				// docasne -> pak pouzijeme tripple buffered render commands ( EngineApp -> Renderer )
+				device->draw2dCircle(
+					(context.getFrameCount()) % context.getViewport().width,
+					(context.getFrameCount() / 10 % context.getViewport().height),
+					10,
+					0x00ff0000
+				);
+			}
 
 			context.endFrame();
 		}
