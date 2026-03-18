@@ -21,9 +21,11 @@ public:
 	Renderer() = delete;
 
 	Renderer(WindowWin32* window, uint32_t width, uint32_t height) : window(window) {
-		context.setViewport(0, 0, width, height);
+		
 		device = std::make_unique<RenderDeviceDIB>(window, width, height, 32);
+		
 		context.setDevice(device.get());
+		context.setViewport(0, 0, width, height);
 	}
 
 	void runRenderLoop()
