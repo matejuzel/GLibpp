@@ -43,6 +43,7 @@ LRESULT WindowWin32::handleMessage(UINT msg, WPARAM wParam, LPARAM lParam)
     switch (msg)
     {
 
+        /*
     case WM_KEYDOWN:
         if (onKeyEvent) onKeyEvent(KEYMAP[wParam], true);
         return 0;
@@ -50,9 +51,40 @@ LRESULT WindowWin32::handleMessage(UINT msg, WPARAM wParam, LPARAM lParam)
     case WM_KEYUP:
         if (onKeyEvent) onKeyEvent(KEYMAP[wParam], false);
         return 0;
+        */
 
     case WM_INPUT:
-        // veskerou input logiku zpracujeme nahore, takze zbytek tady ignorujeme
+        if (onKeyEvent) {
+            UINT size = 0;
+            GetRawInputData((HRAWINPUT)lParam, RID_INPUT, nullptr, &size, sizeof(RAWINPUTHEADER));
+            if (size == 0) break;
+
+            std::vector<BYTE> buffer(size);
+            if (GetRawInputData((HRAWINPUT)lParam, RID_INPUT, buffer.data(), &size, sizeof(RAWINPUTHEADER)) == (UINT)-1)
+                break;
+
+            RAWINPUT* raw = reinterpret_cast<RAWINPUT*>(buffer.data());
+
+            if (raw->header.dwType == RIM_TYPEKEYBOARD)
+            {
+                USHORT vk = raw->data.keyboard.VKey;
+                USHORT flags = raw->data.keyboard.Flags;
+
+                bool isUp = (flags & RI_KEY_BREAK) != 0;
+
+                KeyMap key = KEYMAP[vk];
+
+                if (isUp) {
+                    onKeyEvent(KEYMAP[vk], false);
+                }
+                else
+                {
+                    onKeyEvent(KEYMAP[vk], true);
+                }
+
+            }
+
+        }
         return 0;
 
     case WM_CLOSE:
@@ -90,6 +122,19 @@ bool WindowWin32::RegisterWindowClass(HINSTANCE hInstance) {
 
     return true;
 }
+
+void WindowWin32::setTitle(const std::string& title) {
+    if (!hwnd) return;
+
+    int sizeNeeded = MultiByteToWideChar(CP_UTF8, 0, title.c_str(), -1, nullptr, 0);
+    if (sizeNeeded <= 0) return;
+
+    std::wstring wtitle(sizeNeeded, 0);
+    MultiByteToWideChar(CP_UTF8, 0, title.c_str(), -1, &wtitle[0], sizeNeeded);
+
+    SetWindowTextW(hwnd, wtitle.c_str());
+}
+
 
 bool WindowWin32::build()
 {
@@ -137,8 +182,30 @@ bool WindowWin32::build()
     return true;
 }
 
-HWND WindowWin32::getHwnd() const {
+HWND WindowWin32::getHwnd() const noexcept {
     return this->hwnd;
+}
+
+uint32_t WindowWin32::getClientWidth() const noexcept {
+    RECT r{};
+    GetClientRect(hwnd, &r);
+    return static_cast<uint32_t>(r.right - r.left);
+}
+
+uint32_t WindowWin32::getClientHeight() const noexcept {
+    RECT r{};
+    GetClientRect(hwnd, &r);
+    return static_cast<uint32_t>(r.bottom - r.top);
+}
+
+void WindowWin32::hideCursor() const noexcept
+{
+    while (ShowCursor(FALSE) >= 0) {} // show cursor je inkrementalni counter proto ten cyklus
+}
+
+void WindowWin32::showCursor() const noexcept
+{
+    while (ShowCursor(TRUE) < 0) {}
 }
 
 void WindowWin32::glibRegisterRawInputDevices()
@@ -148,7 +215,8 @@ void WindowWin32::glibRegisterRawInputDevices()
     RAWINPUTDEVICE rid;
     rid.usUsagePage = 0x01;
     rid.usUsage = 0x06; // Keyboard
-    rid.dwFlags = RIDEV_INPUTSINK;
+    //rid.dwFlags = RIDEV_INPUTSINK; // posila WM_KEYDOWN resp. WM_KEYUP
+    rid.dwFlags = RIDEV_INPUTSINK | RIDEV_NOLEGACY; // posila jen WM_INPUT a nikoli legacy (WM_KEYDOWN resp. WM_KEYUP)
     rid.hwndTarget = this->hwnd;
 
     RegisterRawInputDevices(&rid, 1, sizeof(rid));

@@ -6,6 +6,10 @@
 #include "core/render/RenderContext.h"
 #include "core/render/IRenderDevice.h"
 #include "core/render/RenderDeviceDIB.h"
+#include "utils/timer/FixedTimestep.h"
+#include "utils/timer/Fps.h"
+#include "utils/timer/HighResTimer.h"
+
 
 class Renderer {
 private:
@@ -31,6 +35,11 @@ public:
 	void runRenderLoop()
 	{
 		running.store(true, std::memory_order_relaxed);
+
+		Fps fps;
+		FixedTimestep fpsTimestep(30.0);
+		HighResTimer timer;
+
 		while (isRunning())
 		{
 			context.beginFrame();
@@ -52,6 +61,15 @@ public:
 			}
 
 			context.endFrame();
+
+			fps.tick();
+
+			double frameTime = timer.tick();
+			if (frameTime > 0.25) frameTime = 0.25;
+			for (int i = 0; i < fpsTimestep.consume(frameTime); i++)
+			{
+				this->window->setTitle("Render FPS: " + std::to_string(fps.getFps()));
+			}
 		}
 	}
 

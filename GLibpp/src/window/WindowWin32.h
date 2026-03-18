@@ -25,7 +25,6 @@ private:
 	std::function<void()> onClose;
 
 	HWND hwnd = nullptr;
-	//HINSTANCE hInstance = nullptr;
 	int width;
 	int height;
 	bool maximized = false;
@@ -34,12 +33,10 @@ public:
 
 	WindowWin32(int width, int height, bool maximized) :
 		hwnd(nullptr),
-		//hInstance(nullptr),
 		width(width),
 		height(height),
 		maximized(maximized)
-	{
-	}
+	{}
 
 	~WindowWin32()
 	{
@@ -53,6 +50,8 @@ public:
 		return L"EngineWindowClass";
 	}
 	
+	void setTitle(const std::string& title);
+
 	bool build();
 	
 	void waitEvents() const noexcept;
@@ -65,9 +64,13 @@ public:
 	void resizeWindowToFillScreen();
 	void glibRegisterRawInputDevices();
 
-	HWND getHwnd() const;
-	uint32_t getWidth() const { return static_cast<uint32_t>(width); }
-	uint32_t getHeight() const { return static_cast<uint32_t>(height); }
+	HWND getHwnd() const noexcept;
+	uint32_t getWidth() const noexcept { return static_cast<uint32_t>(width); }
+	uint32_t getHeight() const noexcept { return static_cast<uint32_t>(height); }
+	uint32_t getClientWidth() const noexcept;
+	uint32_t getClientHeight() const noexcept;
+	void hideCursor() const noexcept;
+	void showCursor() const noexcept;
 
 private:
 

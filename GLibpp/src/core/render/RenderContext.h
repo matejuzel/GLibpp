@@ -23,7 +23,7 @@ private:
 
 public:
     RenderContext() :
-        viewport(0, 0, 800, 600),
+        viewport(0, 0, 0, 0),
         projection(Mtx4::identity()),
         view(Mtx4::identity())
     {}

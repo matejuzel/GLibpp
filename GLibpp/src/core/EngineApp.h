@@ -11,9 +11,10 @@ private:
 	std::unique_ptr<WindowWin32> window = nullptr;
 	std::unique_ptr<Renderer> renderer = nullptr;
 	
-	uint32_t width = 200;
-	uint32_t height = 160;
+	uint32_t width = 800;
+	uint32_t height = 600;
 
+	bool fullscreen = false;
 	bool running = false;
 
 	Keyboard keyboard;
@@ -26,7 +27,8 @@ public:
 
 	bool init();
 	bool runLoop();
-	void updateLogic(double dt);
-	void updateConsole(double dt);
+	void updateLogic(double dt) noexcept;
+	void updateConsole(double dt) noexcept;
 
+	void onKeyCallback(KeyMap key, bool pressed) noexcept;
 };
