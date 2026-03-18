@@ -5,7 +5,7 @@
 #include "window/DIB/DIBFramebuffer.h"
 #include "window/DIB/DIBRenderer.h"
 #include "window/WindowWin32.h"
-#include "core/render/RenderDevice.h"
+#include "core/render/IRenderDevice.h"
 #include "math/Mtx4.h"
 #include <memory>
 
@@ -19,7 +19,7 @@ private:
     Mtx4 projection;
     Mtx4 view;
 
-    RenderDevice* device = nullptr;
+    IRenderDevice* device = nullptr;
 
 public:
     RenderContext() :
@@ -28,7 +28,7 @@ public:
         view(Mtx4::identity())
     {}
 
-    void setDevice(RenderDevice* device) {
+    void setDevice(IRenderDevice* device) {
         this->device = device;
     }
 
@@ -37,7 +37,7 @@ public:
 
     void beginFrame()
     {
-        device->clear();
+        device->clear(0x00000000);
     }
 
     void endFrame()

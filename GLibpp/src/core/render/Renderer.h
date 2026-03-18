@@ -1,14 +1,16 @@
 #pragma once
 
 #include <atomic>
+#include <memory>
 #include "window/WindowWin32.h"
 #include "core/render/RenderContext.h"
-#include "core/render/RenderDevice.h"
+#include "core/render/IRenderDevice.h"
+#include "core/render/RenderDeviceDIB.h"
 
 class Renderer {
 private:
 
-	RenderDevice device;
+	std::unique_ptr<IRenderDevice> device;
 	RenderContext context;
 
 	WindowWin32* window = nullptr;
@@ -18,13 +20,10 @@ public:
 
 	Renderer() = delete;
 
-	Renderer(WindowWin32* window) : window(window) {}
-
-	void init(uint32_t width, uint32_t height)
-	{
+	Renderer(WindowWin32* window, uint32_t width, uint32_t height) : window(window) {
 		context.setViewport(0, 0, width, height);
-		device.init(window, context.getViewport().width, context.getViewport().height, 32);
-		context.setDevice(&device);
+		device = std::make_unique<RenderDeviceDIB>(window, width, height, 32);
+		context.setDevice(device.get());
 	}
 
 	void runRenderLoop()

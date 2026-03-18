@@ -139,7 +139,7 @@
     <ClCompile Include="src\core\MeshInstanceRegistry.cpp" />
     <ClCompile Include="src\core\render\RenderCommand.cpp" />
     <ClCompile Include="src\core\render\RenderContext.cpp" />
-    <ClCompile Include="src\core\render\RenderDevice.cpp" />
+    <ClCompile Include="src\core\render\RenderDeviceDIB.cpp" />
     <ClCompile Include="src\core\render\Renderer.cpp" />
     <ClCompile Include="src\demo\DemoRunner.cpp" />
     <ClCompile Include="src\geometry\Color.cpp" />
@@ -169,9 +169,10 @@
     <ClInclude Include="src\core\input\Keyboard.h" />
     <ClInclude Include="src\core\input\Keymap.h" />
     <ClInclude Include="src\core\MeshInstanceRegistry.h" />
+    <ClInclude Include="src\core\render\IRenderDevice.h" />
     <ClInclude Include="src\core\render\RenderCommand.h" />
     <ClInclude Include="src\core\render\RenderContext.h" />
-    <ClInclude Include="src\core\render\RenderDevice.h" />
+    <ClInclude Include="src\core\render\RenderDeviceDIB.h" />
     <ClInclude Include="src\core\render\Renderer.h" />
     <ClInclude Include="src\core\Types.h" />
     <ClInclude Include="src\demo\RenderLoopDemo.h" />

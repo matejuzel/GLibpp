@@ -138,11 +138,11 @@
     <ClCompile Include="src\core\EngineApp.cpp">
       <Filter>Zdrojové soubory\src\core</Filter>
     </ClCompile>
-    <ClCompile Include="src\core\render\RenderDevice.cpp">
-      <Filter>Zdrojové soubory\src\core\render</Filter>
-    </ClCompile>
     <ClCompile Include="src\main.cpp">
       <Filter>Zdrojové soubory\src</Filter>
+    </ClCompile>
+    <ClCompile Include="src\core\render\RenderDeviceDIB.cpp">
+      <Filter>Zdrojové soubory\src\core\render</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -257,7 +257,10 @@
     <ClInclude Include="src\core\EngineApp.h">
       <Filter>Zdrojové soubory\src\core</Filter>
     </ClInclude>
-    <ClInclude Include="src\core\render\RenderDevice.h">
+    <ClInclude Include="src\core\render\IRenderDevice.h">
+      <Filter>Zdrojové soubory\src\core\render</Filter>
+    </ClInclude>
+    <ClInclude Include="src\core\render\RenderDeviceDIB.h">
       <Filter>Zdrojové soubory\src\core\render</Filter>
     </ClInclude>
   </ItemGroup>

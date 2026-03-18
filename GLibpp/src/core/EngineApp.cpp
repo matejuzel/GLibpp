@@ -34,8 +34,7 @@ bool EngineApp::init()
 		return false;
 	}
 
-	renderer = std::make_unique<Renderer>(window.get());
-	renderer->init(window->getWidth(), window->getHeight());
+	renderer = std::make_unique<Renderer>(window.get(), window->getWidth(), window->getHeight());
 
 	return true;
 }
