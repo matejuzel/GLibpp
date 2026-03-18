@@ -8,7 +8,67 @@
 #include "core/App.h"
 #include "core/input/Keymap.h"
 
- bool WindowWin32::RegisterWindowClass(HINSTANCE hInstance) {
+void WindowWin32::setKeyCallback(std::function<void(KeyMap, bool)> cb) noexcept
+{
+    onKeyEvent = std::move(cb);
+}
+
+void WindowWin32::setOnCloseCallback(std::function<void()> cb) noexcept
+{
+    onClose = std::move(cb);
+}
+
+void WindowWin32::waitEvents() const noexcept
+{
+    MSG msg;
+    while (GetMessage(&msg, nullptr, 0, 0) > 0)
+    {
+        TranslateMessage(&msg);
+        DispatchMessage(&msg);
+    }
+}
+
+void WindowWin32::pollEvents() const noexcept
+{
+    MSG msg;
+    while (PeekMessage(&msg, nullptr, 0, 0, PM_REMOVE))
+    {
+        TranslateMessage(&msg);
+        DispatchMessage(&msg);
+    }
+}
+
+LRESULT WindowWin32::handleMessage(UINT msg, WPARAM wParam, LPARAM lParam)
+{
+    switch (msg)
+    {
+
+    case WM_KEYDOWN:
+        if (onKeyEvent) onKeyEvent(KEYMAP[wParam], true);
+        return 0;
+
+    case WM_KEYUP:
+        if (onKeyEvent) onKeyEvent(KEYMAP[wParam], false);
+        return 0;
+
+    case WM_INPUT:
+        // veskerou input logiku zpracujeme nahore, takze zbytek tady ignorujeme
+        return 0;
+
+    case WM_CLOSE:
+        if (onClose) onClose();
+        DestroyWindow(hwnd);
+        return 0;
+
+    case WM_DESTROY:
+        PostQuitMessage(0);
+        return 0;
+    }
+
+    return DefWindowProc(hwnd, msg, wParam, lParam);
+}
+
+bool WindowWin32::RegisterWindowClass(HINSTANCE hInstance) {
 
     // staticky atribut deklarovany v teto staticke metode se provede pouze pri prvnim volani metody (function-local static v C++)
     // zaroven v C++11+ by to melo byt thread safe - takze neni potreba resit atomic
@@ -33,9 +93,7 @@
 
 bool WindowWin32::build()
 {
-    hInstance = GetModuleHandle(nullptr);
-
-    //const wchar_t CLASS_NAME[] = L"MyWinAPIWindowClass";
+    HINSTANCE hInstance = GetModuleHandle(nullptr);
 
     if (!RegisterWindowClass(hInstance))
     {
@@ -94,51 +152,6 @@ void WindowWin32::glibRegisterRawInputDevices()
     rid.hwndTarget = this->hwnd;
 
     RegisterRawInputDevices(&rid, 1, sizeof(rid));
-}
-
-void WindowWin32::consoleSetFixedViewport()
-{
-    // nastavime konzoli na fixed viewport (vypne scrollovani)
-    HANDLE h = GetStdHandle(STD_OUTPUT_HANDLE);
-
-    CONSOLE_SCREEN_BUFFER_INFOEX infoConsole = { sizeof(infoConsole) };
-    GetConsoleScreenBufferInfoEx(h, &infoConsole);
-
-    infoConsole.dwSize.Y = infoConsole.srWindow.Bottom - infoConsole.srWindow.Top + 1;
-
-    SetConsoleScreenBufferInfoEx(h, &infoConsole);
-
-    // vypneme kurzor
-    CONSOLE_CURSOR_INFO cursorInfo;
-    GetConsoleCursorInfo(h, &cursorInfo);
-
-    cursorInfo.bVisible = FALSE;
-    
-    SetConsoleCursorInfo(h, &cursorInfo);
-}
-
-void WindowWin32::consolePrint(std::string text)
-{
-    HANDLE h = GetStdHandle(STD_OUTPUT_HANDLE);
-    COORD pos = { 0, 0 };
-    SetConsoleCursorPosition(h, pos);
-
-    std::cout << text;
-}
-
-void WindowWin32::consoleClear()
-{
-    HANDLE h = GetStdHandle(STD_OUTPUT_HANDLE);
-
-    CONSOLE_SCREEN_BUFFER_INFO csbi;
-    GetConsoleScreenBufferInfo(h, &csbi);
-
-    DWORD cellCount = csbi.dwSize.X * csbi.dwSize.Y;
-    DWORD written;
-
-    FillConsoleOutputCharacter(h, ' ', cellCount, {0, 0}, &written);
-    FillConsoleOutputAttribute(h, csbi.wAttributes, cellCount, {0, 0}, &written);
-    SetConsoleCursorPosition(h, {0, 0});
 }
 
 void WindowWin32::removeOverlapProperty() 
