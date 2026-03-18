@@ -158,9 +158,6 @@
     <ClInclude Include="src\demo\ProducentConsumentDemo.h">
       <Filter>Zdrojové soubory\src\demo</Filter>
     </ClInclude>
-    <ClInclude Include="src\window\WindowProcedure.h">
-      <Filter>Zdrojové soubory\src\window</Filter>
-    </ClInclude>
     <ClInclude Include="src\demo\DemoRunner.h">
       <Filter>Zdrojové soubory\src\demo</Filter>
     </ClInclude>

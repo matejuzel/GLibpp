@@ -1,7 +1,8 @@
 #include "EngineApp.h"
 
 #include <thread>
-#include "core/render/Renderer.h"
+#include "utils/timer/FixedTimestep.h"
+#include "utils/timer/HighResTimer.h"
 
 bool EngineApp::init()
 {
@@ -46,17 +47,55 @@ bool EngineApp::runLoop()
 	MSG msg = {};
 	running = true;
 
+	HighResTimer timer;
+	FixedTimestep timestepLogic(30.0f);
+	FixedTimestep timestepConsole(30.0f);
+
 	while (running) {
 
-		window->pollEvents();
-		if (keyboard[KeyMap::KEY_ESC]) 
-		{
-			renderer->stop();
-			running = false;
+		double frameTime = timer.tick();
+		if (frameTime > 0.25) frameTime = 0.25;
+
+		{	// POLL EVENTS
+			window->pollEvents();
+			if (keyboard[KeyMap::KEY_ESC])
+			{
+				renderer->stop();
+				running = false;
+			}
 		}
+		
+		{	// UPDATE LOGIC
+			for (int i = 0; i < timestepLogic.consume(frameTime); i++)
+			{
+				updateLogic(timestepLogic.getDt());
+			}
+		}
+
+		{	// CONSOLE LOGIC
+			for (int i = 0; i < timestepConsole.consume(frameTime); i++)
+			{
+				updateConsole(timestepConsole.getDt());
+			}
+		}
+		
 	}
 
 	threadRender.join();
 
 	return true;
+}
+
+void EngineApp::updateLogic(double dt)
+{
+	// @todo
+}
+
+void EngineApp::updateConsole(double dt)
+{
+	console.clearBack();
+
+	console.write(2, std::to_string(dt));
+
+	console.present();
 }

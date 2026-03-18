@@ -194,7 +194,6 @@
     <ClInclude Include="src\window\ConsoleDoubleBuffer.h" />
     <ClInclude Include="src\window\DIB\DIBFramebuffer.h" />
     <ClInclude Include="src\window\DIB\DIBRenderer.h" />
-    <ClInclude Include="src\window\WindowProcedure.h" />
     <ClInclude Include="src\window\WindowWin32.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
