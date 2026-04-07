@@ -4,8 +4,8 @@
 #include <windows.h>
 #include <string>
 #include <iostream>
+#include <vector>
 #include "WindowWin32.h"
-#include "core/App.h"
 #include "core/input/Keymap.h"
 
 void WindowWin32::setKeyCallback(std::function<void(KeyMap, bool)> cb) noexcept

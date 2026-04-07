@@ -3,7 +3,7 @@
 #include "math/Mtx4.h"
 #include "math/Vec4.h"
 #include "geometry/Mesh.h"
-#include "core/render/RenderCommand.h"
+#include "render/RenderCommand.h"
 #include "utils/datastruct/Viewport.h"
 #include "scene/Camera.h"
 #include "scene/Light.h"

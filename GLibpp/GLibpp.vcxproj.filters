@@ -43,14 +43,17 @@
     <Filter Include="Zdrojové soubory\src\demo">
       <UniqueIdentifier>{fbc1f50d-ec76-403a-822a-07bfd4954aa0}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Zdrojové soubory\src\core\render">
-      <UniqueIdentifier>{a41bdeca-c216-4287-a38c-bdc0d68f6c39}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Zdrojové soubory\src\scene">
       <UniqueIdentifier>{e05a5324-21df-4c1d-93b6-a635f1dab62d}</UniqueIdentifier>
     </Filter>
     <Filter Include="Zdrojové soubory\src\window\DIB">
       <UniqueIdentifier>{5a02653f-2002-4c5c-b9c1-dddc4e7aacfa}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Zdrojové soubory\src\render">
+      <UniqueIdentifier>{bcd91b62-a1c0-4692-9537-69501a1284a6}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Zdrojové soubory\src\render\backendDIB">
+      <UniqueIdentifier>{10988082-1670-4b6e-9ef3-6601be0d9600}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -75,9 +78,6 @@
     <ClCompile Include="src/geometry/Vertex.cpp">
       <Filter>Zdrojové soubory\src\geometry</Filter>
     </ClCompile>
-    <ClCompile Include="src/core/App.cpp">
-      <Filter>Zdrojové soubory\src\core</Filter>
-    </ClCompile>
     <ClCompile Include="src\core\input\Keyboard.cpp">
       <Filter>Zdrojové soubory\src\core\input</Filter>
     </ClCompile>
@@ -90,23 +90,11 @@
     <ClCompile Include="src\window\ConsoleDoubleBuffer.cpp">
       <Filter>Zdrojové soubory\src\window</Filter>
     </ClCompile>
-    <ClCompile Include="src\core\GameLoop.cpp">
-      <Filter>Zdrojové soubory\src\core</Filter>
-    </ClCompile>
     <ClCompile Include="src\demo\DemoRunner.cpp">
       <Filter>Zdrojové soubory\src\demo</Filter>
     </ClCompile>
-    <ClCompile Include="src\core\render\RenderCommand.cpp">
-      <Filter>Zdrojové soubory\src\core\render</Filter>
-    </ClCompile>
-    <ClCompile Include="src\core\render\Renderer.cpp">
-      <Filter>Zdrojové soubory\src\core\render</Filter>
-    </ClCompile>
     <ClCompile Include="src\utils\timer\Fps.cpp">
       <Filter>Zdrojové soubory\src\utils\timer</Filter>
-    </ClCompile>
-    <ClCompile Include="src\core\render\RenderContext.cpp">
-      <Filter>Zdrojové soubory\src\core\render</Filter>
     </ClCompile>
     <ClCompile Include="src\geometry\Color.cpp">
       <Filter>Zdrojové soubory\src\geometry</Filter>
@@ -141,8 +129,14 @@
     <ClCompile Include="src\main.cpp">
       <Filter>Zdrojové soubory\src</Filter>
     </ClCompile>
-    <ClCompile Include="src\core\render\RenderDeviceDIB.cpp">
-      <Filter>Zdrojové soubory\src\core\render</Filter>
+    <ClCompile Include="src\render\backendDIB\RenderContextDIB.cpp">
+      <Filter>Zdrojové soubory\src\render\backendDIB</Filter>
+    </ClCompile>
+    <ClCompile Include="src\render\backendDIB\RenderDeviceDIB.cpp">
+      <Filter>Zdrojové soubory\src\render\backendDIB</Filter>
+    </ClCompile>
+    <ClCompile Include="src\render\backendDIB\RenderTargetDIB.cpp">
+      <Filter>Zdrojové soubory\src\render\backendDIB</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -152,20 +146,11 @@
     <ClInclude Include="src\utils\cpu_pause.h">
       <Filter>Zdrojové soubory\src\utils</Filter>
     </ClInclude>
-    <ClInclude Include="src\core\GameLoop.h">
-      <Filter>Zdrojové soubory\src\core</Filter>
-    </ClInclude>
     <ClInclude Include="src\demo\ProducentConsumentDemo.h">
       <Filter>Zdrojové soubory\src\demo</Filter>
     </ClInclude>
     <ClInclude Include="src\demo\DemoRunner.h">
       <Filter>Zdrojové soubory\src\demo</Filter>
-    </ClInclude>
-    <ClInclude Include="src\core\render\RenderCommand.h">
-      <Filter>Zdrojové soubory\src\core\render</Filter>
-    </ClInclude>
-    <ClInclude Include="src\core\render\Renderer.h">
-      <Filter>Zdrojové soubory\src\core\render</Filter>
     </ClInclude>
     <ClInclude Include="src\utils\datastruct\TripleBuffer.h">
       <Filter>Zdrojové soubory\src\utils\datastruct</Filter>
@@ -178,9 +163,6 @@
     </ClInclude>
     <ClInclude Include="src\utils\timer\Fps.h">
       <Filter>Zdrojové soubory\src\utils\timer</Filter>
-    </ClInclude>
-    <ClInclude Include="src/core/App.h">
-      <Filter>Zdrojové soubory\src\core</Filter>
     </ClInclude>
     <ClInclude Include="src\core\input\Keyboard.h">
       <Filter>Zdrojové soubory\src\core\input</Filter>
@@ -218,9 +200,6 @@
     <ClInclude Include="src\core\input\Keymap.h">
       <Filter>Zdrojové soubory\src\core\input</Filter>
     </ClInclude>
-    <ClInclude Include="src\core\render\RenderContext.h">
-      <Filter>Zdrojové soubory\src\core\render</Filter>
-    </ClInclude>
     <ClInclude Include="src\utils\datastruct\AssetRegistry.h">
       <Filter>Zdrojové soubory\src\utils\datastruct</Filter>
     </ClInclude>
@@ -257,11 +236,26 @@
     <ClInclude Include="src\core\EngineApp.h">
       <Filter>Zdrojové soubory\src\core</Filter>
     </ClInclude>
-    <ClInclude Include="src\core\render\IRenderDevice.h">
-      <Filter>Zdrojové soubory\src\core\render</Filter>
+    <ClInclude Include="src\render\IRenderContext.h">
+      <Filter>Zdrojové soubory\src\render</Filter>
     </ClInclude>
-    <ClInclude Include="src\core\render\RenderDeviceDIB.h">
-      <Filter>Zdrojové soubory\src\core\render</Filter>
+    <ClInclude Include="src\render\IRenderDevice.h">
+      <Filter>Zdrojové soubory\src\render</Filter>
+    </ClInclude>
+    <ClInclude Include="src\render\IRenderTarget.h">
+      <Filter>Zdrojové soubory\src\render</Filter>
+    </ClInclude>
+    <ClInclude Include="src\render\backendDIB\RenderContextDIB.h">
+      <Filter>Zdrojové soubory\src\render\backendDIB</Filter>
+    </ClInclude>
+    <ClInclude Include="src\render\backendDIB\RenderDeviceDIB.h">
+      <Filter>Zdrojové soubory\src\render\backendDIB</Filter>
+    </ClInclude>
+    <ClInclude Include="src\render\backendDIB\RenderTargetDIB.h">
+      <Filter>Zdrojové soubory\src\render\backendDIB</Filter>
+    </ClInclude>
+    <ClInclude Include="src\branch.h">
+      <Filter>Zdrojové soubory\src</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

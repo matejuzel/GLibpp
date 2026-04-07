@@ -2,10 +2,11 @@
 
 #include <atomic>
 #include <memory>
-#include "window/WindowWin32.h"
-#include "core/render/RenderContext.h"
-#include "core/render/IRenderDevice.h"
-#include "core/render/RenderDeviceDIB.h"
+//#include "window/WindowWin32.h"
+#include "render/IRenderTarget.h"
+#include "render/backendDIB/RenderContextDIB.h"
+#include "render/backendDIB/RenderDeviceDIB.h"
+#include "render/backendDIB/RenderTargetDIB.h"
 #include "utils/timer/FixedTimestep.h"
 #include "utils/timer/Fps.h"
 #include "utils/timer/HighResTimer.h"
@@ -14,22 +15,20 @@
 class Renderer {
 private:
 
-	std::unique_ptr<IRenderDevice> device;
-	RenderContext context;
+	IRenderDevice* device = nullptr;
 
-	WindowWin32* window = nullptr;
+	//WindowWin32* window = nullptr;
 	std::atomic<bool> running{ false };
 
 public:
 
 	Renderer() = delete;
 
-	Renderer(WindowWin32* window, uint32_t width, uint32_t height) : window(window) {
-		
-		device = std::make_unique<RenderDeviceDIB>(window, width, height, 32);
-		
-		context.setDevice(device.get());
-		context.setViewport(0, 0, width, height);
+	Renderer(IRenderDevice* device, uint32_t width, uint32_t height) : device(device) {
+
+		//context.setDevice(device);
+		//context.setViewport(0, 0, width, height);
+
 	}
 
 	void runRenderLoop()
@@ -42,7 +41,11 @@ public:
 
 		while (isRunning())
 		{
-			context.beginFrame();
+
+			//std::shared_ptr<IRenderTarget> rtMain = device->createRenderTarget(...);
+
+			auto context = device->createRenderContext();
+			context->beginFrame();
 
 			/* // tady pak bude tripple buffered render command buffer
 			while (queue.pop(cmd)) {
@@ -53,15 +56,16 @@ public:
 			{
 				// docasne -> pak pouzijeme tripple buffered render commands ( EngineApp -> Renderer )
 				device->draw2dCircle(
-					(context.getFrameCount()) % context.getViewport().width,
-					(context.getFrameCount() / 10 % context.getViewport().height),
+					(context->getFrameCount()) % context->getViewport().width,
+					(context->getFrameCount() / 10 % context->getViewport().height),
 					10,
-					0x00ff0000
+					0x00550000
 				);
 			}
 
-			context.endFrame();
+			context->endFrame();
 
+			/*
 			fps.tick();
 
 			double frameTime = timer.tick();
@@ -70,6 +74,7 @@ public:
 			{
 				this->window->setTitle("Render FPS: " + std::to_string(fps.getFps()));
 			}
+			*/
 		}
 	}
 

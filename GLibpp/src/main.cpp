@@ -8,19 +8,25 @@
 #include <syncstream>
 #include <thread>
 
-#include "window/WindowWin32.h"
-#include "window/DIB/DIBFramebuffer.h"
-#include "window/DIB/DIBRenderer.h"
-#include "core/EngineApp.h"
+#include "branch.h"
 
-#pragma comment(lib, "User32.lib")
+//#include "window/WindowWin32.h"
+//#include "window/DIB/DIBFramebuffer.h"
+//#include "window/DIB/DIBRenderer.h"
+//#include "core/EngineApp.h"
+
+//#pragma comment(lib, "User32.lib")
 
 
 int main()
 {
     EngineApp app;
-    app.init();
-    app.runLoop();
+    app.runRenderingLoop();
+
+
+    //EngineApp app;
+    //app.init();
+    //app.runLoop();
 
     return 0;
 }

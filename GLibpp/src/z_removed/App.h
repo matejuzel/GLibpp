@@ -6,8 +6,7 @@
 #include "window/WindowWin32.h"
 #include "scene/SceneState.h"
 #include "core/GameLoop.h"
-#include "core/render/Renderer.h"
-#include "core/render/RenderContext.h"
+#include "render/Renderer.h"
 #include <utils/timer/Fps.h>
 #include "core/MeshInstanceRegistry.h"
 

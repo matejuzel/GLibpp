@@ -1,5 +1,8 @@
 #pragma once
 
+#include "IRenderTarget.h"
+#include "IRenderContext.h"
+
 class WindowWin32;
 class Mesh;
 class Material;
@@ -13,6 +16,11 @@ class IRenderDevice {
 public:
 
     virtual ~IRenderDevice() = default; // nutny pro polymorfizmus aby nedoslo k leakum
+
+
+    virtual IRenderContext* createRenderContext() = 0;
+    virtual std::shared_ptr<IRenderTarget> createRenderTarget(uint32_t width, uint32_t height) = 0;
+
 
     virtual void setViewport(uint32_t x, uint32_t y, uint32_t width, uint32_t height) = 0;
     virtual void setMatrixView(const Mtx4& view) = 0;

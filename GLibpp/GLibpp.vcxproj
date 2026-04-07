@@ -102,7 +102,7 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>$(ProjectDir)src;$(ProjectDir)src\math;$(ProjectDir)src\geometry;$(ProjectDir)src\core;$(ProjectDir)src\core\input;$(ProjectDir)src\window;$(ProjectDir)src\utils\datastruct;$(ProjectDir)src\demo;$(ProjectDir)src\core\render;$(ProjectDir)src\scene</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ProjectDir)src;$(ProjectDir)src\math;$(ProjectDir)src\geometry;$(ProjectDir)src\core;$(ProjectDir)src\core\input;$(ProjectDir)src\window;$(ProjectDir)src\utils\datastruct;$(ProjectDir)src\demo;$(ProjectDir)src\render;$(ProjectDir)src\scene</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -117,7 +117,7 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>$(ProjectDir)src;$(ProjectDir)src\math;$(ProjectDir)src\geometry;$(ProjectDir)src\core;$(ProjectDir)src\core\input;$(ProjectDir)src\window;$(ProjectDir)src\utils\datastruct;$(ProjectDir)src\demo;$(ProjectDir)src\core\render</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ProjectDir)src;$(ProjectDir)src\math;$(ProjectDir)src\geometry;$(ProjectDir)src\core;$(ProjectDir)src\core\input;$(ProjectDir)src\window;$(ProjectDir)src\utils\datastruct;$(ProjectDir)src\demo;$(ProjectDir)src\render;</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -125,10 +125,8 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="src/core/App.cpp" />
     <ClCompile Include="src/geometry/AABB.cpp" />
     <ClCompile Include="src\core\EngineApp.cpp" />
-    <ClCompile Include="src\core\GameLoop.cpp" />
     <ClCompile Include="src\core\input\Keyboard.cpp" />
     <ClCompile Include="src/geometry/Material.cpp" />
     <ClCompile Include="src/geometry/Mesh.cpp" />
@@ -137,14 +135,13 @@
     <ClCompile Include="src/math/Vec4.cpp" />
     <ClCompile Include="src/geometry/Vertex.cpp" />
     <ClCompile Include="src\core\MeshInstanceRegistry.cpp" />
-    <ClCompile Include="src\core\render\RenderCommand.cpp" />
-    <ClCompile Include="src\core\render\RenderContext.cpp" />
-    <ClCompile Include="src\core\render\RenderDeviceDIB.cpp" />
-    <ClCompile Include="src\core\render\Renderer.cpp" />
     <ClCompile Include="src\demo\DemoRunner.cpp" />
     <ClCompile Include="src\geometry\Color.cpp" />
     <ClCompile Include="src\geometry\MeshInstance.cpp" />
     <ClCompile Include="src\main.cpp" />
+    <ClCompile Include="src\render\backendDIB\RenderContextDIB.cpp" />
+    <ClCompile Include="src\render\backendDIB\RenderDeviceDIB.cpp" />
+    <ClCompile Include="src\render\backendDIB\RenderTargetDIB.cpp" />
     <ClCompile Include="src\scene\Camera.cpp" />
     <ClCompile Include="src\scene\Light.cpp" />
     <ClCompile Include="src\scene\SceneState.cpp" />
@@ -157,23 +154,17 @@
     <ClCompile Include="src\window\WindowWin32.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="src/core/App.h" />
     <ClInclude Include="src/geometry/AABB.h" />
     <ClInclude Include="src/geometry/Mesh.h" />
     <ClInclude Include="src/math/Mtx4.h" />
     <ClInclude Include="src/geometry/Triangle.h" />
     <ClInclude Include="src/math/Vec4.h" />
     <ClInclude Include="src/geometry/Vertex.h" />
+    <ClInclude Include="src\branch.h" />
     <ClInclude Include="src\core\EngineApp.h" />
-    <ClInclude Include="src\core\GameLoop.h" />
     <ClInclude Include="src\core\input\Keyboard.h" />
     <ClInclude Include="src\core\input\Keymap.h" />
     <ClInclude Include="src\core\MeshInstanceRegistry.h" />
-    <ClInclude Include="src\core\render\IRenderDevice.h" />
-    <ClInclude Include="src\core\render\RenderCommand.h" />
-    <ClInclude Include="src\core\render\RenderContext.h" />
-    <ClInclude Include="src\core\render\RenderDeviceDIB.h" />
-    <ClInclude Include="src\core\render\Renderer.h" />
     <ClInclude Include="src\core\Types.h" />
     <ClInclude Include="src\demo\RenderLoopDemo.h" />
     <ClInclude Include="src\demo\DemoRunner.h" />
@@ -181,6 +172,12 @@
     <ClInclude Include="src\geometry\Color.h" />
     <ClInclude Include="src\geometry\Material.h" />
     <ClInclude Include="src\geometry\MeshInstance.h" />
+    <ClInclude Include="src\render\backendDIB\RenderContextDIB.h" />
+    <ClInclude Include="src\render\backendDIB\RenderDeviceDIB.h" />
+    <ClInclude Include="src\render\backendDIB\RenderTargetDIB.h" />
+    <ClInclude Include="src\render\IRenderContext.h" />
+    <ClInclude Include="src\render\IRenderDevice.h" />
+    <ClInclude Include="src\render\IRenderTarget.h" />
     <ClInclude Include="src\scene\Camera.h" />
     <ClInclude Include="src\scene\Light.h" />
     <ClInclude Include="src\scene\SceneState.h" />

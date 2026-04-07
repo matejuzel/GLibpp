@@ -1,18 +1,10 @@
 #pragma once
 
-//#include "RenderCommand.h"
-#include "utils/datastruct/Viewport.h"
-#include "window/DIB/DIBFramebuffer.h"
-#include "window/DIB/DIBRenderer.h"
-#include "window/WindowWin32.h"
-#include "core/render/IRenderDevice.h"
-#include "math/Mtx4.h"
-#include <memory>
+#include "IRenderContext.h"
 
-class RenderContext {
-
+class RenderContextDIB : public IRenderContext
+{
 private:
-
     uint32_t frameCount = 0;
 
     Viewport viewport;
@@ -22,11 +14,12 @@ private:
     IRenderDevice* device = nullptr;
 
 public:
-    RenderContext() :
+    RenderContextDIB() :
         viewport(0, 0, 0, 0),
         projection(Mtx4::identity()),
         view(Mtx4::identity())
-    {}
+    {
+    }
 
     void setDevice(IRenderDevice* device) {
         this->device = device;
@@ -46,7 +39,7 @@ public:
         frameCount++;
     }
 
-    void setViewport(uint32_t offsetX, uint32_t offsetY, uint32_t width, uint32_t height) 
+    void setViewport(uint32_t offsetX, uint32_t offsetY, uint32_t width, uint32_t height)
     {
         viewport.offsetX = offsetX;
         viewport.offsetY = offsetY;
@@ -55,5 +48,4 @@ public:
 
         device->setViewport(offsetX, offsetY, width, height);
     }
-
 };

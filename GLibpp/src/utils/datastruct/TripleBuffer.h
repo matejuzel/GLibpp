@@ -2,7 +2,6 @@
 #include <atomic>
 #include <array>
 #include <vector>
-#include "core/render/RenderCommand.h"
 
 template<typename T>
 class TripleBuffer

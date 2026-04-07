@@ -1,5 +1,4 @@
 #include "core/GameLoop.h"
-#include "core/App.h"
 #include "utils/timer/HighResTimer.h"
 #include "utils/timer/FixedTimestep.h"
 #include <RenderCommand.h>

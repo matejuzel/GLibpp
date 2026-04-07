@@ -4,47 +4,6 @@
 #include "utils/timer/FixedTimestep.h"
 #include "utils/timer/HighResTimer.h"
 
-bool EngineApp::init()
-{
-	
-	try {
-
-		// WINDOW CREATION AND INIT
-		{
-			window = std::make_unique<WindowWin32>(width, height, false);
-
-			if (!window->build()) throw new std::runtime_error("Chyba pri vytvareni okna");
-
-			if (fullscreen)
-			{
-				window->removeOverlapProperty();
-				window->resizeWindowToFillScreen();
-				window->hideCursor();
-			}
-
-			window->setOnCloseCallback([this]() {
-				running = false;
-			});
-
-			window->setKeyCallback([this](KeyMap key, bool pressed) {
-				onKeyCallback(key, pressed);
-			});
-
-			window->glibRegisterRawInputDevices();
-		}
-		
-
-		// RENDERER CREATION
-		renderer = std::make_unique<Renderer>(window.get(), window->getClientWidth(), window->getClientHeight());
-
-	}
-	catch (const std::exception& e) {
-		std::cerr << e.what() << std::endl;
-		return false;
-	}
-	
-	return true;
-}
 
 bool EngineApp::runLoop()
 {
