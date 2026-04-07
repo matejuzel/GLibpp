@@ -169,6 +169,7 @@
     <ClInclude Include="src\demo\RenderLoopDemo.h" />
     <ClInclude Include="src\demo\DemoRunner.h" />
     <ClInclude Include="src\demo\ProducentConsumentDemo.h" />
+    <ClInclude Include="src\DoubleBuffer.h" />
     <ClInclude Include="src\geometry\Color.h" />
     <ClInclude Include="src\geometry\Material.h" />
     <ClInclude Include="src\geometry\MeshInstance.h" />

@@ -257,5 +257,8 @@
     <ClInclude Include="src\branch.h">
       <Filter>Zdrojové soubory\src</Filter>
     </ClInclude>
+    <ClInclude Include="src\DoubleBuffer.h">
+      <Filter>Hlavičkové soubory</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>
