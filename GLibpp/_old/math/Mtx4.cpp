@@ -338,27 +338,27 @@
 
 
     Mtx4& Mtx4::translate(float x, float y, float z) {
-        *this = *this * Mtx4::Translation(x, y, z);
+        *this = *this * Mtx4::translation(x, y, z);
         return *this;
     }
 
     Mtx4& Mtx4::scale(float x, float y, float z) {
-        *this = *this * Mtx4::Scaling(x, y, z);
+        *this = *this * Mtx4::scaling(x, y, z);
         return *this;
     }
 
     Mtx4& Mtx4::rotateX(float a) {
-        *this = *this * Mtx4::RotationX(a);
+        *this = *this * Mtx4::rotationX(a);
         return *this;
     }
 
     Mtx4& Mtx4::rotateY(float a) {
-        *this = *this * Mtx4::RotationY(a);
+        *this = *this * Mtx4::rotationY(a);
         return *this;
     }
 
     Mtx4& Mtx4::rotateZ(float a) {
-        *this = *this * Mtx4::RotationZ(a);
+        *this = *this * Mtx4::rotationZ(a);
         return *this;
     }
 
@@ -410,7 +410,7 @@
     }
 
 
-    Mtx4 Mtx4::Identity()
+    Mtx4 Mtx4::identity()
     {
         return Mtx4(
             1, 0, 0, 0,
@@ -420,7 +420,7 @@
         );
     }
 
-    Mtx4 Mtx4::Translation(float x, float y, float z) {
+    Mtx4 Mtx4::translation(float x, float y, float z) {
         return Mtx4(
             1, 0, 0, x,
             0, 1, 0, y,
@@ -430,7 +430,7 @@
     }
 
 
-    Mtx4 Mtx4::Scaling(float x, float y, float z) {
+    Mtx4 Mtx4::scaling(float x, float y, float z) {
         return Mtx4(
             x, 0, 0, 0,
             0, y, 0, 0,
@@ -439,7 +439,7 @@
         );
     }
 
-    Mtx4 Mtx4::RotationX(float a) {
+    Mtx4 Mtx4::rotationX(float a) {
         float c = cos(a), s = sin(a);
         return Mtx4(
             1, 0, 0, 0,
@@ -449,7 +449,7 @@
         );
     }
 
-    Mtx4 Mtx4::RotationY(float a) {
+    Mtx4 Mtx4::rotationY(float a) {
         float c = cos(a), s = sin(a);
         return Mtx4(
             c, 0, s, 0,
@@ -459,7 +459,7 @@
         );
     }
 
-    Mtx4 Mtx4::RotationZ(float a) {
+    Mtx4 Mtx4::rotationZ(float a) {
         float c = cos(a), s = sin(a);
         return Mtx4(
             c, -s, 0, 0,
@@ -469,7 +469,7 @@
         );
     }
 
-    Mtx4 Mtx4::LookAt(const Vec4& eye, const Vec4& target, const Vec4& up) {
+    Mtx4 Mtx4::lookAt(const Vec4& eye, const Vec4& target, const Vec4& up) {
         Vec4 f = Vec4::normalize(target - eye);
         Vec4 s = Vec4::normalize(Vec4::cross(f, up));
         Vec4 u = Vec4::cross(s, f);
@@ -482,7 +482,7 @@
         );
     }
 
-    Mtx4 Mtx4::Perspective(float fov, float aspect, float nearZ, float farZ) {
+    Mtx4 Mtx4::perspective(float fov, float aspect, float nearZ, float farZ) {
         float f = 1.0f / tan(fov * 0.5f);
         return Mtx4(
             f / aspect, 0, 0, 0,
@@ -492,7 +492,7 @@
         );
     }
 
-    Mtx4 Mtx4::Orthographic(float left, float right, float bottom, float top, float nearZ, float farZ) {
+    Mtx4 Mtx4::orthographic(float left, float right, float bottom, float top, float nearZ, float farZ) {
         return Mtx4(
             2 / (right - left), 0, 0, -(right + left) / (right - left),
             0, 2 / (top - bottom), 0, -(top + bottom) / (top - bottom),

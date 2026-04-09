@@ -22,8 +22,6 @@ public:
         float m30, float m31, float m32, float m33
     );
 
-	const float* getRawData() const { return data; }
-
     Mtx4(const Mtx4& other)
     {
         std::memcpy(data, other.data, sizeof(data));
@@ -67,15 +65,15 @@ public:
     Mtx4 inverted() const;
     Mtx4 invertedAffine() const;
     
-    static Mtx4 Identity();
-    static Mtx4 Translation(float x, float y, float z);
-    static Mtx4 Scaling(float x, float y, float z);
-    static Mtx4 RotationX(float a);
-    static Mtx4 RotationY(float a);
-    static Mtx4 RotationZ(float a);
-    static Mtx4 LookAt(const Vec4& eye, const Vec4& target, const Vec4& up);
-    static Mtx4 Perspective(float fov, float aspect, float nearZ, float farZ);
-    static Mtx4 Orthographic(float left, float right, float bottom, float top, float nearZ, float farZ);
+    static Mtx4 identity();
+    static Mtx4 translation(float x, float y, float z);
+    static Mtx4 scaling(float x, float y, float z);
+    static Mtx4 rotationX(float a);
+    static Mtx4 rotationY(float a);
+    static Mtx4 rotationZ(float a);
+    static Mtx4 lookAt(const Vec4& eye, const Vec4& target, const Vec4& up);
+    static Mtx4 perspective(float fov, float aspect, float nearZ, float farZ);
+    static Mtx4 orthographic(float left, float right, float bottom, float top, float nearZ, float farZ);
 
     float determinant() const;
 

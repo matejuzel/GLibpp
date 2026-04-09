@@ -13,249 +13,144 @@
       <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
       <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
     </Filter>
-    <Filter Include="Zdrojové soubory\src">
-      <UniqueIdentifier>{ce6b7575-3c45-4c52-a0f5-e61fc38d7aa9}</UniqueIdentifier>
+    <Filter Include="Zdrojové soubory\App">
+      <UniqueIdentifier>{8e55b123-41a8-4cb5-bd27-3e6f51394348}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Zdrojové soubory\src\math">
-      <UniqueIdentifier>{dd86ad2b-db07-4c4b-840f-298a7643db1f}</UniqueIdentifier>
+    <Filter Include="Zdrojové soubory\Engine">
+      <UniqueIdentifier>{b58e1950-b07a-4122-ae1f-eb139823ba2a}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Zdrojové soubory\src\geometry">
-      <UniqueIdentifier>{573337a4-cba0-41f1-a24a-61ac22565687}</UniqueIdentifier>
+    <Filter Include="Zdrojové soubory\Engine\Renderer">
+      <UniqueIdentifier>{5cd135dc-eae7-41f3-82e5-1f66578acbfa}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Zdrojové soubory\src\core">
-      <UniqueIdentifier>{cca8351d-4c37-45d2-9f50-6dbd35e30080}</UniqueIdentifier>
+    <Filter Include="Zdrojové soubory\Engine\Renderer\Backend">
+      <UniqueIdentifier>{3a3a7ac0-e3e5-413c-a727-eabfdcc12c21}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Zdrojové soubory\src\core\input">
-      <UniqueIdentifier>{f844b52a-4210-41b3-8cc2-da2b8395f8e4}</UniqueIdentifier>
+    <Filter Include="Zdrojové soubory\Engine\Renderer\Backend\Common">
+      <UniqueIdentifier>{688e93fb-1fc6-41bb-8146-45ff2d2aa8a7}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Zdrojové soubory\src\window">
-      <UniqueIdentifier>{b8219812-e764-40e7-833c-45f55893547f}</UniqueIdentifier>
+    <Filter Include="Zdrojové soubory\Engine\Renderer\Backend\DIB">
+      <UniqueIdentifier>{aa4858c9-d7e0-4cdc-a58d-004bdd18c447}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Zdrojové soubory\src\utils">
-      <UniqueIdentifier>{d0b32f7d-e420-41e7-b2db-cf4fbd2486ea}</UniqueIdentifier>
+    <Filter Include="Zdrojové soubory\Math">
+      <UniqueIdentifier>{91c02d10-9d17-4d20-80e5-d379e6f57f48}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Zdrojové soubory\src\utils\timer">
-      <UniqueIdentifier>{acb4f8dc-b220-4a74-b63b-8947c95babf6}</UniqueIdentifier>
+    <Filter Include="Zdrojové soubory\Utility">
+      <UniqueIdentifier>{22195589-8e3b-4159-954d-ca023d178cdc}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Zdrojové soubory\src\utils\datastruct">
-      <UniqueIdentifier>{0a65b0a3-ce48-49ef-a97d-012141e33bcc}</UniqueIdentifier>
+    <Filter Include="Zdrojové soubory\Platform">
+      <UniqueIdentifier>{ea257f09-9271-4e9c-843f-e3728f1e1ed8}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Zdrojové soubory\src\demo">
-      <UniqueIdentifier>{fbc1f50d-ec76-403a-822a-07bfd4954aa0}</UniqueIdentifier>
+    <Filter Include="Zdrojové soubory\Platform\Win32">
+      <UniqueIdentifier>{34cab826-0aff-456e-b9fa-277bef7c4bea}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Zdrojové soubory\src\scene">
-      <UniqueIdentifier>{e05a5324-21df-4c1d-93b6-a635f1dab62d}</UniqueIdentifier>
+    <Filter Include="Zdrojové soubory\Engine\Core">
+      <UniqueIdentifier>{67da9090-1f82-4fe8-be2b-20e80e409f88}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Zdrojové soubory\src\window\DIB">
-      <UniqueIdentifier>{5a02653f-2002-4c5c-b9c1-dddc4e7aacfa}</UniqueIdentifier>
+    <Filter Include="Zdrojové soubory\Engine\Core\Datastruct">
+      <UniqueIdentifier>{d5aded0e-7e65-428c-a8fd-d80979ee300c}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Zdrojové soubory\src\render">
-      <UniqueIdentifier>{bcd91b62-a1c0-4692-9537-69501a1284a6}</UniqueIdentifier>
+    <Filter Include="Zdrojové soubory\Engine\Renderer\Backend\RenderCommand">
+      <UniqueIdentifier>{d8e23d7f-6695-45cd-9985-958690db0b97}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Zdrojové soubory\src\render\backendDIB">
-      <UniqueIdentifier>{10988082-1670-4b6e-9ef3-6601be0d9600}</UniqueIdentifier>
+    <Filter Include="Zdrojové soubory\Engine\Core\Input">
+      <UniqueIdentifier>{e2aec2fc-34ee-4ff9-a612-9223f6af98a9}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="src/geometry/AABB.cpp">
-      <Filter>Zdrojové soubory\src\geometry</Filter>
-    </ClCompile>
-    <ClCompile Include="src/geometry/Material.cpp">
-      <Filter>Zdrojové soubory\src\geometry</Filter>
-    </ClCompile>
-    <ClCompile Include="src/geometry/Mesh.cpp">
-      <Filter>Zdrojové soubory\src\geometry</Filter>
-    </ClCompile>
-    <ClCompile Include="src/math/Mtx4.cpp">
-      <Filter>Zdrojové soubory\src\math</Filter>
-    </ClCompile>
-    <ClCompile Include="src/math/Vec4.cpp">
-      <Filter>Zdrojové soubory\src\math</Filter>
-    </ClCompile>
-    <ClCompile Include="src/geometry/Triangle.cpp">
-      <Filter>Zdrojové soubory\src\geometry</Filter>
-    </ClCompile>
-    <ClCompile Include="src/geometry/Vertex.cpp">
-      <Filter>Zdrojové soubory\src\geometry</Filter>
-    </ClCompile>
-    <ClCompile Include="src\core\input\Keyboard.cpp">
-      <Filter>Zdrojové soubory\src\core\input</Filter>
-    </ClCompile>
-    <ClCompile Include="src\utils\timer\HighResTimer.cpp">
-      <Filter>Zdrojové soubory\src\utils\timer</Filter>
-    </ClCompile>
-    <ClCompile Include="src\utils\timer\FixedTimestep.cpp">
-      <Filter>Zdrojové soubory\src\utils\timer</Filter>
-    </ClCompile>
-    <ClCompile Include="src\window\ConsoleDoubleBuffer.cpp">
-      <Filter>Zdrojové soubory\src\window</Filter>
-    </ClCompile>
-    <ClCompile Include="src\demo\DemoRunner.cpp">
-      <Filter>Zdrojové soubory\src\demo</Filter>
-    </ClCompile>
-    <ClCompile Include="src\utils\timer\Fps.cpp">
-      <Filter>Zdrojové soubory\src\utils\timer</Filter>
-    </ClCompile>
-    <ClCompile Include="src\geometry\Color.cpp">
-      <Filter>Zdrojové soubory\src\geometry</Filter>
-    </ClCompile>
-    <ClCompile Include="src\scene\Camera.cpp">
-      <Filter>Zdrojové soubory\src\scene</Filter>
-    </ClCompile>
-    <ClCompile Include="src\scene\Light.cpp">
-      <Filter>Zdrojové soubory\src\scene</Filter>
-    </ClCompile>
-    <ClCompile Include="src\scene\SceneState.cpp">
-      <Filter>Zdrojové soubory\src\scene</Filter>
-    </ClCompile>
-    <ClCompile Include="src\geometry\MeshInstance.cpp">
-      <Filter>Zdrojové soubory\src\geometry</Filter>
-    </ClCompile>
-    <ClCompile Include="src\core\MeshInstanceRegistry.cpp">
-      <Filter>Zdrojové soubory\src\core</Filter>
-    </ClCompile>
-    <ClCompile Include="src\window\WindowWin32.cpp">
-      <Filter>Zdrojové soubory\src\window</Filter>
-    </ClCompile>
-    <ClCompile Include="src\window\DIB\DIBRenderer.cpp">
-      <Filter>Zdrojové soubory\src\window\DIB</Filter>
-    </ClCompile>
-    <ClCompile Include="src\window\DIB\DIBFramebuffer.cpp">
-      <Filter>Zdrojové soubory\src\window\DIB</Filter>
-    </ClCompile>
-    <ClCompile Include="src\core\EngineApp.cpp">
-      <Filter>Zdrojové soubory\src\core</Filter>
-    </ClCompile>
     <ClCompile Include="src\main.cpp">
-      <Filter>Zdrojové soubory\src</Filter>
+      <Filter>Zdrojové soubory\App</Filter>
     </ClCompile>
-    <ClCompile Include="src\render\backendDIB\RenderContextDIB.cpp">
-      <Filter>Zdrojové soubory\src\render\backendDIB</Filter>
+    <ClCompile Include="src\Platform\Win32\WindowWin32.cpp">
+      <Filter>Zdrojové soubory\Platform\Win32</Filter>
     </ClCompile>
-    <ClCompile Include="src\render\backendDIB\RenderDeviceDIB.cpp">
-      <Filter>Zdrojové soubory\src\render\backendDIB</Filter>
+    <ClCompile Include="src\Math\Mtx4.cpp">
+      <Filter>Zdrojové soubory\Math</Filter>
     </ClCompile>
-    <ClCompile Include="src\render\backendDIB\RenderTargetDIB.cpp">
-      <Filter>Zdrojové soubory\src\render\backendDIB</Filter>
+    <ClCompile Include="src\Math\Vec4.cpp">
+      <Filter>Zdrojové soubory\Math</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="src\utils\datastruct\SPSCQueue.h">
-      <Filter>Zdrojové soubory\src\utils\datastruct</Filter>
+    <ClInclude Include="src\App\App.h">
+      <Filter>Zdrojové soubory\App</Filter>
     </ClInclude>
-    <ClInclude Include="src\utils\cpu_pause.h">
-      <Filter>Zdrojové soubory\src\utils</Filter>
+    <ClInclude Include="src\Platform\Win32\WindowWin32.h">
+      <Filter>Zdrojové soubory\Platform\Win32</Filter>
     </ClInclude>
-    <ClInclude Include="src\demo\ProducentConsumentDemo.h">
-      <Filter>Zdrojové soubory\src\demo</Filter>
+    <ClInclude Include="src\Engine\Renderer\Renderer.h">
+      <Filter>Zdrojové soubory\Engine\Renderer</Filter>
     </ClInclude>
-    <ClInclude Include="src\demo\DemoRunner.h">
-      <Filter>Zdrojové soubory\src\demo</Filter>
+    <ClInclude Include="src\Engine\Renderer\Backend\Common\IRenderContext.h">
+      <Filter>Zdrojové soubory\Engine\Renderer\Backend\Common</Filter>
     </ClInclude>
-    <ClInclude Include="src\utils\datastruct\TripleBuffer.h">
-      <Filter>Zdrojové soubory\src\utils\datastruct</Filter>
+    <ClInclude Include="src\Engine\Renderer\Backend\Common\IRenderDevice.h">
+      <Filter>Zdrojové soubory\Engine\Renderer\Backend\Common</Filter>
     </ClInclude>
-    <ClInclude Include="src\demo\RenderLoopDemo.h">
-      <Filter>Zdrojové soubory\src\demo</Filter>
+    <ClInclude Include="src\Engine\Renderer\Backend\Common\IRenderTarget.h">
+      <Filter>Zdrojové soubory\Engine\Renderer\Backend\Common</Filter>
     </ClInclude>
-    <ClInclude Include="src\core\Types.h">
-      <Filter>Zdrojové soubory\src\core</Filter>
+    <ClInclude Include="src\Engine\Renderer\Backend\DIB\RenderContextDIB.h">
+      <Filter>Zdrojové soubory\Engine\Renderer\Backend\DIB</Filter>
     </ClInclude>
-    <ClInclude Include="src\utils\timer\Fps.h">
-      <Filter>Zdrojové soubory\src\utils\timer</Filter>
+    <ClInclude Include="src\Engine\Renderer\Backend\DIB\RenderDeviceDIB.h">
+      <Filter>Zdrojové soubory\Engine\Renderer\Backend\DIB</Filter>
     </ClInclude>
-    <ClInclude Include="src\core\input\Keyboard.h">
-      <Filter>Zdrojové soubory\src\core\input</Filter>
+    <ClInclude Include="src\Engine\Renderer\Backend\DIB\RenderTargetDIB.h">
+      <Filter>Zdrojové soubory\Engine\Renderer\Backend\DIB</Filter>
     </ClInclude>
-    <ClInclude Include="src/geometry/AABB.h">
-      <Filter>Zdrojové soubory\src\geometry</Filter>
+    <ClInclude Include="src\Math\Mtx4.h">
+      <Filter>Zdrojové soubory\Math</Filter>
     </ClInclude>
-    <ClInclude Include="src\geometry\Material.h">
-      <Filter>Zdrojové soubory\src\geometry</Filter>
+    <ClInclude Include="src\Math\Vec4.h">
+      <Filter>Zdrojové soubory\Math</Filter>
     </ClInclude>
-    <ClInclude Include="src/geometry/Mesh.h">
-      <Filter>Zdrojové soubory\src\geometry</Filter>
+    <ClInclude Include="src\Engine\Renderer\RenderTargetDescriptor.h">
+      <Filter>Zdrojové soubory\Engine\Renderer</Filter>
     </ClInclude>
-    <ClInclude Include="src/geometry/Triangle.h">
-      <Filter>Zdrojové soubory\src\geometry</Filter>
+    <ClInclude Include="src\Engine\Renderer\TextureFormat.h">
+      <Filter>Zdrojové soubory\Engine\Renderer</Filter>
     </ClInclude>
-    <ClInclude Include="src/geometry/Vertex.h">
-      <Filter>Zdrojové soubory\src\geometry</Filter>
+    <ClInclude Include="src\Engine\Renderer\TextureUsage.h">
+      <Filter>Zdrojové soubory\Engine\Renderer</Filter>
     </ClInclude>
-    <ClInclude Include="src/math/Mtx4.h">
-      <Filter>Zdrojové soubory\src\math</Filter>
+    <ClInclude Include="src\Engine\Renderer\DeviceTargetHandle.h">
+      <Filter>Zdrojové soubory\Engine\Renderer</Filter>
     </ClInclude>
-    <ClInclude Include="src/math/Vec4.h">
-      <Filter>Zdrojové soubory\src\math</Filter>
+    <ClInclude Include="src\Engine\Renderer\RenderState.h">
+      <Filter>Zdrojové soubory\Engine\Renderer</Filter>
     </ClInclude>
-    <ClInclude Include="src\utils\timer\FixedTimestep.h">
-      <Filter>Zdrojové soubory\src\utils\timer</Filter>
+    <ClInclude Include="src\Engine\Renderer\Viewport.h">
+      <Filter>Zdrojové soubory\Engine\Renderer</Filter>
     </ClInclude>
-    <ClInclude Include="src\window\ConsoleDoubleBuffer.h">
-      <Filter>Zdrojové soubory\src\window</Filter>
+    <ClInclude Include="src\Engine\Renderer\Color.h">
+      <Filter>Zdrojové soubory\Engine\Renderer</Filter>
     </ClInclude>
-    <ClInclude Include="src\utils\timer\HighResTimer.h">
-      <Filter>Zdrojové soubory\src\utils\timer</Filter>
+    <ClInclude Include="src\Engine\Renderer\Backend\RenderCommand\RenderCommand.h">
+      <Filter>Zdrojové soubory\Engine\Renderer\Backend\RenderCommand</Filter>
     </ClInclude>
-    <ClInclude Include="src\core\input\Keymap.h">
-      <Filter>Zdrojové soubory\src\core\input</Filter>
+    <ClInclude Include="src\Engine\Renderer\Backend\RenderCommand\RenderCommandData.h">
+      <Filter>Zdrojové soubory\Engine\Renderer\Backend\RenderCommand</Filter>
     </ClInclude>
-    <ClInclude Include="src\utils\datastruct\AssetRegistry.h">
-      <Filter>Zdrojové soubory\src\utils\datastruct</Filter>
+    <ClInclude Include="src\Engine\Renderer\Backend\RenderCommand\RenderCommandList.h">
+      <Filter>Zdrojové soubory\Engine\Renderer\Backend\RenderCommand</Filter>
     </ClInclude>
-    <ClInclude Include="src\geometry\Color.h">
-      <Filter>Zdrojové soubory\src\geometry</Filter>
+    <ClInclude Include="src\Engine\Renderer\Backend\RenderCommand\RenderCommandType.h">
+      <Filter>Zdrojové soubory\Engine\Renderer\Backend\RenderCommand</Filter>
     </ClInclude>
-    <ClInclude Include="src\utils\datastruct\Viewport.h">
-      <Filter>Zdrojové soubory\src\utils\datastruct</Filter>
+    <ClInclude Include="src\Engine\Renderer\Backend\RenderCommand\RCMD_SetViewport.h">
+      <Filter>Hlavičkové soubory</Filter>
     </ClInclude>
-    <ClInclude Include="src\scene\Camera.h">
-      <Filter>Zdrojové soubory\src\scene</Filter>
+    <ClInclude Include="src\Engine\Renderer\Backend\RenderCommand\RenderCommandStructs.h">
+      <Filter>Zdrojové soubory\Engine\Renderer\Backend\RenderCommand</Filter>
     </ClInclude>
-    <ClInclude Include="src\scene\Light.h">
-      <Filter>Zdrojové soubory\src\scene</Filter>
+    <ClInclude Include="src\Engine\Core\handles.h">
+      <Filter>Zdrojové soubory\Engine\Core</Filter>
     </ClInclude>
-    <ClInclude Include="src\scene\SceneState.h">
-      <Filter>Zdrojové soubory\src\scene</Filter>
+    <ClInclude Include="src\Engine\Renderer\RenderResourceManager.h">
+      <Filter>Zdrojové soubory\Engine\Renderer</Filter>
     </ClInclude>
-    <ClInclude Include="src\geometry\MeshInstance.h">
-      <Filter>Zdrojové soubory\src\geometry</Filter>
-    </ClInclude>
-    <ClInclude Include="src\core\MeshInstanceRegistry.h">
-      <Filter>Zdrojové soubory\src\core</Filter>
-    </ClInclude>
-    <ClInclude Include="src\window\WindowWin32.h">
-      <Filter>Zdrojové soubory\src\window</Filter>
-    </ClInclude>
-    <ClInclude Include="src\window\DIB\DIBRenderer.h">
-      <Filter>Zdrojové soubory\src\window\DIB</Filter>
-    </ClInclude>
-    <ClInclude Include="src\window\DIB\DIBFramebuffer.h">
-      <Filter>Zdrojové soubory\src\window\DIB</Filter>
-    </ClInclude>
-    <ClInclude Include="src\core\EngineApp.h">
-      <Filter>Zdrojové soubory\src\core</Filter>
-    </ClInclude>
-    <ClInclude Include="src\render\IRenderContext.h">
-      <Filter>Zdrojové soubory\src\render</Filter>
-    </ClInclude>
-    <ClInclude Include="src\render\IRenderDevice.h">
-      <Filter>Zdrojové soubory\src\render</Filter>
-    </ClInclude>
-    <ClInclude Include="src\render\IRenderTarget.h">
-      <Filter>Zdrojové soubory\src\render</Filter>
-    </ClInclude>
-    <ClInclude Include="src\render\backendDIB\RenderContextDIB.h">
-      <Filter>Zdrojové soubory\src\render\backendDIB</Filter>
-    </ClInclude>
-    <ClInclude Include="src\render\backendDIB\RenderDeviceDIB.h">
-      <Filter>Zdrojové soubory\src\render\backendDIB</Filter>
-    </ClInclude>
-    <ClInclude Include="src\render\backendDIB\RenderTargetDIB.h">
-      <Filter>Zdrojové soubory\src\render\backendDIB</Filter>
-    </ClInclude>
-    <ClInclude Include="src\branch.h">
-      <Filter>Zdrojové soubory\src</Filter>
+    <ClInclude Include="src\Engine\Core\Datastruct\DoubleBuffer.h">
+      <Filter>Zdrojové soubory\Engine\Core\Datastruct</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

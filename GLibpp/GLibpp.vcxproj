@@ -18,6 +18,41 @@
       <Platform>x64</Platform>
     </ProjectConfiguration>
   </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="src\main.cpp" />
+    <ClCompile Include="src\Math\Mtx4.cpp" />
+    <ClCompile Include="src\Math\Vec4.cpp" />
+    <ClCompile Include="src\Platform\Win32\WindowWin32.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="src\App\App.h" />
+    <ClInclude Include="src\Engine\Core\Datastruct\DoubleBuffer.h" />
+    <ClInclude Include="src\Engine\Core\handles.h" />
+    <ClInclude Include="src\Engine\Renderer\Backend\Common\IRenderContext.h" />
+    <ClInclude Include="src\Engine\Renderer\Backend\Common\IRenderDevice.h" />
+    <ClInclude Include="src\Engine\Renderer\Backend\Common\IRenderTarget.h" />
+    <ClInclude Include="src\Engine\Renderer\Backend\DIB\RenderContextDIB.h" />
+    <ClInclude Include="src\Engine\Renderer\Backend\DIB\RenderDeviceDIB.h" />
+    <ClInclude Include="src\Engine\Renderer\Backend\DIB\RenderTargetDIB.h" />
+    <ClInclude Include="src\Engine\Renderer\Backend\RenderCommand\RCMD_SetViewport.h" />
+    <ClInclude Include="src\Engine\Renderer\Backend\RenderCommand\RenderCommand.h" />
+    <ClInclude Include="src\Engine\Renderer\Backend\RenderCommand\RenderCommandData.h" />
+    <ClInclude Include="src\Engine\Renderer\Backend\RenderCommand\RenderCommandList.h" />
+    <ClInclude Include="src\Engine\Renderer\Backend\RenderCommand\RenderCommandStructs.h" />
+    <ClInclude Include="src\Engine\Renderer\Backend\RenderCommand\RenderCommandType.h" />
+    <ClInclude Include="src\Engine\Renderer\Color.h" />
+    <ClInclude Include="src\Engine\Renderer\DeviceTargetHandle.h" />
+    <ClInclude Include="src\Engine\Renderer\Renderer.h" />
+    <ClInclude Include="src\Engine\Renderer\RenderResourceManager.h" />
+    <ClInclude Include="src\Engine\Renderer\RenderState.h" />
+    <ClInclude Include="src\Engine\Renderer\RenderTargetDescriptor.h" />
+    <ClInclude Include="src\Engine\Renderer\TextureFormat.h" />
+    <ClInclude Include="src\Engine\Renderer\TextureUsage.h" />
+    <ClInclude Include="src\Engine\Renderer\Viewport.h" />
+    <ClInclude Include="src\Math\Mtx4.h" />
+    <ClInclude Include="src\Math\Vec4.h" />
+    <ClInclude Include="src\Platform\Win32\WindowWin32.h" />
+  </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>17.0</VCProjectVersion>
     <Keyword>Win32Proj</Keyword>
@@ -102,7 +137,7 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>$(ProjectDir)src;$(ProjectDir)src\math;$(ProjectDir)src\geometry;$(ProjectDir)src\core;$(ProjectDir)src\core\input;$(ProjectDir)src\window;$(ProjectDir)src\utils\datastruct;$(ProjectDir)src\demo;$(ProjectDir)src\render;$(ProjectDir)src\scene</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ProjectDir)src;$(ProjectDir)src\App;$(ProjectDir)src\Engine;$(ProjectDir)src\Math;$(ProjectDir)src\Platform;$(ProjectDir)src\Utility;$(ProjectDir)src\Engine\Core;$(ProjectDir)src\Engine\Renderer;$(ProjectDir)src\Engine\Core\Datastruct;$(ProjectDir)src\Engine\Renderer\Backend;$(ProjectDir)src\Engine\Renderer\Backend\Common;$(ProjectDir)src\Engine\Renderer\Backend\DIB;$(ProjectDir)src\Platform\Win32;$(ProjectDir)src\Engine\Renderer\Backend\RenderCommand;$(ProjectDir)src\Engine\Core\Input</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -117,83 +152,13 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>$(ProjectDir)src;$(ProjectDir)src\math;$(ProjectDir)src\geometry;$(ProjectDir)src\core;$(ProjectDir)src\core\input;$(ProjectDir)src\window;$(ProjectDir)src\utils\datastruct;$(ProjectDir)src\demo;$(ProjectDir)src\render;</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ProjectDir)src;$(ProjectDir)src\App;$(ProjectDir)src\Engine;$(ProjectDir)src\Math;$(ProjectDir)src\Platform;$(ProjectDir)src\Utility;$(ProjectDir)src\Engine\Core;$(ProjectDir)src\Engine\Renderer;$(ProjectDir)src\Engine\Core\Datastruct;$(ProjectDir)src\Engine\Renderer\Backend;$(ProjectDir)src\Engine\Renderer\Backend\Common;$(ProjectDir)src\Engine\Renderer\Backend\DIB;$(ProjectDir)src\Platform\Win32;$(ProjectDir)src\Engine\Renderer\Backend\RenderCommand;$(ProjectDir)src\Engine\Core\Input</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
     </Link>
   </ItemDefinitionGroup>
-  <ItemGroup>
-    <ClCompile Include="src/geometry/AABB.cpp" />
-    <ClCompile Include="src\core\EngineApp.cpp" />
-    <ClCompile Include="src\core\input\Keyboard.cpp" />
-    <ClCompile Include="src/geometry/Material.cpp" />
-    <ClCompile Include="src/geometry/Mesh.cpp" />
-    <ClCompile Include="src/math/Mtx4.cpp" />
-    <ClCompile Include="src/geometry/Triangle.cpp" />
-    <ClCompile Include="src/math/Vec4.cpp" />
-    <ClCompile Include="src/geometry/Vertex.cpp" />
-    <ClCompile Include="src\core\MeshInstanceRegistry.cpp" />
-    <ClCompile Include="src\demo\DemoRunner.cpp" />
-    <ClCompile Include="src\geometry\Color.cpp" />
-    <ClCompile Include="src\geometry\MeshInstance.cpp" />
-    <ClCompile Include="src\main.cpp" />
-    <ClCompile Include="src\render\backendDIB\RenderContextDIB.cpp" />
-    <ClCompile Include="src\render\backendDIB\RenderDeviceDIB.cpp" />
-    <ClCompile Include="src\render\backendDIB\RenderTargetDIB.cpp" />
-    <ClCompile Include="src\scene\Camera.cpp" />
-    <ClCompile Include="src\scene\Light.cpp" />
-    <ClCompile Include="src\scene\SceneState.cpp" />
-    <ClCompile Include="src\utils\timer\FixedTimestep.cpp" />
-    <ClCompile Include="src\utils\timer\Fps.cpp" />
-    <ClCompile Include="src\utils\timer\HighResTimer.cpp" />
-    <ClCompile Include="src\window\ConsoleDoubleBuffer.cpp" />
-    <ClCompile Include="src\window\DIB\DIBFramebuffer.cpp" />
-    <ClCompile Include="src\window\DIB\DIBRenderer.cpp" />
-    <ClCompile Include="src\window\WindowWin32.cpp" />
-  </ItemGroup>
-  <ItemGroup>
-    <ClInclude Include="src/geometry/AABB.h" />
-    <ClInclude Include="src/geometry/Mesh.h" />
-    <ClInclude Include="src/math/Mtx4.h" />
-    <ClInclude Include="src/geometry/Triangle.h" />
-    <ClInclude Include="src/math/Vec4.h" />
-    <ClInclude Include="src/geometry/Vertex.h" />
-    <ClInclude Include="src\branch.h" />
-    <ClInclude Include="src\core\EngineApp.h" />
-    <ClInclude Include="src\core\input\Keyboard.h" />
-    <ClInclude Include="src\core\input\Keymap.h" />
-    <ClInclude Include="src\core\MeshInstanceRegistry.h" />
-    <ClInclude Include="src\core\Types.h" />
-    <ClInclude Include="src\demo\RenderLoopDemo.h" />
-    <ClInclude Include="src\demo\DemoRunner.h" />
-    <ClInclude Include="src\demo\ProducentConsumentDemo.h" />
-    <ClInclude Include="src\geometry\Color.h" />
-    <ClInclude Include="src\geometry\Material.h" />
-    <ClInclude Include="src\geometry\MeshInstance.h" />
-    <ClInclude Include="src\render\backendDIB\RenderContextDIB.h" />
-    <ClInclude Include="src\render\backendDIB\RenderDeviceDIB.h" />
-    <ClInclude Include="src\render\backendDIB\RenderTargetDIB.h" />
-    <ClInclude Include="src\render\IRenderContext.h" />
-    <ClInclude Include="src\render\IRenderDevice.h" />
-    <ClInclude Include="src\render\IRenderTarget.h" />
-    <ClInclude Include="src\scene\Camera.h" />
-    <ClInclude Include="src\scene\Light.h" />
-    <ClInclude Include="src\scene\SceneState.h" />
-    <ClInclude Include="src\utils\cpu_pause.h" />
-    <ClInclude Include="src\utils\datastruct\AssetRegistry.h" />
-    <ClInclude Include="src\utils\datastruct\SPSCQueue.h" />
-    <ClInclude Include="src\utils\datastruct\TripleBuffer.h" />
-    <ClInclude Include="src\utils\datastruct\Viewport.h" />
-    <ClInclude Include="src\utils\timer\FixedTimestep.h" />
-    <ClInclude Include="src\utils\timer\Fps.h" />
-    <ClInclude Include="src\utils\timer\HighResTimer.h" />
-    <ClInclude Include="src\window\ConsoleDoubleBuffer.h" />
-    <ClInclude Include="src\window\DIB\DIBFramebuffer.h" />
-    <ClInclude Include="src\window\DIB\DIBRenderer.h" />
-    <ClInclude Include="src\window\WindowWin32.h" />
-  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>
