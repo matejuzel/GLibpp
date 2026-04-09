@@ -152,5 +152,8 @@
     <ClInclude Include="src\Engine\Core\Datastruct\DoubleBuffer.h">
       <Filter>Zdrojové soubory\Engine\Core\Datastruct</Filter>
     </ClInclude>
+    <ClInclude Include="src\DoubleBuffer.h">
+      <Filter>Hlavičkové soubory</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>
