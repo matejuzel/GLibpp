@@ -11,28 +11,17 @@ class RenderContextDIB : public IRenderContext {
 public:
     RenderContextDIB(IRenderDevice& device, IRenderTarget* targetDefault) : IRenderContext(device, targetDefault) {}
 
-    
-
     void presentToWindow()
     {
-
-		RenderDeviceDIB& deviceDIB = static_cast<RenderDeviceDIB&>(device);
-		RenderTargetDIB& targetDIB = static_cast<RenderTargetDIB&>(*target);
-
-		HWND hwnd_ = deviceDIB.getHwnd();
-        uint32_t width = target->getDescriptor().width;
-        uint32_t height = target->getDescriptor().height;
-
+		HWND hwnd_ = (static_cast<RenderDeviceDIB&>(device)).getHwnd();
         HDC windowDC = GetDC(hwnd_);
-
 
         BitBlt(
             windowDC,
-            0, 0,                          // cílová pozice v oknì
-            width,
-            height,
-            targetDIB.getDC(),                         // zdrojový DC (DIB)
-            0, 0,                          // pozice v DIB
+            0, 0,
+            target->getDescriptor().width, target->getDescriptor().height,
+            (static_cast<RenderTargetDIB&>(*target)).getDC(),
+            0, 0,
             SRCCOPY
         );
 

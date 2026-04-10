@@ -23,6 +23,8 @@ public:
 	RenderDeviceDIB(HWND hwnd) : IRenderDevice(), hwnd_(hwnd)
     {}
 
+	void setHwnd(HWND hwnd) { hwnd_ = hwnd; }
+
     HWND getHwnd() const { return hwnd_; }
 
     DeviceTargetHandle createTarget(const RenderTargetDescriptor& descriptor) override 

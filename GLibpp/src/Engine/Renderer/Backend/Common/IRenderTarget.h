@@ -8,8 +8,5 @@ protected:
 public:
     IRenderTarget(const RenderTargetDescriptor& descriptor) : descriptor(descriptor) {}
     virtual ~IRenderTarget() = default;
-
 	const RenderTargetDescriptor& getDescriptor() const { return descriptor; }
-    
-    //virtual void presentToWindow() = 0;
 };

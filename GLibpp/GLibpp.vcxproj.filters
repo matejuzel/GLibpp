@@ -70,7 +70,7 @@
       <Filter>Zdrojové soubory\Math</Filter>
     </ClCompile>
     <ClCompile Include="src\Engine\Renderer\Backend\DIB\RenderDeviceDIB.cpp">
-      <Filter>Zdrojové soubory</Filter>
+      <Filter>Zdrojové soubory\Engine\Renderer\Backend\DIB</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

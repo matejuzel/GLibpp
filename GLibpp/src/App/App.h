@@ -18,33 +18,38 @@ private:
 	bool running = true;
 
 public:
-    App()
-        : window(800, 600, false)
-        , device(std::make_unique<RenderDeviceDIB>(window.getHwnd()))
-    {}
+    App() : window(800, 600, false) {}
 
     void initialize() 
     {
-        if (!window.build()) {
-            throw std::runtime_error("Failed to create window");
-        }
-
-        if (fullscreen)
         {
-            window.removeOverlapProperty();
-            window.resizeWindowToFillScreen();
-            window.hideCursor();
+            // WINDOW
+            if (!window.build()) {
+                throw std::runtime_error("Failed to create window");
+            }
+
+            if (fullscreen)
+            {
+                window.removeOverlapProperty();
+                window.resizeWindowToFillScreen();
+                window.hideCursor();
+            }
+
+            window.setOnCloseCallback([this]() {
+                running = false;
+                });
+
+            window.setKeyCallback([this](KeyMap key, bool pressed) {
+                onKeyCallback(key, pressed);
+                });
+
+            window.glibRegisterRawInputDevices();
         }
-
-        window.setOnCloseCallback([this]() {
-            running = false;
-        });
-
-        window.setKeyCallback([this](KeyMap key, bool pressed) {
-            onKeyCallback(key, pressed);
-        });
-
-        window.glibRegisterRawInputDevices();
+        
+        {
+            // DEVICE
+            device = std::make_unique<RenderDeviceDIB>(window.getHwnd());
+        }
 
         {
             // RENDERER
