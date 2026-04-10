@@ -572,7 +572,7 @@
             for (int c = 0; c < 4; c++) {
                 std::ostringstream tmp;
                 tmp << std::fixed << std::setprecision(3) << at(r, c);
-                maxWidth = std::max<int>(maxWidth, tmp.str().length());
+                maxWidth = std::max<int>(maxWidth, static_cast<int>(tmp.str().length()));
             }
         }
 
@@ -591,7 +591,7 @@
         for (int c = 0; c < 4; c++) {
             std::ostringstream tmp;
             tmp << std::fixed << std::setprecision(3) << colLen[c];
-            maxNormWidth = std::max<int>(maxNormWidth, tmp.str().length());
+            maxNormWidth = std::max<int>(maxNormWidth, static_cast<int>(tmp.str().length()));
         }
 
         // 4) Vypiš matici
