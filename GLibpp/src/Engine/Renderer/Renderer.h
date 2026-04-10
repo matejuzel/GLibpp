@@ -94,6 +94,7 @@ public:
         
         
         ctx->publish();
+        ctx->target->presentToWindow();
 
         device.present(target);
     }

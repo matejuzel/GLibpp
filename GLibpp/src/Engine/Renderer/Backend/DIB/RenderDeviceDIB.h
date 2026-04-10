@@ -8,14 +8,22 @@
 #include "RenderContextDIB.h"
 #include "DoubleBuffer.h"
 #include <vector>
+#include <windows.h>
 
 class RenderDeviceDIB : public IRenderDevice {
 
 private:
     
 	std::vector<std::unique_ptr<RenderTargetDIB>> renderTargets_;
+	HWND hwnd_ = nullptr;
 
 public:
+
+	RenderDeviceDIB(HWND hwnd) : IRenderDevice(), hwnd_(hwnd)
+    {}
+
+	HWND getHwnd() const { return hwnd_; }
+
     DeviceTargetHandle createRenderTarget(const RenderTargetDescriptor& descriptor) override 
     {
         size_t index = renderTargets_.size();

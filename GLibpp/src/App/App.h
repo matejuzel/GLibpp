@@ -20,7 +20,7 @@ private:
 public:
     App()
         : window(800, 600, false)
-        , device(std::make_unique<RenderDeviceDIB>())
+        , device(std::make_unique<RenderDeviceDIB>(window.getHwnd()))
     {}
 
     void initialize() 

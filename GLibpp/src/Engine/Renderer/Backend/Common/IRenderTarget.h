@@ -11,4 +11,5 @@ public:
 
 	const RenderTargetDescriptor& getDescriptor() const { return descriptor; }
     
+    //virtual void presentToWindow() = 0;
 };
