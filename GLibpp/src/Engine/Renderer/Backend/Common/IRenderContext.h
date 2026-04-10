@@ -17,7 +17,7 @@ protected:
     //Mesh& mesh;
 
 public:
-    IRenderContext(IRenderDevice& device) : device(device) {}
+    IRenderContext(IRenderDevice& device, IRenderTarget* targetDefault) : device(device), target(targetDefault) {}
     virtual ~IRenderContext() = default;
     virtual void publish() = 0;
 

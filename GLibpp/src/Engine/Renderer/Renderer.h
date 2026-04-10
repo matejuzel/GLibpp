@@ -108,14 +108,15 @@ public:
 
     void runLoop(const RenderCommandList& commandList) {
 
-        auto ctx = device.beginContext();
-        ctx->target = &acquireFramebufferBack();
+        auto& target = acquireFramebufferBack();
+
+        auto ctx = device.beginContext(target);
         
         renderCommandList(commandList, *ctx);
         
         
         ctx->publish();
 
-        device.present(acquireFramebufferBack());
+        device.present(target);
     }
 };

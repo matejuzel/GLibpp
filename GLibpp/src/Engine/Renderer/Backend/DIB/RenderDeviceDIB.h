@@ -31,9 +31,10 @@ public:
 		return DeviceTargetHandle{ 0 }; // @todo - vracet handle pro backbuffer
     }
 
-    std::unique_ptr<IRenderContext> beginContext() override 
+    std::unique_ptr<IRenderContext> beginContext(IRenderTarget& target) override
     {
-        return std::make_unique<RenderContextDIB>(*this);
+        auto a = std::make_unique<RenderContextDIB>(*this, &target);
+        return a;
     }
 
     void present(IRenderTarget& target) override 

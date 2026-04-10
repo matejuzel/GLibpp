@@ -6,7 +6,7 @@
 
 class RenderContextDIB : public IRenderContext {
 public:
-    RenderContextDIB(IRenderDevice& device) : IRenderContext(device) {}
+    RenderContextDIB(IRenderDevice& device, IRenderTarget* targetDefault) : IRenderContext(device, targetDefault) {}
 
     
 
