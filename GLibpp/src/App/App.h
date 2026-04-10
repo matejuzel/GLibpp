@@ -10,24 +10,70 @@
 
 class App {
 private:
-    std::unique_ptr<IRenderDevice> device;
     WindowWin32 window;
-    Renderer renderer;
+    std::unique_ptr<IRenderDevice> device;
+    std::unique_ptr<Renderer> renderer;
+
+    bool fullscreen = false;
+	bool running = true;
 
 public:
     App()
-        : device(std::make_unique<RenderDeviceDIB>())
-        , window(800, 600, false)
-        , renderer(*device, window.getClientWidth(), window.getClientHeight())
-    {
-    }
+        : window(800, 600, false)
+        , device(std::make_unique<RenderDeviceDIB>())
+    {}
 
-    void runRenderingLoop()
+    void initialize() 
+    {
+        if (!window.build()) {
+            throw std::runtime_error("Failed to create window");
+        }
+
+        if (fullscreen)
+        {
+            window.removeOverlapProperty();
+            window.resizeWindowToFillScreen();
+            window.hideCursor();
+        }
+
+        window.setOnCloseCallback([this]() {
+            running = false;
+        });
+
+        window.setKeyCallback([this](KeyMap key, bool pressed) {
+            onKeyCallback(key, pressed);
+        });
+
+        window.glibRegisterRawInputDevices();
+
+        {
+            // RENDERER
+            renderer = std::make_unique<Renderer>(*device, window.getClientWidth(), window.getClientHeight());
+        }
+	}
+
+    void onKeyCallback(KeyMap key, bool pressed) 
+    {
+        if (key == KeyMap::KEY_ESC && pressed) {
+            running = false;
+        }
+
+		std::cout << "Key event: " << (pressed ? "Pressed" : "Released") << " " << static_cast<int>(key) << std::endl;
+	}
+
+    void run()
+    {
+        while (running) {
+            window.pollEvents();
+            render();
+        }
+	}
+
+    void render()
     {
         // create render target using descriptor helper
-        auto target = device->createRenderTarget(RenderTargetDescriptor::Framebuffer(window.getClientWidth(), window.getClientHeight()));
 
-        renderer.runLoop(
+        renderer->runLoop(
             RenderCommandList::Create()
             .clear({ 0,0,0,255 })
             .setViewport(0, 0, window.getClientWidth(), window.getClientHeight())

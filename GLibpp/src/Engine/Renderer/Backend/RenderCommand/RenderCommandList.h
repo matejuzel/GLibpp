@@ -45,8 +45,8 @@ public:
         return *this;
     }
 
-    RenderCommandList& bindTarget(const DeviceTargetHandle& target) {
-        push<RCMD_BindTarget>(RenderCommandType::BindTarget) = { target };
+    RenderCommandList& bindTarget(DeviceTargetHandle handle) {
+        push<RCMD_BindTarget>(RenderCommandType::BindTarget) = { handle };
         return *this;
     }
 

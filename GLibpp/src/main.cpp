@@ -8,8 +8,14 @@
 
 int main()
 {
-    App app;
-    app.runRenderingLoop();
+
+    try 
+    {
+        App app;
+		app.initialize();
+        app.run();
+    }
+    catch (std::runtime_error error) { std::cout << error.what() << std::endl; return 1; }
 
     return 0;
 }

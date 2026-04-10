@@ -22,16 +22,16 @@ struct RCMD_SetMatrixView {
 };
 
 struct RCMD_BindMesh { 
-	MeshHandle mesh; 
-	MaterialHandle material; 
+	MeshHandle mesh_h;
+	MaterialHandle material_h;
 };
 
 struct RCMD_BindTarget { 
-	DeviceTargetHandle hwnd; 
+	DeviceTargetHandle target_h;
 };
 
-struct RCMD_Draw { 
-	uint32_t dummy; 
+struct RCMD_Draw {
+	uint32_t dummy;
 };
 
 struct RCMD_Clear { 
