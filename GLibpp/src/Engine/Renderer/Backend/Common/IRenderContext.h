@@ -11,13 +11,10 @@ class Mesh;
 class IRenderContext {
 protected:
     IRenderDevice& device;
-    
-    
-    //Material& material;
-    //Mesh& mesh;
 
 public:
     IRenderContext(IRenderDevice& device, IRenderTarget* targetDefault) : device(device), target(targetDefault) {}
+
     virtual ~IRenderContext() = default;
     virtual void publish() = 0;
 
@@ -26,4 +23,6 @@ public:
     Mtx4 view = Mtx4::Identity();
     IRenderTarget* target = nullptr;
 	Color clearColor = { 0,0,0,255 };
+    //Material& material;
+    //Mesh& mesh;
 };

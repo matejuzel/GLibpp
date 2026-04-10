@@ -19,6 +19,7 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="src\Engine\Renderer\Backend\DIB\RenderDeviceDIB.cpp" />
     <ClCompile Include="src\main.cpp" />
     <ClCompile Include="src\Math\Mtx4.cpp" />
     <ClCompile Include="src\Math\Vec4.cpp" />
@@ -159,7 +160,7 @@
       <GenerateDebugInformation>true</GenerateDebugInformation>
     </Link>
   </ItemDefinitionGroup>
-    <ItemGroup>
+  <ItemGroup>
     <ClInclude Include="src/geometry/AABB.h" />
     <ClInclude Include="src/geometry/Mesh.h" />
     <ClInclude Include="src/math/Mtx4.h" />

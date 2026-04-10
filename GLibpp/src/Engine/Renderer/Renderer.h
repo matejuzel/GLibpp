@@ -25,14 +25,14 @@ public:
     Renderer(IRenderDevice& device, uint32_t width, uint32_t height)
         : device(device), width(width), height(height) {
 
-        framebufferBackIndex = device.createRenderTarget(RenderTargetDescriptor::Framebuffer(width, height));
+        framebufferBackIndex = device.createTarget(RenderTargetDescriptor::Framebuffer(width, height));
 		//framebufferFrontIndex = device.createRenderTarget(RenderTargetDescriptor::Framebuffer(width, height));
     }
 
 
     
     IRenderTarget& acquireFramebufferBack() {
-        return device.getRenderTarget(framebufferBackIndex);
+        return device.getTarget(framebufferBackIndex);
 	}
 
 
@@ -49,7 +49,7 @@ public:
 
                 
                 //ctx.target = &getRenderTarget(cmd.data.bindTarget.target_h);
-				ctx.target = &device.getRenderTarget(cmd.data.bindTarget.target_h);
+				ctx.target = &device.getTarget(cmd.data.bindTarget.target_h);
                 break;
 
             case RenderCommandType::SetViewport:
@@ -94,7 +94,6 @@ public:
         
         
         ctx->publish();
-        ctx->target->presentToWindow();
 
         device.present(target);
     }
