@@ -3,16 +3,21 @@
 
 
     // identity
-    Mtx4::Mtx4() {
-        for (int i = 0; i < 16; i++)
-            data[i] = (i % 5 == 0) ? 1.0f : 0.0f;
+    Mtx4::Mtx4() : data{
+            1,0,0,0, 
+            0,1,0,0, 
+            0,0,1,0, 
+            0,0,0,1
+    } {}
+
+    Mtx4::Mtx4(const float* src) {
+        std::memcpy(data, src, sizeof(data));
     }
 
-    // from array
-    Mtx4::Mtx4(const float* src) {
-        for (int i = 0; i < 16; i++)
-            data[i] = src[i];
-    }
+    /*
+    Mtx4::Mtx4(const float(&src)[16]) {
+        std::memcpy(data, src, sizeof(data));
+    }*/
 
     // from 16 floats
     Mtx4::Mtx4(
@@ -613,7 +618,7 @@
         float det = determinant();
         std::ostringstream tmp;
         tmp << std::fixed << std::setprecision(3) << det;
-        int detWidth = tmp.str().length();
+        //int detWidth = tmp.str().length();
 
         ss << "  " << std::setw(maxWidth) << det << "   <- determinant\n";
 

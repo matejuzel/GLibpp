@@ -22,10 +22,10 @@ public:
                 state.viewport = { cmd.data.setViewport.x, cmd.data.setViewport.y, cmd.data.setViewport.width, cmd.data.setViewport.height };
                 break;
             case RenderCommandType::SetMatrixProjection:
-                state.projection = cmd.data.setMatrixProjection.matrix;
+                state.projection = Mtx4(cmd.data.setMatrixProjection.matrixData);
                 break;
             case RenderCommandType::SetMatrixView:
-                state.view = cmd.data.setMatrixView.matrix;
+                state.view = Mtx4(cmd.data.setMatrixView.matrixData);
                 break;
             case RenderCommandType::Draw:
                 device.drawMesh(*this);

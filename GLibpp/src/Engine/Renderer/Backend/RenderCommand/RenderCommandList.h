@@ -29,14 +29,14 @@ public:
     }
 
     RenderCommandList& setMatrixProjection(const Mtx4& matrix) {
-		const float* raw = matrix.getRawData();
-        push<RCMD_SetMatrixProjection>(RenderCommandType::SetMatrixProjection) = { raw };
+        auto& cmd = push<RCMD_SetMatrixProjection>(RenderCommandType::SetMatrixProjection);
+		std::memcpy(cmd.matrixData, matrix.getRawData(), sizeof(cmd.matrixData));
         return *this;
     }
 
     RenderCommandList& setMatrixView(const Mtx4& matrix) {
-        const float* raw = matrix.getRawData();
-        push<RCMD_SetMatrixView>(RenderCommandType::SetMatrixView) = { raw };
+        auto& cmd = push<RCMD_SetMatrixView>(RenderCommandType::SetMatrixView);
+        std::memcpy(cmd.matrixData, matrix.getRawData(), sizeof(cmd.matrixData));
         return *this;
     }
 

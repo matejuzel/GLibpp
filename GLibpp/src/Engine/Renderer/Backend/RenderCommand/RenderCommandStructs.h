@@ -14,13 +14,11 @@ struct RCMD_SetViewport {
 };
 
 struct RCMD_SetMatrixProjection { 
-	//Mtx4 matrix; 
-	const float *matrix; // pro jednoduchost a zaroven zachovani triviality struktury pouzijeme pole floatu namisto Mtx4
+	float matrixData[16];
 };
 
 struct RCMD_SetMatrixView { 
-	//Mtx4 matrix; 
-	const float *matrix; // pro jednoduchost a zaroven zachovani triviality struktury pouzijeme pole floatu namisto Mtx4
+	float matrixData[16];
 };
 
 struct RCMD_BindMesh { 

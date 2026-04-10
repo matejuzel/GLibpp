@@ -22,7 +22,10 @@ public:
         float m30, float m31, float m32, float m33
     );
 
-	const float* getRawData() const { return data; }
+	const float* getRawData() const 
+    { 
+        return data;
+    }
 
     Mtx4(const Mtx4& other)
     {
