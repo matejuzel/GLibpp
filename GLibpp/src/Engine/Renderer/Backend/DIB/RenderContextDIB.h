@@ -6,7 +6,7 @@
 
 class RenderContextDIB : public IRenderContext {
 public:
-    //RenderContextDIB(IRenderDevice& device) : IRenderContext(device) {}
+    RenderContextDIB(IRenderDevice& device) : IRenderContext(device) {}
 
     void renderCommandList(const RenderCommandList& cmds) override {
         for (const auto& cmd : cmds.getCommands()) {
