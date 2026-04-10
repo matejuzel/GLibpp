@@ -13,23 +13,23 @@ class RenderDeviceDIB : public IRenderDevice {
 
 private:
     
-	std::vector<RenderTargetDIB> renderTargets_;
-
-	DeviceTargetHandle backbufferHandle_ = { 0 }; // @todo - handle pro backbuffer, prozatim pevne 0
+	std::vector<std::unique_ptr<RenderTargetDIB>> renderTargets_;
 
 public:
     DeviceTargetHandle createRenderTarget(const RenderTargetDescriptor& descriptor) override 
     {
         size_t index = renderTargets_.size();
-		renderTargets_.emplace_back(descriptor);
+		renderTargets_.push_back(std::make_unique<RenderTargetDIB>(descriptor));
 		return DeviceTargetHandle{ static_cast<uint32_t>(index) };
     }
 
-    // Acquire backbuffer vraci identifikator (zachovano stavajici API)
-    DeviceTargetHandle acquireBackbuffer() override 
-    {
-		return DeviceTargetHandle{ 0 }; // @todo - vracet handle pro backbuffer
-    }
+    IRenderTarget& getRenderTarget(const DeviceTargetHandle& handle) override {
+        if (handle.handle >= renderTargets_.size()) {
+            throw std::runtime_error("Invalid RenderTarget handle: " + std::to_string(handle.handle));
+		}
+		return *renderTargets_[handle.handle];
+    };
+
 
     std::unique_ptr<IRenderContext> beginContext(IRenderTarget& target) override
     {

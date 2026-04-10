@@ -18,8 +18,6 @@ private:
     uint32_t width = 0;
     uint32_t height = 0;
 
-
-	std::vector<IRenderTarget> renderTargets;
     DeviceTargetHandle framebufferBackIndex = { 0 };
     DeviceTargetHandle framebufferFrontIndex = { 0 };
 
@@ -27,35 +25,14 @@ public:
     Renderer(IRenderDevice& device, uint32_t width, uint32_t height)
         : device(device), width(width), height(height) {
 
-        framebufferBackIndex = createRenderBuffer();
-		framebufferFrontIndex = createRenderBuffer();
+        framebufferBackIndex = device.createRenderTarget(RenderTargetDescriptor::Framebuffer(width, height));
+		//framebufferFrontIndex = device.createRenderTarget(RenderTargetDescriptor::Framebuffer(width, height));
     }
 
-    DeviceTargetHandle createRenderTarget(RenderTargetDescriptor descriptor) 
-    {
-        DeviceTargetHandle handle = { renderTargets.size() };
-        renderTargets.emplace_back(descriptor);
-        return handle;
-    }
 
-    DeviceTargetHandle createRenderBuffer() 
-    {
-        return createRenderTarget(RenderTargetDescriptor::Framebuffer(width, height));
-	}
-
-    IRenderTarget& acquireFramebufferBack() 
-    {
-        return renderTargets[framebufferBackIndex.handle];
-	}
-
-    IRenderTarget& acquireFramebufferFront() 
-    {
-        return renderTargets[framebufferFrontIndex.handle];
-    }
-
-    IRenderTarget& getRenderTarget(const DeviceTargetHandle& handle) 
-    {
-        return renderTargets[handle.handle];
+    
+    IRenderTarget& acquireFramebufferBack() {
+        return device.getRenderTarget(framebufferBackIndex);
 	}
 
 
@@ -71,7 +48,8 @@ public:
             case RenderCommandType::BindTarget:
 
                 
-                ctx.target = &getRenderTarget(cmd.data.bindTarget.target_h);
+                //ctx.target = &getRenderTarget(cmd.data.bindTarget.target_h);
+				ctx.target = &device.getRenderTarget(cmd.data.bindTarget.target_h);
                 break;
 
             case RenderCommandType::SetViewport:
