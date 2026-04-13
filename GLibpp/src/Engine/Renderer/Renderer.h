@@ -23,19 +23,16 @@ private:
 
 public:
     Renderer(IRenderDevice& device, uint32_t width, uint32_t height)
-        : device(device), width(width), height(height) {
-
+        : device(device)
+        , width(width)
+        , height(height) 
+    {
         framebufferBackIndex = device.createTarget(RenderTargetDescriptor::Framebuffer(width, height));
-		//framebufferFrontIndex = device.createRenderTarget(RenderTargetDescriptor::Framebuffer(width, height));
     }
 
-
-    
     IRenderTarget& acquireFramebufferBack() {
         return device.getTarget(framebufferBackIndex);
 	}
-
-
 
     void renderCommandList(const RenderCommandList& cmds, IRenderContext& ctx) {
         for (const auto& cmd : cmds.getCommands()) {

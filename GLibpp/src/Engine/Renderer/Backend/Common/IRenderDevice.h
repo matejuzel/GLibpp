@@ -18,8 +18,5 @@ public:
 
     virtual void drawMesh(IRenderContext& ctx) = 0;
     virtual void clear(IRenderContext& ctx, IRenderTarget& target) = 0;
-
     virtual void present(IRenderTarget& target) = 0;
-
-    //virtual HWND getHwnd() const = 0;
 };

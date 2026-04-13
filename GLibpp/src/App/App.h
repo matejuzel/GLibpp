@@ -95,7 +95,7 @@ public:
 
         renderer->runLoop(
             RenderCommandList::Create()
-            .clear({ 0,0,0,255 })
+            .clear({ 232,232,232,255 })
             .setViewport(0, 0, window->getClientWidth(), window->getClientHeight())
             .setMatrixProjection(Mtx4::Perspective(
                 45.0f,

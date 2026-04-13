@@ -50,11 +50,14 @@ public:
         // pak prehodi front a back buffer
     }
 
+
     void clear(IRenderContext& ctx, IRenderTarget& target) override
     {
         uint32_t color = ctx.clearColor.toRGBA();
-        
-        // @todo
+        auto* targetDib = static_cast<RenderTargetDIB*>(&target);
+        std::fill_n(targetDib->getFramebuffer(), target.getDescriptor().width * target.getDescriptor().height, color);
+
+		// dalo by se pouzit SSE (SIMD) pro rychlejší vyplnìní, ale pro jednoduchost a pøehlednost teï použijeme std::fill_n
 
     }
 
