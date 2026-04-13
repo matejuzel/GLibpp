@@ -52,6 +52,19 @@ public:
 	
 	void setTitle(const std::string& title);
 
+	void setFullscreenMode(bool fullscreen)
+	{
+		if (fullscreen) {
+			removeOverlapProperty();
+			resizeWindowToFillScreen();
+			hideCursor();
+		}
+		else {
+			// @todo: restore previous window size and position
+			showCursor();
+		}
+	}
+
 	bool build();
 	
 	void waitEvents() const noexcept;

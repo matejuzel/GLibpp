@@ -12,10 +12,14 @@ int main()
     try 
     {
         App app;
-		app.initialize();
+		app.initialize(800, 600);
         app.run();
     }
-    catch (std::runtime_error error) { std::cout << error.what() << std::endl; return 1; }
+    catch (std::runtime_error error) 
+    { 
+        std::cout << error.what() << std::endl; 
+        return 1; 
+    }
 
     return 0;
 }

@@ -10,50 +10,65 @@
 
 class App {
 private:
-    WindowWin32 window;
+    std::unique_ptr<WindowWin32> window;
     std::unique_ptr<IRenderDevice> device;
     std::unique_ptr<Renderer> renderer;
 
     bool fullscreen = false;
 	bool running = true;
 
-public:
-    App() : window(800, 600, false) {}
+    bool checkWindowInitialized() const {
+        if (window.get() == nullptr) {
+            throw std::runtime_error("Window is not initialized");
+        }
+        return true;
+	}
 
-    void initialize() 
+public:
+    App() {}
+
+	void setFullscreenMode(bool fullscreen) { 
+		checkWindowInitialized();
+		window->setFullscreenMode(fullscreen);
+    }
+
+    void initialize(uint32_t width, uint32_t height) 
     {
+
         {
             // WINDOW
-            if (!window.build()) {
+            window = std::make_unique<WindowWin32>(width, height, false);
+
+            if (!window->build()) {
                 throw std::runtime_error("Failed to create window");
             }
 
             if (fullscreen)
             {
-                window.removeOverlapProperty();
-                window.resizeWindowToFillScreen();
-                window.hideCursor();
+                window->removeOverlapProperty();
+                window->resizeWindowToFillScreen();
+                window->hideCursor();
             }
 
-            window.setOnCloseCallback([this]() {
+            window->setOnCloseCallback([this]() {
                 running = false;
                 });
 
-            window.setKeyCallback([this](KeyMap key, bool pressed) {
+            window->setKeyCallback([this](KeyMap key, bool pressed) {
                 onKeyCallback(key, pressed);
                 });
 
-            window.glibRegisterRawInputDevices();
+            window->glibRegisterRawInputDevices();
         }
         
         {
             // DEVICE
-            device = std::make_unique<RenderDeviceDIB>(window.getHwnd());
+            device = std::make_unique<RenderDeviceDIB>(window->getHwnd());
         }
 
         {
             // RENDERER
-            renderer = std::make_unique<Renderer>(*device, window.getClientWidth(), window.getClientHeight());
+            renderer = std::make_unique<Renderer>(*device, window->getClientWidth(), window->getClientHeight());
         }
 	}
 
@@ -69,7 +84,7 @@ public:
     void run()
     {
         while (running) {
-            window.pollEvents();
+            window->pollEvents();
             render();
         }
 	}
@@ -81,10 +96,10 @@ public:
         renderer->runLoop(
             RenderCommandList::Create()
             .clear({ 0,0,0,255 })
-            .setViewport(0, 0, window.getClientWidth(), window.getClientHeight())
+            .setViewport(0, 0, window->getClientWidth(), window->getClientHeight())
             .setMatrixProjection(Mtx4::Perspective(
                 45.0f,
-                window.getClientWidth() / (float)window.getClientHeight(),
+                window->getClientWidth() / (float)window->getClientHeight(),
                 0.01f,
                 1000.0f
             ))
