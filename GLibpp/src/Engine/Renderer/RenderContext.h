@@ -1,7 +1,8 @@
 #pragma once
 
+/*
 #include "RenderState.h"
-#include "IRenderTarget.h"
+#include "RenderTarget.h"
 #include "Color.h"
 class Material;
 class MeshInstance;
@@ -13,7 +14,7 @@ public:
     RenderContext() = default;
     ~RenderContext() = default;
 
-    IRenderTarget<Device>* target = nullptr;
+    RenderTarget<Device>* target = nullptr;
     Viewport viewport = { 0,0,800,600 };
     Mtx4 view = Mtx4::Identity();
     Mtx4 projection = Mtx4::Identity();
@@ -21,3 +22,5 @@ public:
     //typename Device::MeshHandle mesh = { 0 };
     //typename Device::MaterialHandle material = { 0 };
 };
+
+*/

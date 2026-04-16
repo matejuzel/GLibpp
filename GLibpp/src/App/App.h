@@ -10,8 +10,8 @@
 
 class App {
 private:
+
     std::unique_ptr<WindowWin32> window;
-    //std::unique_ptr<RenderDeviceDIB> device = nullptr;
     std::unique_ptr<Renderer<RenderDeviceDIB>> renderer;
 
     bool fullscreen = false;
@@ -25,6 +25,7 @@ private:
 	}
 
 public:
+
     App() = default;
 	~App() = default;
 
@@ -61,16 +62,10 @@ public:
 
             window->glibRegisterRawInputDevices();
         }
-        
-        {
-
-            // DEVICE
-            //device = std::make_unique<RenderDeviceDIB>(window->getHwnd());
-        }
 
         {
             // RENDERER
-            //renderer = std::make_unique<Renderer>(*device, window->getClientWidth(), window->getClientHeight());
+            renderer = std::make_unique<Renderer<RenderDeviceDIB>>(*window);
         }
 	}
 
@@ -87,7 +82,7 @@ public:
     {
         while (running) {
             window->pollEvents();
-            render();
+            renderer->renderFrame();
         }
 	}
 

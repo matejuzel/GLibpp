@@ -1,176 +1,272 @@
 #pragma once
 
-#include <cstdint>
-
-/*
-#include "IRenderTarget.h"
-#include "IRenderDevice.h"
-#include "RenderTargetDIB.h"
-#include "RenderDeviceDIB.h"
-#include "RenderCommandList.h"
-#include "RenderResourceManager.h"
-*/
-
 #include "RenderTargetDescriptor.h"
-#include "RenderContext.h"
+#include "Viewport.h"
+#include "Color.h"
+#include "WindowWin32.h"
 
+#include <cstdint>
 #include <windows.h>
 #include <memory>
 
-
-
 template <typename Derived>
+class RenderTargetBase 
+{
+public:
+
+    RenderTargetDescriptor descriptor;
+
+    RenderTargetBase(const RenderTargetDescriptor& descriptor) :descriptor(descriptor) {}
+    ~RenderTargetBase() = default;
+
+};
+
+template<typename Device>
+class RenderContext {
+
+public:
+    RenderContext() = default;
+    ~RenderContext() = default;
+
+    RenderTargetBase<Device>* target = nullptr;
+    Viewport viewport = { 0,0,800,600 };
+    int frameCnt;
+    //Mtx4 view = Mtx4::Identity();
+    //Mtx4 projection = Mtx4::Identity();
+    Color clearColor = { 0,0,0,255 };
+    //typename Device::MeshHandle mesh = { 0 };
+    //typename Device::MaterialHandle material = { 0 };
+};
+
+class RenderDeviceDIB; // forward
+
+class RenderTargetDIB : public RenderTargetBase<RenderDeviceDIB> 
+{
+public:
+    HBITMAP hBitmap = nullptr;
+    HDC memDC = nullptr;
+    HGDIOBJ oldBitmap = nullptr;
+    uint32_t* framebuffer = nullptr;
+
+    RenderTargetDIB(const RenderTargetDescriptor& descriptor)
+        : RenderTargetBase(descriptor)
+    {
+
+        if (descriptor.width < 1 || descriptor.height < 1) {
+            throw std::runtime_error(
+                "Invalid RenderTarget dimensions: [" +
+                std::to_string(descriptor.width) + "x" +
+                std::to_string(descriptor.height) + "]"
+            );
+        }
+
+        BITMAPINFO bmi = {};
+        bmi.bmiHeader.biSize = sizeof(BITMAPINFOHEADER);
+        bmi.bmiHeader.biWidth = int(descriptor.width);
+        bmi.bmiHeader.biHeight = -int(descriptor.height);
+        bmi.bmiHeader.biPlanes = 1;
+        bmi.bmiHeader.biBitCount = int(32); // @todo: mapovat z TextureFormat
+        bmi.bmiHeader.biCompression = BI_RGB;
+
+        HDC screen = GetDC(nullptr);
+
+        hBitmap = CreateDIBSection(
+            screen,
+            &bmi,
+            DIB_RGB_COLORS,
+            (void**)&framebuffer,
+            nullptr,
+            0
+        );
+
+        if (!hBitmap || !framebuffer)
+        {
+            ReleaseDC(nullptr, screen);
+
+            {
+                // ziskani msg
+                DWORD err = GetLastError();
+                LPVOID buf;
+                FormatMessageA(
+                    FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS,
+                    nullptr, err, 0, (LPSTR)&buf, 0, nullptr
+                );
+                std::string msg = (char*)buf;
+                LocalFree(buf);
+                throw std::runtime_error("Failed to create DIB section. GetLastError Message: " + msg);
+            }
+
+        }
+
+        ReleaseDC(nullptr, screen);
+
+        memDC = CreateCompatibleDC(nullptr);
+        oldBitmap = SelectObject(memDC, hBitmap);
+
+    }
+
+    ~RenderTargetDIB()
+    {
+
+        SelectObject(memDC, oldBitmap);
+
+        if (hBitmap) {
+            DeleteObject(hBitmap);
+            hBitmap = nullptr;
+        }
+
+        if (memDC) {
+            DeleteDC(memDC);
+            memDC = nullptr;
+        }
+    }
+
+    HDC getDC() const { return memDC; }
+    HBITMAP getBitmap() const { return hBitmap; }
+    uint32_t* getFramebuffer() const { return framebuffer; }
+
+
+    void putPixel(uint32_t x, uint32_t y, uint32_t color) noexcept {
+
+        uint32_t width = descriptor.width;
+        uint32_t height = descriptor.height;
+
+        if (x >= width || y >= height)
+            return;
+
+        framebuffer[y * width + x] = color;
+    }
+};
+
+
+template <typename DerivedDevice, typename DerivedTarget>
 class RenderDeviceBase
 {
 public:
 
-    void draw(const RenderContext<Derived>& ctx) noexcept
+    using Context = RenderContext<DerivedDevice>;
+
+    void draw(const Context& ctx, DerivedTarget& target) noexcept
     {
-        static_cast<Derived*>(this)->drawImpl(ctx);
+        static_cast<DerivedDevice*>(this)->drawImpl(ctx, target);
     }
 
-    void clear(const RenderContext<Derived>& ctx) noexcept
+    void clear(const Context& ctx, DerivedTarget& target) noexcept
     {
-        static_cast<Derived*>(this)->clearImpl(ctx);
+        static_cast<DerivedDevice*>(this)->clearImpl(ctx, target);
     }
 
-    void createTarget(const RenderTargetDescriptor &descriptor) noexcept
+    std::unique_ptr<DerivedTarget> createTarget(const RenderTargetDescriptor &descriptor) noexcept
     {
-        static_cast<Derived*>(this)->createTargetImpl(descriptor);
+        return static_cast<DerivedDevice*>(this)->createTargetImpl(descriptor);
+    }
+
+    void present(Context& ctx) noexcept
+    {
+        static_cast<DerivedDevice*>(this)->presentImpl(ctx);
     }
 };
 
-class RenderDeviceDIB : public RenderDeviceBase<RenderDeviceDIB>
+
+
+class RenderDeviceDIB : public RenderDeviceBase<RenderDeviceDIB, RenderTargetDIB>
 {
 public:
-    void drawImpl(const RenderContext<RenderDeviceDIB>& ctx) noexcept
+
+    using Target = RenderTargetDIB;
+    using Backend = RenderDeviceBase<RenderDeviceDIB, Target>;
+    using Context = RenderContext<RenderDeviceDIB>;
+
+    HWND hwnd;
+
+    RenderDeviceDIB(HWND hwnd) : hwnd(hwnd) {}
+
+//protected:
+    void drawImpl(const Context& ctx, Target& target) noexcept
     {
-        // @todo
+        
+        auto* dib = static_cast<RenderTargetDIB*>(&target);
+
+        int offsetX = ctx.frameCnt / 10;
+        int offsetY = 10;
+        offsetX %= target.descriptor.width;
+        offsetY %= target.descriptor.height;
+
+        dib->putPixel(offsetX + 10, 10, 0xffff00ff);
+        dib->putPixel(offsetX + 11, 10, 0xffff00ff);
+        dib->putPixel(offsetX + 12, 10, 0xffff00ff);
+        dib->putPixel(offsetX + 13, 10, 0xffff00ff);
+        dib->putPixel(offsetX + 14, 10, 0xffff00ff);
+        dib->putPixel(offsetX + 10, 12, 0xff0000ff);
     }
 
-    void clearImpl(const RenderContext<RenderDeviceDIB>& ctx) noexcept
+    void clearImpl(const Context& ctx, Target& target) noexcept
     {
-        // @todo
+        uint32_t color = ctx.clearColor.toRGBA();
+        int size = target.descriptor.width * target.descriptor.height;
+        std::fill_n(target.framebuffer, size, color);
+        // dalo by se pouzit SSE (SIMD) pro rychlejší vyplnìní, ale pro jednoduchost a pøehlednost teï použijeme std::fill_n
     }
 
-    void createTargetImpl(const RenderTargetDescriptor& descriptor) noexcept
+    void presentImpl(Context& ctx) noexcept
     {
-        // @todo
+        HDC windowDC = GetDC(hwnd);
+        
+        BitBlt(
+            windowDC,
+            0, 0,
+            ctx.target->descriptor.width, ctx.target->descriptor.height,
+            (static_cast<RenderTargetDIB&>(*ctx.target)).getDC(),
+            0, 0,
+            SRCCOPY
+        );
+        
+
+        ReleaseDC(hwnd, windowDC);
+
+        ctx.frameCnt += 1;
+    }
+
+    std::unique_ptr<RenderTargetDIB> createTargetImpl(const RenderTargetDescriptor& descriptor) noexcept
+    {
+        return std::make_unique<RenderTargetDIB>(descriptor);
     }
 };
 
 
 
-template <typename Backend>
+template <typename Device>
 class Renderer {
 private:
-    std::unique_ptr<Backend> device = nullptr;
+
+    using Context = RenderContext<Device>;
+
+    std::unique_ptr<Device> device;
+    std::unique_ptr<typename Device::Target> target;
+
+
+    Context ctx{};
 
 public:
-    
-    Renderer()
-        : device(std::make_unique<Backend>())
+    Renderer(const WindowWin32& window)
+        : device(std::make_unique<Device>(window.getHwnd()))
     {
+        target = device->createTarget(RenderTargetDescriptor::Framebuffer(
+            window.getClientWidth(),
+            window.getClientHeight()
+        ));
 
-        RenderContext<Backend> ctx = {};
-        device->clear(ctx);
-        device->draw(ctx);
+        
+        
     }
 
-    /*
-    Renderer(RenderDeviceDIB& device, uint32_t width, uint32_t height)
-        : device(device)
-        , width(width)
-        , height(height) 
+    void renderFrame()
     {
-        framebufferBackIndex = device.createTarget(RenderTargetDescriptor::Framebuffer(width, height));
+        
+        ctx.target = target.get();
+
+        device->clear(ctx, *target);
+        device->draw(ctx, *target);
+        device->present(ctx);
     }
-    
-    IRenderTarget& acquireFramebufferBack() {
-        return device.getTarget(framebufferBackIndex);
-	}
-
-    void executeRenderCommands(const RenderCommandList& cmds, RenderDeviceDIB& ctx) {
-        for (const auto& cmd : cmds.getCommands()) {
-            switch (cmd.type) {
-            case RenderCommandType::BindMesh:
-                //ctx.state.mesh = cmd.data.bindMesh.mesh_h;
-                //ctx.state.material = cmd.data.bindMesh.material_h;
-                break;
-
-            case RenderCommandType::BindTarget:
-
-                
-                //ctx.target = &getRenderTarget(cmd.data.bindTarget.target_h);
-				ctx.target = &device.getTarget(cmd.data.bindTarget.target_h);
-                break;
-
-            case RenderCommandType::SetViewport:
-                ctx.viewport = {
-                    cmd.data.setViewport.x,
-                    cmd.data.setViewport.y,
-                    cmd.data.setViewport.width,
-                    cmd.data.setViewport.height
-                };
-                break;
-
-            case RenderCommandType::SetMatrixProjection:
-                ctx.projection = Mtx4(cmd.data.setMatrixProjection.matrixData);
-                break;
-
-            case RenderCommandType::SetMatrixView:
-                ctx.view = Mtx4(cmd.data.setMatrixView.matrixData);
-                break;
-
-            case RenderCommandType::Draw:
-                device.drawMesh(ctx);
-                break;
-
-            case RenderCommandType::Clear:
-				ctx.clearColor = cmd.data.clear.color;
-                device.clear(ctx, *ctx.target);
-                break;
-
-            }
-        }
-    }
-
-    void runLoop(const RenderCommandList& commandList) {
-
-        HWND hwnd;
-        auto device = std::make_unique<RenderDeviceDIB>(hwnd);
-
-        bool running = true;
-        while (running)
-        {
-
-            RenderContext<RenderDeviceDIB> ctx = 
-
-            auto ctx = device.beginContext(); // zazada device o novy kontext
-
-            executeRenderCommands(commandList, ctx);
-
-            ctx.publish(); // swapne front/back buffer
-            ctx.end(); // ukonci kontext
-        }
-
-        
-
-
-        
-
-
-
-
-
-        auto ctx = device.beginContext(target);
-        
-        renderCommandList(commandList, *ctx);
-        
-        
-        ctx->publish();
-
-        device.present(target);
-    }
-    */
 };
