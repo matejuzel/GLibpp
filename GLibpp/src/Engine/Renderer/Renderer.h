@@ -30,7 +30,7 @@ public:
 
     RenderTargetBase<Device>* target = nullptr;
     Viewport viewport = { 0,0,800,600 };
-    int frameCnt;
+    int frameCnt = 0;
     //Mtx4 view = Mtx4::Identity();
     //Mtx4 projection = Mtx4::Identity();
     Color clearColor = { 0,0,0,255 };
@@ -125,8 +125,8 @@ public:
     HBITMAP getBitmap() const { return hBitmap; }
     uint32_t* getFramebuffer() const { return framebuffer; }
 
-
-    void putPixel(uint32_t x, uint32_t y, uint32_t color) noexcept {
+    void inline putPixel(uint32_t x, uint32_t y, uint32_t color) noexcept
+    {
 
         uint32_t width = descriptor.width;
         uint32_t height = descriptor.height;
@@ -136,6 +136,90 @@ public:
 
         framebuffer[y * width + x] = color;
     }
+
+};
+
+class RasterizatorDIB {
+
+public:
+
+    static void inline drawLine(RenderTargetDIB& target, int x0, int y0, int x1, int y1, uint32_t color) noexcept
+    {
+        int dx = abs(x1 - x0);
+        int sx = x0 < x1 ? 1 : -1;
+        int dy = -abs(y1 - y0);
+        int sy = y0 < y1 ? 1 : -1;
+        int err = dx + dy;
+
+        while (true)
+        {
+            target.putPixel(x0, y0, color);
+
+            if (x0 == x1 && y0 == y1)
+                break;
+
+            int e2 = 2 * err;
+
+            if (e2 >= dy) {
+                err += dy;
+                x0 += sx;
+            }
+
+            if (e2 <= dx) {
+                err += dx;
+                y0 += sy;
+            }
+        }
+    }
+
+    static void inline drawTriangle(RenderTargetDIB& target, int x0, int y0, int x1, int y1, int x2, int y2, uint32_t color) noexcept
+    {
+        // Seøadíme vrcholy podle Y (od nejnižšího)
+        if (y1 < y0) { std::swap(y0, y1); std::swap(x0, x1); }
+        if (y2 < y0) { std::swap(y0, y2); std::swap(x0, x2); }
+        if (y2 < y1) { std::swap(y1, y2); std::swap(x1, x2); }
+
+        auto drawSpan = [&](int y, int xStart, int xEnd)
+            {
+                if (y < 0 || y >= (int)target.descriptor.height)
+                    return;
+
+                if (xStart > xEnd)
+                    std::swap(xStart, xEnd);
+
+                xStart = std::max(0, xStart);
+                xEnd = std::min((int)target.descriptor.width - 1, xEnd);
+
+                uint32_t* row = target.framebuffer + y * target.descriptor.width;
+                for (int x = xStart; x <= xEnd; x++)
+                    row[x] = color;
+            };
+
+        auto edgeInterp = [&](int y, int x0, int y0, int x1, int y1)
+            {
+                if (y1 == y0)
+                    return x0;
+
+                return x0 + (x1 - x0) * (y - y0) / (y1 - y0);
+            };
+
+        // Horní èást (od y0 do y1)
+        for (int y = y0; y <= y1; y++)
+        {
+            int xa = edgeInterp(y, x0, y0, x2, y2);
+            int xb = edgeInterp(y, x0, y0, x1, y1);
+            drawSpan(y, xa, xb);
+        }
+
+        // Dolní èást (od y1 do y2)
+        for (int y = y1; y <= y2; y++)
+        {
+            int xa = edgeInterp(y, x0, y0, x2, y2);
+            int xb = edgeInterp(y, x1, y1, x2, y2);
+            drawSpan(y, xa, xb);
+        }
+    }
+
 };
 
 
@@ -161,9 +245,9 @@ public:
         return static_cast<DerivedDevice*>(this)->createTargetImpl(descriptor);
     }
 
-    void present(Context& ctx) noexcept
+    void present(Context& ctx, const DerivedTarget& target) noexcept
     {
-        static_cast<DerivedDevice*>(this)->presentImpl(ctx);
+        static_cast<DerivedDevice*>(this)->presentImpl(ctx, target);
     }
 };
 
@@ -192,12 +276,21 @@ public:
         offsetX %= target.descriptor.width;
         offsetY %= target.descriptor.height;
 
-        dib->putPixel(offsetX + 10, 10, 0xffff00ff);
-        dib->putPixel(offsetX + 11, 10, 0xffff00ff);
-        dib->putPixel(offsetX + 12, 10, 0xffff00ff);
-        dib->putPixel(offsetX + 13, 10, 0xffff00ff);
-        dib->putPixel(offsetX + 14, 10, 0xffff00ff);
-        dib->putPixel(offsetX + 10, 12, 0xff0000ff);
+        int verts[3][2] = {
+            {  10,  15 },
+            { 530,  30 },
+            { 150, 400 },
+        };
+
+
+
+        RasterizatorDIB::drawTriangle(
+            target,
+            verts[0][0] + offsetX, verts[0][1] + offsetY,
+            verts[1][0] + offsetX, verts[1][1] + offsetY,
+            verts[2][0] + offsetX, verts[2][1] + offsetY,
+            0xffff00ff
+        );
     }
 
     void clearImpl(const Context& ctx, Target& target) noexcept
@@ -208,15 +301,15 @@ public:
         // dalo by se pouzit SSE (SIMD) pro rychlejší vyplnìní, ale pro jednoduchost a pøehlednost teï použijeme std::fill_n
     }
 
-    void presentImpl(Context& ctx) noexcept
+    void presentImpl(Context& ctx, const Target& target) noexcept
     {
         HDC windowDC = GetDC(hwnd);
         
         BitBlt(
             windowDC,
             0, 0,
-            ctx.target->descriptor.width, ctx.target->descriptor.height,
-            (static_cast<RenderTargetDIB&>(*ctx.target)).getDC(),
+            target.descriptor.width, target.descriptor.height,
+            (static_cast<const RenderTargetDIB&>(target)).getDC(),
             0, 0,
             SRCCOPY
         );
@@ -267,6 +360,11 @@ public:
 
         device->clear(ctx, *target);
         device->draw(ctx, *target);
-        device->present(ctx);
+        device->present(ctx, *target);
+    }
+
+    void resize(uint32_t width, uint32_t height)
+    {
+        target = device->createTarget(RenderTargetDescriptor::Framebuffer(width, height));
     }
 };
