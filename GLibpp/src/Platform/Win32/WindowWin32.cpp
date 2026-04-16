@@ -18,6 +18,11 @@ void WindowWin32::setOnCloseCallback(std::function<void()> cb) noexcept
     onClose = std::move(cb);
 }
 
+void WindowWin32::setOnResizeCallback(std::function<void(uint32_t, uint32_t)> cb) noexcept
+{
+    onResize = std::move(cb);
+}
+
 void WindowWin32::waitEvents() const noexcept
 {
     MSG msg;
@@ -86,6 +91,18 @@ LRESULT WindowWin32::handleMessage(UINT msg, WPARAM wParam, LPARAM lParam)
 
         }
         return 0;
+
+    case WM_SIZE:
+    {
+        if (onResize)
+        {
+            uint32_t w = LOWORD(lParam);
+            uint32_t h = HIWORD(lParam);
+            onResize(w, h);
+        }
+        return 0;
+    }
+
 
     case WM_CLOSE:
         if (onClose) onClose();

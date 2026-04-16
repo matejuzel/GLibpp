@@ -23,6 +23,7 @@ class WindowWin32
 private:
 	std::function<void(KeyMap, bool)> onKeyEvent;
 	std::function<void()> onClose;
+	std::function<void(uint32_t width, uint32_t height)> onResize;
 
 	HWND hwnd = nullptr;
 	int width;
@@ -72,6 +73,7 @@ public:
 
 	void setKeyCallback(std::function<void(KeyMap, bool)> cb) noexcept;
 	void setOnCloseCallback(std::function<void()> cb) noexcept;
+	void setOnResizeCallback(std::function<void(uint32_t, uint32_t)> cb) noexcept;
 
 	void removeOverlapProperty();
 	void resizeWindowToFillScreen();

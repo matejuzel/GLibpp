@@ -54,11 +54,19 @@ public:
 
             window->setOnCloseCallback([this]() {
                 running = false;
-                });
+            });
 
             window->setKeyCallback([this](KeyMap key, bool pressed) {
                 onKeyCallback(key, pressed);
-                });
+            });
+
+            window->setOnResizeCallback([this](uint32_t width, uint32_t height) {
+                if (renderer)
+                {
+                    renderer->resize(width, height);
+                    std::cout << "resized: " << width << " ; " << height << std::endl;
+                }
+            });
 
             window->glibRegisterRawInputDevices();
         }
