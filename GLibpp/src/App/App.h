@@ -11,8 +11,10 @@
 class App {
 private:
 
+    using BackendDIB = Renderer<RenderDeviceDIB>;
+
     std::unique_ptr<WindowWin32> window;
-    std::unique_ptr<Renderer<RenderDeviceDIB>> renderer;
+    std::unique_ptr<BackendDIB> renderer;
 
     bool fullscreen = false;
 	bool running = true;
@@ -73,7 +75,7 @@ public:
 
         {
             // RENDERER
-            renderer = std::make_unique<Renderer<RenderDeviceDIB>>(*window);
+            renderer = std::make_unique<BackendDIB>(*window);
         }
 	}
 
