@@ -1,5 +1,5 @@
 #pragma once
-
+/*
 #include <cstdint>
 #include <vector>
 
@@ -61,4 +61,4 @@ public:
     }
 
     const std::vector<RenderCommand>& getCommands() const { return commands; }
-};
+};*/

@@ -1,17 +1,17 @@
 #pragma once
 
+/*
 //#include "DoubleBuffer.h"
 #include "IRenderDevice.h"
 #include "IRenderTarget.h"
-#include "IRenderContext.h"
 #include "RenderTargetDescriptor.h"
 #include "RenderTargetDIB.h"
 #include <windows.h>
 #include <vector>
 
-class RenderContextDIB;
+//class RenderContextDIB;
 
-class RenderDeviceDIB : public IRenderDevice {
+class RenderDeviceDIB : public IRenderDevice<RenderDeviceDIB> {
 
 private:
     
@@ -20,48 +20,50 @@ private:
 
 public:
 
-	RenderDeviceDIB(HWND hwnd) : IRenderDevice(), hwnd_(hwnd)
-    {}
-
-	void setHwnd(HWND hwnd) { hwnd_ = hwnd; }
-
+	RenderDeviceDIB(HWND hwnd) : IRenderDevice(), hwnd_(hwnd) {}
     HWND getHwnd() const { return hwnd_; }
 
-    DeviceTargetHandle createTarget(const RenderTargetDescriptor& descriptor) override 
+    DeviceTargetHandle createTargetImpl(const RenderTargetDescriptor& descriptor) 
     {
         size_t index = renderTargets_.size();
 		renderTargets_.push_back(std::make_unique<RenderTargetDIB>(descriptor));
 		return DeviceTargetHandle{ static_cast<uint32_t>(index) };
     }
 
-    IRenderTarget& getTarget(const DeviceTargetHandle& handle) override {
+protected:
+
+    // deklarace pouze — implementace pøesunuta do .cpp, aby byla dostupná úplná definice RenderContextDIB
+    RenderContext<RenderDeviceDIB> beginContextImpl() {
+        return RenderContext<RenderDeviceDIB>();
+    }
+
+
+
+
+    IRenderTarget& getTargetImpl(const DeviceTargetHandle& handle) {
         if (handle.handle >= renderTargets_.size()) {
             throw std::runtime_error("Invalid RenderTarget handle: " + std::to_string(handle.handle));
 		}
 		return *renderTargets_[handle.handle];
     };
 
-
-    // deklarace pouze — implementace pøesunuta do .cpp, aby byla dostupná úplná definice RenderContextDIB
-    std::unique_ptr<IRenderContext> beginContext(IRenderTarget& target) override;
-
-    void present(IRenderTarget& target) override 
+    void presentImpl(IRenderTarget& target) 
     {
         // pak prehodi front a back buffer
     }
 
 
-    void clear(IRenderContext& ctx, IRenderTarget& target) override
+    void clearImpl(const RenderContext<RenderDeviceDIB>& ctx)
     {
         uint32_t color = ctx.clearColor.toRGBA();
-        auto* targetDib = static_cast<RenderTargetDIB*>(&target);
+        
         std::fill_n(targetDib->getFramebuffer(), target.getDescriptor().width * target.getDescriptor().height, color);
 
 		// dalo by se pouzit SSE (SIMD) pro rychlejší vyplnìní, ale pro jednoduchost a pøehlednost teï použijeme std::fill_n
 
     }
 
-    void drawMesh(IRenderContext& ctx) override 
+    void drawMeshImpl(IRenderContext& ctx) 
     {
 
         class MeshInstance {
@@ -85,5 +87,28 @@ public:
         dib->putPixel(10, 12, 0xff0000ff);
     }
 
+
+    void presentToWindow()
+    {
+        HWND hwnd_ = (static_cast<RenderDeviceDIB&>(device)).getHwnd();
+        HDC windowDC = GetDC(hwnd_);
+
+        BitBlt(
+            windowDC,
+            0, 0,
+            target->getDescriptor().width, target->getDescriptor().height,
+            (static_cast<RenderTargetDIB&>(*target)).getDC(),
+            0, 0,
+            SRCCOPY
+        );
+
+        ReleaseDC(hwnd_, windowDC);
+    }
     
-};
+
+    void drawPrimitivePixel(RenderContext<RenderDeviceDIB>& ctx)
+    {
+        auto a = static_cast<RenderContext<RenderDeviceDIB>>(ctx.target);
+    }
+
+};*/

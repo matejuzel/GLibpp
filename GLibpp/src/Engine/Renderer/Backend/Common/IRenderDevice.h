@@ -1,22 +1,46 @@
 #pragma once
-
+/*
 #include <memory>
+#include "RenderContext.h"
+#include "IRenderTarget.h"
 #include "DeviceTargetHandle.h"
 #include "Color.h"
-#include "IRenderContext.h"
-#include "IRenderTarget.h"
 #include "RenderTargetDescriptor.h"
-//#include <windows.h>
 
-
-class IRenderDevice;
+template <typename Derived>
 class IRenderDevice {
 public:
-    virtual std::unique_ptr<IRenderContext> beginContext(IRenderTarget& target) = 0;
-    virtual DeviceTargetHandle createTarget(const RenderTargetDescriptor& descriptor) = 0;
-	virtual IRenderTarget& getTarget(const DeviceTargetHandle& handle) = 0;
 
-    virtual void drawMesh(IRenderContext& ctx) = 0;
-    virtual void clear(IRenderContext& ctx, IRenderTarget& target) = 0;
-    virtual void present(IRenderTarget& target) = 0;
+	IRenderDevice() = default;
+	~IRenderDevice() = default;
+
+    RenderContext<Derived> beginContext()
+    {
+        return static_cast<Derived*>(this)->beginContextImpl();
+    }
+    
+    DeviceTargetHandle createTarget(const RenderTargetDescriptor& descriptor) 
+    {
+        return static_cast<Derived*>(this)->createTargetImpl(descriptor);
+	}
+
+	IRenderTarget& getTarget(const DeviceTargetHandle& handle) 
+    {
+        return static_cast<Derived*>(this)->getTargetImpl(handle);
+	}
+
+    void clear(const RenderContext<Derived>& ctx) {
+        static_cast<Derived*>(this)->clearImpl(ctx);
+    }
+
+    void drawMesh(const RenderContext<Derived>& ctx)
+    {
+        static_cast<Derived*>(this)->drawMeshImpl(ctx);
+	}
+    
+    void present(const RenderContext<Derived>& ctx)
+    {
+        static_cast<Derived*>(this)->presentImpl(ctx);
+    }
 };
+*/

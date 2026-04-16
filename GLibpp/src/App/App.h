@@ -11,8 +11,8 @@
 class App {
 private:
     std::unique_ptr<WindowWin32> window;
-    std::unique_ptr<IRenderDevice> device;
-    std::unique_ptr<Renderer> renderer;
+    //std::unique_ptr<RenderDeviceDIB> device = nullptr;
+    std::unique_ptr<Renderer<RenderDeviceDIB>> renderer;
 
     bool fullscreen = false;
 	bool running = true;
@@ -25,7 +25,8 @@ private:
 	}
 
 public:
-    App() {}
+    App() = default;
+	~App() = default;
 
 	void setFullscreenMode(bool fullscreen) { 
 		checkWindowInitialized();
@@ -62,13 +63,14 @@ public:
         }
         
         {
+
             // DEVICE
-            device = std::make_unique<RenderDeviceDIB>(window->getHwnd());
+            //device = std::make_unique<RenderDeviceDIB>(window->getHwnd());
         }
 
         {
             // RENDERER
-            renderer = std::make_unique<Renderer>(*device, window->getClientWidth(), window->getClientHeight());
+            //renderer = std::make_unique<Renderer>(*device, window->getClientWidth(), window->getClientHeight());
         }
 	}
 
@@ -92,7 +94,7 @@ public:
     void render()
     {
         // create render target using descriptor helper
-
+        /*
         renderer->runLoop(
             RenderCommandList::Create()
             .clear({ 232,232,232,255 })
@@ -115,6 +117,6 @@ public:
             .setMatrixView(Mtx4::Identity())
             .bindMesh(MeshHandle{ 2 }, MaterialHandle{ 2 })
             .draw()
-        );
+        );*/
     }
 };

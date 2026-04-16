@@ -2,39 +2,95 @@
 
 #include <cstdint>
 
+/*
 #include "IRenderTarget.h"
 #include "IRenderDevice.h"
-#include "IRenderContext.h"
 #include "RenderTargetDIB.h"
-#include "RenderContextDIB.h"
 #include "RenderDeviceDIB.h"
 #include "RenderCommandList.h"
 #include "RenderResourceManager.h"
+*/
 
+#include "RenderTargetDescriptor.h"
+#include "RenderContext.h"
+
+#include <windows.h>
+#include <memory>
+
+
+
+template <typename Derived>
+class RenderDeviceBase
+{
+public:
+
+    void draw(const RenderContext<Derived>& ctx) noexcept
+    {
+        static_cast<Derived*>(this)->drawImpl(ctx);
+    }
+
+    void clear(const RenderContext<Derived>& ctx) noexcept
+    {
+        static_cast<Derived*>(this)->clearImpl(ctx);
+    }
+
+    void createTarget(const RenderTargetDescriptor &descriptor) noexcept
+    {
+        static_cast<Derived*>(this)->createTargetImpl(descriptor);
+    }
+};
+
+class RenderDeviceDIB : public RenderDeviceBase<RenderDeviceDIB>
+{
+public:
+    void drawImpl(const RenderContext<RenderDeviceDIB>& ctx) noexcept
+    {
+        // @todo
+    }
+
+    void clearImpl(const RenderContext<RenderDeviceDIB>& ctx) noexcept
+    {
+        // @todo
+    }
+
+    void createTargetImpl(const RenderTargetDescriptor& descriptor) noexcept
+    {
+        // @todo
+    }
+};
+
+
+
+template <typename Backend>
 class Renderer {
 private:
-    IRenderDevice& device;
-    RenderResourceManager resources;
-    uint32_t width = 0;
-    uint32_t height = 0;
-
-    DeviceTargetHandle framebufferBackIndex = { 0 };
-    DeviceTargetHandle framebufferFrontIndex = { 0 };
+    std::unique_ptr<Backend> device = nullptr;
 
 public:
-    Renderer(IRenderDevice& device, uint32_t width, uint32_t height)
+    
+    Renderer()
+        : device(std::make_unique<Backend>())
+    {
+
+        RenderContext<Backend> ctx = {};
+        device->clear(ctx);
+        device->draw(ctx);
+    }
+
+    /*
+    Renderer(RenderDeviceDIB& device, uint32_t width, uint32_t height)
         : device(device)
         , width(width)
         , height(height) 
     {
         framebufferBackIndex = device.createTarget(RenderTargetDescriptor::Framebuffer(width, height));
     }
-
+    
     IRenderTarget& acquireFramebufferBack() {
         return device.getTarget(framebufferBackIndex);
 	}
 
-    void renderCommandList(const RenderCommandList& cmds, IRenderContext& ctx) {
+    void executeRenderCommands(const RenderCommandList& cmds, RenderDeviceDIB& ctx) {
         for (const auto& cmd : cmds.getCommands()) {
             switch (cmd.type) {
             case RenderCommandType::BindMesh:
@@ -79,11 +135,33 @@ public:
         }
     }
 
-
-
     void runLoop(const RenderCommandList& commandList) {
 
-        auto& target = acquireFramebufferBack();
+        HWND hwnd;
+        auto device = std::make_unique<RenderDeviceDIB>(hwnd);
+
+        bool running = true;
+        while (running)
+        {
+
+            RenderContext<RenderDeviceDIB> ctx = 
+
+            auto ctx = device.beginContext(); // zazada device o novy kontext
+
+            executeRenderCommands(commandList, ctx);
+
+            ctx.publish(); // swapne front/back buffer
+            ctx.end(); // ukonci kontext
+        }
+
+        
+
+
+        
+
+
+
+
 
         auto ctx = device.beginContext(target);
         
@@ -94,4 +172,5 @@ public:
 
         device.present(target);
     }
+    */
 };

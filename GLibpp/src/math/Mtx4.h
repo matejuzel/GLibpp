@@ -4,8 +4,7 @@
 #include <cmath>
 #include "Vec4.h"
 
-class Mtx4 {
-public:
+struct Mtx4 {
     float data[16];
 
     // identity
@@ -22,23 +21,17 @@ public:
         float m30, float m31, float m32, float m33
     );
 
+    // special member functions — all defaulted
+    Mtx4(const Mtx4&) = default;
+    Mtx4(Mtx4&&) = default;
+    Mtx4& operator=(const Mtx4&) = default;
+    Mtx4& operator=(Mtx4&&) = default;
+    ~Mtx4() = default;
+
 	const float* getRawData() const 
     { 
         return data;
     }
-
-    Mtx4(const Mtx4& other)
-    {
-        std::memcpy(data, other.data, sizeof(data));
-    }
-
-    Mtx4& operator=(const Mtx4& other)
-    {
-        if (this != &other)
-            std::memcpy(data, other.data, sizeof(data));
-        return *this;
-    }
-
 
     float& at(int r, int c);
     float  at(int r, int c) const;

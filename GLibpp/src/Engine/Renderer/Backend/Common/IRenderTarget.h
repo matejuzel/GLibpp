@@ -2,11 +2,20 @@
 
 #include "RenderTargetDescriptor.h"
 
-class IRenderTarget {
+template<typename RenderDevice>
+class IRenderTarget 
+{
 protected:
     RenderTargetDescriptor descriptor;
 public:
-    IRenderTarget(const RenderTargetDescriptor& descriptor) : descriptor(descriptor) {}
-    virtual ~IRenderTarget() = default;
-	const RenderTargetDescriptor& getDescriptor() const { return descriptor; }
+    IRenderTarget(const RenderTargetDescriptor& descriptor) 
+        : descriptor(descriptor) 
+    {}
+
+    ~IRenderTarget() = default;
+
+	const RenderTargetDescriptor& getDescriptor() const {
+        return descriptor; 
+    }
+
 };

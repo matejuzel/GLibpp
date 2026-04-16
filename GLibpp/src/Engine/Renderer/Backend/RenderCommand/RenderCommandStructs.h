@@ -1,5 +1,5 @@
 #pragma once
-
+/*
 // Závislé typy (pøedpokládá, že include search path je nastaven)
 #include "Mtx4.h"
 #include "Color.h"
@@ -37,3 +37,4 @@ struct RCMD_Draw {
 struct RCMD_Clear { 
 	Color color; 
 };
+*/

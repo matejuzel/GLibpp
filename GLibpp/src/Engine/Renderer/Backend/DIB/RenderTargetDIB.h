@@ -1,12 +1,12 @@
 #pragma once
-
+/*
 #include "IRenderTarget.h"
 #include "RenderTargetDescriptor.h"
 #include <windows.h>
 #include <cstdint>
 #include <cstring>
 
-class RenderTargetDIB : public IRenderTarget {
+class RenderTargetDIB : public IRenderTarget<RenderDeviceDIB> {
 private:
 
 	HBITMAP hBitmap = nullptr;
@@ -16,7 +16,8 @@ private:
 
 public:
 
-    RenderTargetDIB(const RenderTargetDescriptor& descriptor): IRenderTarget(descriptor) 
+    RenderTargetDIB(const RenderTargetDescriptor& descriptor)
+        : IRenderTarget(descriptor) 
     {
 
         if (descriptor.width < 1 || descriptor.height < 1) {
@@ -108,4 +109,4 @@ public:
     
 
 
-};
+};*/

@@ -1,5 +1,5 @@
 #pragma once 
-
+/*
 #include "RenderCommandStructs.h"
 
 union RenderCommandData {
@@ -13,4 +13,4 @@ union RenderCommandData {
     RenderCommandData() {}
     ~RenderCommandData() {}
 };
-
+*/

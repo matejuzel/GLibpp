@@ -69,9 +69,6 @@
     <ClCompile Include="src\Math\Vec4.cpp">
       <Filter>Zdrojové soubory\Math</Filter>
     </ClCompile>
-    <ClCompile Include="src\Engine\Renderer\Backend\DIB\RenderDeviceDIB.cpp">
-      <Filter>Zdrojové soubory\Engine\Renderer\Backend\DIB</Filter>
-    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\App\App.h">
@@ -83,17 +80,11 @@
     <ClInclude Include="src\Engine\Renderer\Renderer.h">
       <Filter>Zdrojové soubory\Engine\Renderer</Filter>
     </ClInclude>
-    <ClInclude Include="src\Engine\Renderer\Backend\Common\IRenderContext.h">
-      <Filter>Zdrojové soubory\Engine\Renderer\Backend\Common</Filter>
-    </ClInclude>
     <ClInclude Include="src\Engine\Renderer\Backend\Common\IRenderDevice.h">
       <Filter>Zdrojové soubory\Engine\Renderer\Backend\Common</Filter>
     </ClInclude>
     <ClInclude Include="src\Engine\Renderer\Backend\Common\IRenderTarget.h">
       <Filter>Zdrojové soubory\Engine\Renderer\Backend\Common</Filter>
-    </ClInclude>
-    <ClInclude Include="src\Engine\Renderer\Backend\DIB\RenderContextDIB.h">
-      <Filter>Zdrojové soubory\Engine\Renderer\Backend\DIB</Filter>
     </ClInclude>
     <ClInclude Include="src\Engine\Renderer\Backend\DIB\RenderDeviceDIB.h">
       <Filter>Zdrojové soubory\Engine\Renderer\Backend\DIB</Filter>
@@ -274,6 +265,9 @@
     </ClInclude>
     <ClInclude Include="src\window\WindowWin32.h">
       <Filter>Hlavičkové soubory</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Engine\Renderer\RenderContext.h">
+      <Filter>Zdrojové soubory\Engine\Renderer</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>
