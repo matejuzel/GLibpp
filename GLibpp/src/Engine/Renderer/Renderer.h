@@ -8,6 +8,8 @@
 #include <cstdint>
 #include <windows.h>
 #include <memory>
+#include "Vec4.h"
+#include "Mtx4.h"
 
 template <typename Derived>
 class RenderTargetBase 
@@ -30,10 +32,10 @@ public:
 
     RenderTargetBase<Device>* target = nullptr;
     Viewport viewport = { 0,0,800,600 };
-    int frameCnt = 0;
-    //Mtx4 view = Mtx4::Identity();
-    //Mtx4 projection = Mtx4::Identity();
+    Mtx4 view = Mtx4::Identity();
+    Mtx4 projection = Mtx4::Identity();
     Color clearColor = { 0,0,0,255 };
+    int frameCnt = 0;
     //typename Device::MeshHandle mesh = { 0 };
     //typename Device::MaterialHandle material = { 0 };
 };
@@ -220,6 +222,12 @@ public:
         }
     }
 
+    static void inline drawQuad(RenderTargetDIB& target, int x0, int y0, int x1, int y1, int x2, int y2, int x3, int y3, uint32_t color) noexcept 
+    {
+        drawTriangle(target, x0, y0, x1, y1, x2, y2, color);
+        drawTriangle(target, x0, y0, x2, y2, x3, y3, color);
+    }
+
 };
 
 
@@ -268,27 +276,60 @@ public:
 //protected:
     void drawImpl(const Context& ctx, Target& target) noexcept
     {
-        
-        auto* dib = static_cast<RenderTargetDIB*>(&target);
 
-        int offsetX = ctx.frameCnt / 10;
-        int offsetY = 10;
-        offsetX %= target.descriptor.width;
-        offsetY %= target.descriptor.height;
-
-        int verts[3][2] = {
-            {  10,  15 },
-            { 530,  30 },
-            { 150, 400 },
+        int verts[4][2] = {
+            {-1,-1},
+            { 1,-1},
+            { 1, 1},
+            {-1, 1},
         };
 
+        Vec4 va(verts[0][0], verts[0][1], 0, 1);
+        Vec4 vb(verts[1][0], verts[1][1], 0, 1);
+        Vec4 vc(verts[2][0], verts[2][1], 0, 1);
+        Vec4 vd(verts[3][0], verts[3][1], 0, 1);
 
+        Mtx4 model(
+            1,0,0,0,
+            0,1,0,0,
+            0,0,1,0,
+            0,0,0,1
+        );
+        model.rotateY(0.001f * ctx.frameCnt);
 
-        RasterizatorDIB::drawTriangle(
+        Mtx4 mvp = ctx.projection * ctx.view * model;
+
+        va = mvp * va;
+        vb = mvp * vb;
+        vc = mvp * vc;
+        vd = mvp * vd;
+
+        va.divideW();
+        vb.divideW();
+        vc.divideW();
+        vd.divideW();
+
+        uint32_t x = ctx.viewport.x;
+        uint32_t y = ctx.viewport.y;
+        uint32_t width = ctx.viewport.width;
+        uint32_t height = ctx.viewport.height;
+
+        auto viewportTransform = [&](Vec4& v) {
+            v.x = (v.x * 0.5f + 0.5f) * width + x;
+            v.y = (-v.y * 0.5f + 0.5f) * height + y;
+            };
+        viewportTransform(va);
+        viewportTransform(vb);
+        viewportTransform(vc);
+        viewportTransform(vd);
+
+        // FRONT (+)
+        RasterizatorDIB::drawQuad(
             target,
-            verts[0][0] + offsetX, verts[0][1] + offsetY,
-            verts[1][0] + offsetX, verts[1][1] + offsetY,
-            verts[2][0] + offsetX, verts[2][1] + offsetY,
+            va.x, va.y,
+            vb.x, vb.y,
+            vc.x, vc.y,
+            vd.x, vd.y,
             0xffff00ff
         );
     }
@@ -337,12 +378,14 @@ private:
     std::unique_ptr<Device> device;
     std::unique_ptr<typename Device::Target> target;
 
+    const WindowWin32& window;
 
     Context ctx{};
 
 public:
     Renderer(const WindowWin32& window)
         : device(std::make_unique<Device>(window.getHwnd()))
+        , window(window)
     {
         target = device->createTarget(RenderTargetDescriptor::Framebuffer(
             window.getClientWidth(),
@@ -357,6 +400,25 @@ public:
     {
         
         ctx.target = target.get();
+
+        ctx.view = Mtx4::LookAt(
+            Vec4(5,5,5,1),
+            Vec4(0,0,0,1),
+            Vec4(0,1,0,0)
+        );
+
+        ctx.projection = Mtx4::Perspective(
+            45.0f,
+            (float)window.getClientWidth() / (float)window.getClientHeight(),
+            0.01f,
+            100.0f
+        );
+
+        ctx.viewport = {
+            0,0,
+            window.getClientWidth(),
+            window.getClientHeight()
+        };
 
         device->clear(ctx, *target);
         device->draw(ctx, *target);
