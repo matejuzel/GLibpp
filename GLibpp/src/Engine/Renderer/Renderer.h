@@ -18,6 +18,9 @@
 // Backend DIB
 #include "RenderDeviceDIB.h"
 
+// Backend Stencil
+#include "RenderDeviceStencil.h"
+
 template <typename Device>
 class Renderer {
 private:

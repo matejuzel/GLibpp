@@ -55,6 +55,9 @@
     <Filter Include="Zdrojové soubory\Engine\Core\Input">
       <UniqueIdentifier>{e2aec2fc-34ee-4ff9-a612-9223f6af98a9}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Zdrojové soubory\Engine\Renderer\Backend\Stencil">
+      <UniqueIdentifier>{bfca70fa-c1fc-49ed-8d68-5a2d7cb9b85c}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\main.cpp">
@@ -271,6 +274,15 @@
     </ClInclude>
     <ClInclude Include="src\Engine\Renderer\Backend\DIB\RenderDeviceDIB.h">
       <Filter>Zdrojové soubory\Engine\Renderer\Backend\DIB</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Engine\Renderer\Backend\Stencil\RasterizatorStencil.h">
+      <Filter>Zdrojové soubory\Engine\Renderer\Backend\Stencil</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Engine\Renderer\Backend\Stencil\RenderTargetStencil.h">
+      <Filter>Zdrojové soubory\Engine\Renderer\Backend\Stencil</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Engine\Renderer\Backend\Stencil\RenderDeviceStencil.h">
+      <Filter>Zdrojové soubory\Engine\Renderer\Backend\Stencil</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

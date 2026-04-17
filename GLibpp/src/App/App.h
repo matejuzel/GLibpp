@@ -1,20 +1,30 @@
 ﻿#pragma once
 #include <memory>
 
-//#include "IRenderDevice.h"
 #include "WindowWin32.h"
 #include "Renderer.h"
 #include "RenderCommandList.h"
-//#include "RenderDeviceDIB.h"
 #include "Mtx4.h"
+
+#include "RenderDeviceDIB.h"
+#include "RenderDeviceStencil.h"
+
+
+#define _RENDER_BACKEND_DIB_
 
 class App {
 private:
-
-    using BackendDIB = Renderer<RenderDeviceDIB>;
+    
+#if defined(_RENDER_BACKEND_DIB_)
+    using RenderBackend = Renderer<RenderDeviceDIB>;
+#elif defined(_RENDER_BACKEND_STENCIL_)
+    using Backend = Renderer<RenderDeviceStencil>;
+#else
+    #error "Neni definovan backend!"
+#endif
 
     std::unique_ptr<WindowWin32> window;
-    std::unique_ptr<BackendDIB> renderer;
+    std::unique_ptr<RenderBackend> renderer;
 
     bool fullscreen = false;
 	bool running = true;
@@ -75,7 +85,7 @@ public:
 
         {
             // RENDERER
-            renderer = std::make_unique<BackendDIB>(*window);
+            renderer = std::make_unique<RenderBackend>(*window);
         }
 	}
 
