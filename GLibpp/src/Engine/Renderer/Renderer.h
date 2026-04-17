@@ -11,7 +11,7 @@
 #include "Vec4.h"
 #include "Mtx4.h"
 
-template <typename Derived>
+template<typename Device, typename DerivedTarget>
 class RenderTargetBase 
 {
 public:
@@ -20,17 +20,18 @@ public:
 
     RenderTargetBase(const RenderTargetDescriptor& descriptor) :descriptor(descriptor) {}
     ~RenderTargetBase() = default;
-
 };
 
-template<typename Device>
+template<typename Device, typename Target>
 class RenderContext {
 
 public:
     RenderContext() = default;
     ~RenderContext() = default;
 
-    RenderTargetBase<Device>* target = nullptr;
+    //typename Device::Target* target;
+    //RenderTargetBase* target = nullptr;
+    Target* target = nullptr;
     Viewport viewport = { 0,0,800,600 };
     Mtx4 view = Mtx4::Identity();
     Mtx4 projection = Mtx4::Identity();
@@ -40,9 +41,42 @@ public:
     //typename Device::MaterialHandle material = { 0 };
 };
 
+
+
+
+
+template <typename DerivedDevice, typename DerivedTarget>
+class RenderDeviceBase
+{
+public:
+
+    using Context = RenderContext<DerivedDevice, DerivedTarget>;
+
+    void draw(const Context& ctx, DerivedTarget& target) noexcept
+    {
+        static_cast<DerivedDevice*>(this)->drawImpl(ctx, target);
+    }
+
+    void clear(const Context& ctx, DerivedTarget& target) noexcept
+    {
+        static_cast<DerivedDevice*>(this)->clearImpl(ctx, target);
+    }
+
+    std::unique_ptr<DerivedTarget> createTarget(const RenderTargetDescriptor &descriptor) noexcept
+    {
+        return static_cast<DerivedDevice*>(this)->createTargetImpl(descriptor);
+    }
+
+    void present(Context& ctx, const DerivedTarget& target) noexcept
+    {
+        static_cast<DerivedDevice*>(this)->presentImpl(ctx, target);
+    }
+};
+
+
 class RenderDeviceDIB; // forward
 
-class RenderTargetDIB : public RenderTargetBase<RenderDeviceDIB> 
+class RenderTargetDIB : public RenderTargetBase<RenderDeviceDIB, RenderTargetDIB>
 {
 public:
     HBITMAP hBitmap = nullptr;
@@ -51,7 +85,7 @@ public:
     uint32_t* framebuffer = nullptr;
 
     RenderTargetDIB(const RenderTargetDescriptor& descriptor)
-        : RenderTargetBase(descriptor)
+        : RenderTargetBase<RenderDeviceDIB, RenderTargetDIB>(descriptor)
     {
 
         if (descriptor.width < 1 || descriptor.height < 1) {
@@ -222,52 +256,38 @@ public:
         }
     }
 
-    static void inline drawQuad(RenderTargetDIB& target, int x0, int y0, int x1, int y1, int x2, int y2, int x3, int y3, uint32_t color) noexcept 
+    static void inline drawQuad(RenderTargetDIB& target, int x0, int y0, int x1, int y1, int x2, int y2, int x3, int y3, uint32_t color) noexcept
     {
         drawTriangle(target, x0, y0, x1, y1, x2, y2, color);
         drawTriangle(target, x0, y0, x2, y2, x3, y3, color);
     }
+    
+    static void inline drawQuad(RenderTargetDIB& target, float x0, float y0, float x1, float y1, float x2, float y2, float x3, float y3, uint32_t color) noexcept
+    {
+        drawQuad(target,
+            static_cast<int>(x0),
+            static_cast<int>(y0),
+            static_cast<int>(x1),
+            static_cast<int>(y1),
+            static_cast<int>(x2),
+            static_cast<int>(y2),
+            static_cast<int>(x3),
+            static_cast<int>(y3),
+            color
+        );
+    }
+    
 
 };
-
-
-template <typename DerivedDevice, typename DerivedTarget>
-class RenderDeviceBase
-{
-public:
-
-    using Context = RenderContext<DerivedDevice>;
-
-    void draw(const Context& ctx, DerivedTarget& target) noexcept
-    {
-        static_cast<DerivedDevice*>(this)->drawImpl(ctx, target);
-    }
-
-    void clear(const Context& ctx, DerivedTarget& target) noexcept
-    {
-        static_cast<DerivedDevice*>(this)->clearImpl(ctx, target);
-    }
-
-    std::unique_ptr<DerivedTarget> createTarget(const RenderTargetDescriptor &descriptor) noexcept
-    {
-        return static_cast<DerivedDevice*>(this)->createTargetImpl(descriptor);
-    }
-
-    void present(Context& ctx, const DerivedTarget& target) noexcept
-    {
-        static_cast<DerivedDevice*>(this)->presentImpl(ctx, target);
-    }
-};
-
-
 
 class RenderDeviceDIB : public RenderDeviceBase<RenderDeviceDIB, RenderTargetDIB>
 {
 public:
 
+    using Device = RenderDeviceDIB;
     using Target = RenderTargetDIB;
-    using Backend = RenderDeviceBase<RenderDeviceDIB, Target>;
-    using Context = RenderContext<RenderDeviceDIB>;
+    using Context = RenderContext<Device, Target>;
+    using Backend = RenderDeviceBase<Device, Target>;
 
     HWND hwnd;
 
@@ -373,7 +393,7 @@ template <typename Device>
 class Renderer {
 private:
 
-    using Context = RenderContext<Device>;
+    using Context = RenderContext<Device, typename Device::Target>;
 
     std::unique_ptr<Device> device;
     std::unique_ptr<typename Device::Target> target;
