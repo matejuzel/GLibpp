@@ -6,15 +6,16 @@
 #include "WindowWin32.h"
 
 #include <cstdint>
-#include <windows.h>
 #include <memory>
 #include "Vec4.h"
 #include "Mtx4.h"
 
+// Backend Common
 #include "RenderContext.h"
 #include "RenderDeviceBase.h"
 #include "RenderTargetBase.h"
 
+// Backend DIB
 #include "RenderDeviceDIB.h"
 
 template <typename Device>
