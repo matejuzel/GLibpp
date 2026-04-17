@@ -1,7 +1,7 @@
 ﻿#pragma once
 #include <memory>
 
-#include "IRenderDevice.h"
+//#include "IRenderDevice.h"
 #include "WindowWin32.h"
 #include "Renderer.h"
 #include "RenderCommandList.h"

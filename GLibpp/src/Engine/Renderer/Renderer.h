@@ -11,63 +11,12 @@
 #include "Vec4.h"
 #include "Mtx4.h"
 
-template<typename Device, typename Target>
-class RenderContext {
-
-public:
-    RenderContext() = default;
-    ~RenderContext() = default;
-
-    Target* target = nullptr;
-    Viewport viewport = { 0,0,800,600 };
-    Mtx4 view = Mtx4::Identity();
-    Mtx4 projection = Mtx4::Identity();
-    Color clearColor = { 0,0,0,255 };
-    int frameCnt = 0;
-    //typename Device::MeshHandle mesh = { 0 };
-    //typename Device::MaterialHandle material = { 0 };
-};
-
-template<typename Device, typename DerivedTarget>
-class RenderTargetBase 
-{
-public:
-
-    RenderTargetDescriptor descriptor;
-
-    RenderTargetBase(const RenderTargetDescriptor& descriptor) :descriptor(descriptor) {}
-    ~RenderTargetBase() = default;
-};
 
 
-template <typename DerivedDevice, typename DerivedTarget>
-class RenderDeviceBase
-{
-public:
 
-    using Context = RenderContext<DerivedDevice, DerivedTarget>;
-
-    void draw(const Context& ctx, DerivedTarget& target) noexcept
-    {
-        static_cast<DerivedDevice*>(this)->drawImpl(ctx, target);
-    }
-
-    void clear(const Context& ctx, DerivedTarget& target) noexcept
-    {
-        static_cast<DerivedDevice*>(this)->clearImpl(ctx, target);
-    }
-
-    std::unique_ptr<DerivedTarget> createTarget(const RenderTargetDescriptor &descriptor) noexcept
-    {
-        return static_cast<DerivedDevice*>(this)->createTargetImpl(descriptor);
-    }
-
-    void present(Context& ctx, const DerivedTarget& target) noexcept
-    {
-        static_cast<DerivedDevice*>(this)->presentImpl(ctx, target);
-    }
-};
-
+#include "RenderContext.h"
+#include "RenderDeviceBase.h"
+#include "RenderTargetBase.h"
 
 class RenderDeviceDIB; // forward
 

@@ -80,18 +80,6 @@
     <ClInclude Include="src\Engine\Renderer\Renderer.h">
       <Filter>Zdrojové soubory\Engine\Renderer</Filter>
     </ClInclude>
-    <ClInclude Include="src\Engine\Renderer\Backend\Common\IRenderDevice.h">
-      <Filter>Zdrojové soubory\Engine\Renderer\Backend\Common</Filter>
-    </ClInclude>
-    <ClInclude Include="src\Engine\Renderer\Backend\Common\IRenderTarget.h">
-      <Filter>Zdrojové soubory\Engine\Renderer\Backend\Common</Filter>
-    </ClInclude>
-    <ClInclude Include="src\Engine\Renderer\Backend\DIB\RenderDeviceDIB.h">
-      <Filter>Zdrojové soubory\Engine\Renderer\Backend\DIB</Filter>
-    </ClInclude>
-    <ClInclude Include="src\Engine\Renderer\Backend\DIB\RenderTargetDIB.h">
-      <Filter>Zdrojové soubory\Engine\Renderer\Backend\DIB</Filter>
-    </ClInclude>
     <ClInclude Include="src\Math\Mtx4.h">
       <Filter>Zdrojové soubory\Math</Filter>
     </ClInclude>
@@ -266,8 +254,14 @@
     <ClInclude Include="src\window\WindowWin32.h">
       <Filter>Hlavičkové soubory</Filter>
     </ClInclude>
-    <ClInclude Include="src\Engine\Renderer\RenderContext.h">
-      <Filter>Zdrojové soubory\Engine\Renderer</Filter>
+    <ClInclude Include="src\Engine\Renderer\Backend\Common\RenderContext.h">
+      <Filter>Zdrojové soubory\Engine\Renderer\Backend\Common</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Engine\Renderer\Backend\Common\RenderTargetBase.h">
+      <Filter>Zdrojové soubory\Engine\Renderer\Backend\Common</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Engine\Renderer\Backend\Common\RenderDeviceBase.h">
+      <Filter>Zdrojové soubory\Engine\Renderer\Backend\Common</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

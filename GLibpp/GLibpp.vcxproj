@@ -28,10 +28,9 @@
     <ClInclude Include="src\App\App.h" />
     <ClInclude Include="src\Engine\Core\Datastruct\DoubleBuffer.h" />
     <ClInclude Include="src\Engine\Core\handles.h" />
-    <ClInclude Include="src\Engine\Renderer\Backend\Common\IRenderDevice.h" />
-    <ClInclude Include="src\Engine\Renderer\Backend\Common\IRenderTarget.h" />
-    <ClInclude Include="src\Engine\Renderer\Backend\DIB\RenderDeviceDIB.h" />
-    <ClInclude Include="src\Engine\Renderer\Backend\DIB\RenderTargetDIB.h" />
+    <ClInclude Include="src\Engine\Renderer\Backend\Common\RenderContext.h" />
+    <ClInclude Include="src\Engine\Renderer\Backend\Common\RenderDeviceBase.h" />
+    <ClInclude Include="src\Engine\Renderer\Backend\Common\RenderTargetBase.h" />
     <ClInclude Include="src\Engine\Renderer\Backend\RenderCommand\RCMD_SetViewport.h" />
     <ClInclude Include="src\Engine\Renderer\Backend\RenderCommand\RenderCommand.h" />
     <ClInclude Include="src\Engine\Renderer\Backend\RenderCommand\RenderCommandData.h" />
@@ -40,7 +39,6 @@
     <ClInclude Include="src\Engine\Renderer\Backend\RenderCommand\RenderCommandType.h" />
     <ClInclude Include="src\Engine\Renderer\Color.h" />
     <ClInclude Include="src\Engine\Renderer\DeviceTargetHandle.h" />
-    <ClInclude Include="src\Engine\Renderer\RenderContext.h" />
     <ClInclude Include="src\Engine\Renderer\Renderer.h" />
     <ClInclude Include="src\Engine\Renderer\RenderResourceManager.h" />
     <ClInclude Include="src\Engine\Renderer\RenderState.h" />
