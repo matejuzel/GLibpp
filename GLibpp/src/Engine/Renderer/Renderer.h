@@ -11,17 +11,6 @@
 #include "Vec4.h"
 #include "Mtx4.h"
 
-template<typename Device, typename DerivedTarget>
-class RenderTargetBase 
-{
-public:
-
-    RenderTargetDescriptor descriptor;
-
-    RenderTargetBase(const RenderTargetDescriptor& descriptor) :descriptor(descriptor) {}
-    ~RenderTargetBase() = default;
-};
-
 template<typename Device, typename Target>
 class RenderContext {
 
@@ -29,8 +18,6 @@ public:
     RenderContext() = default;
     ~RenderContext() = default;
 
-    //typename Device::Target* target;
-    //RenderTargetBase* target = nullptr;
     Target* target = nullptr;
     Viewport viewport = { 0,0,800,600 };
     Mtx4 view = Mtx4::Identity();
@@ -41,8 +28,16 @@ public:
     //typename Device::MaterialHandle material = { 0 };
 };
 
+template<typename Device, typename DerivedTarget>
+class RenderTargetBase 
+{
+public:
 
+    RenderTargetDescriptor descriptor;
 
+    RenderTargetBase(const RenderTargetDescriptor& descriptor) :descriptor(descriptor) {}
+    ~RenderTargetBase() = default;
+};
 
 
 template <typename DerivedDevice, typename DerivedTarget>
@@ -261,7 +256,7 @@ public:
         drawTriangle(target, x0, y0, x1, y1, x2, y2, color);
         drawTriangle(target, x0, y0, x2, y2, x3, y3, color);
     }
-    
+
     static void inline drawQuad(RenderTargetDIB& target, float x0, float y0, float x1, float y1, float x2, float y2, float x3, float y3, uint32_t color) noexcept
     {
         drawQuad(target,
@@ -276,7 +271,7 @@ public:
             color
         );
     }
-    
+
 
 };
 
@@ -386,8 +381,6 @@ public:
         return std::make_unique<RenderTargetDIB>(descriptor);
     }
 };
-
-
 
 template <typename Device>
 class Renderer {
