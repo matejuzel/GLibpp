@@ -1,114 +1,113 @@
 #pragma once
 
-/*
-//#include "DoubleBuffer.h"
-#include "IRenderDevice.h"
-#include "IRenderTarget.h"
-#include "RenderTargetDescriptor.h"
-#include "RenderTargetDIB.h"
-#include <windows.h>
-#include <vector>
+#include "RasterizatorDIB.h"
 
-//class RenderContextDIB;
+class RenderTargetDIB;
 
-class RenderDeviceDIB : public IRenderDevice<RenderDeviceDIB> {
 
-private:
-    
-	std::vector<std::unique_ptr<RenderTargetDIB>> renderTargets_;
-	HWND hwnd_ = nullptr;
-
+class RenderDeviceDIB : public RenderDeviceBase<RenderDeviceDIB, RenderTargetDIB>
+{
 public:
 
-	RenderDeviceDIB(HWND hwnd) : IRenderDevice(), hwnd_(hwnd) {}
-    HWND getHwnd() const { return hwnd_; }
+    using Device = RenderDeviceDIB;
+    using Target = RenderTargetDIB;
+    using Context = RenderContext<Device, Target>;
+    using Backend = RenderDeviceBase<Device, Target>;
 
-    DeviceTargetHandle createTargetImpl(const RenderTargetDescriptor& descriptor) 
-    {
-        size_t index = renderTargets_.size();
-		renderTargets_.push_back(std::make_unique<RenderTargetDIB>(descriptor));
-		return DeviceTargetHandle{ static_cast<uint32_t>(index) };
-    }
+    HWND hwnd;
 
-protected:
+    RenderDeviceDIB(HWND hwnd) : hwnd(hwnd) {}
 
-    // deklarace pouze — implementace pøesunuta do .cpp, aby byla dostupná úplná definice RenderContextDIB
-    RenderContext<RenderDeviceDIB> beginContextImpl() {
-        return RenderContext<RenderDeviceDIB>();
-    }
-
-
-
-
-    IRenderTarget& getTargetImpl(const DeviceTargetHandle& handle) {
-        if (handle.handle >= renderTargets_.size()) {
-            throw std::runtime_error("Invalid RenderTarget handle: " + std::to_string(handle.handle));
-		}
-		return *renderTargets_[handle.handle];
-    };
-
-    void presentImpl(IRenderTarget& target) 
-    {
-        // pak prehodi front a back buffer
-    }
-
-
-    void clearImpl(const RenderContext<RenderDeviceDIB>& ctx)
-    {
-        uint32_t color = ctx.clearColor.toRGBA();
-        
-        std::fill_n(targetDib->getFramebuffer(), target.getDescriptor().width * target.getDescriptor().height, color);
-
-		// dalo by se pouzit SSE (SIMD) pro rychlejší vyplnìní, ale pro jednoduchost a pøehlednost teï použijeme std::fill_n
-
-    }
-
-    void drawMeshImpl(IRenderContext& ctx) 
+    //protected:
+    void drawImpl(const Context& ctx, Target& target) noexcept
     {
 
-        class MeshInstance {
-            // @todo
-			Mtx4 transformation;
-        public:
-			const Mtx4& getTransfomation() const { return transformation; }
+        int verts[4][2] = {
+            {-1,-1},
+            { 1,-1},
+            { 1, 1},
+            {-1, 1},
         };
 
-        MeshInstance mesh;
+        Vec4 va(verts[0][0], verts[0][1], 0, 1);
+        Vec4 vb(verts[1][0], verts[1][1], 0, 1);
+        Vec4 vc(verts[2][0], verts[2][1], 0, 1);
+        Vec4 vd(verts[3][0], verts[3][1], 0, 1);
 
-        ctx.target;
-        Mtx4 mvp = mesh.getTransfomation() * ctx.projection * ctx.view;
+        Mtx4 model(
+            1, 0, 0, 0,
+            0, 1, 0, 0,
+            0, 0, 1, 0,
+            0, 0, 0, 1
+        );
+        model.rotateY(0.001f * ctx.frameCnt);
 
-		auto* dib = static_cast<RenderTargetDIB*>(ctx.target);
-        dib->putPixel(10, 10, 0xff0000ff);
-        dib->putPixel(11, 10, 0xff0000ff);
-        dib->putPixel(12, 10, 0xff0000ff);
-        dib->putPixel(13, 10, 0xff0000ff);
-        dib->putPixel(14, 10, 0xff0000ff);
-        dib->putPixel(10, 12, 0xff0000ff);
+        Mtx4 mvp = ctx.projection * ctx.view * model;
+
+        va = mvp * va;
+        vb = mvp * vb;
+        vc = mvp * vc;
+        vd = mvp * vd;
+
+        va.divideW();
+        vb.divideW();
+        vc.divideW();
+        vd.divideW();
+
+        uint32_t x = ctx.viewport.x;
+        uint32_t y = ctx.viewport.y;
+        uint32_t width = ctx.viewport.width;
+        uint32_t height = ctx.viewport.height;
+
+        auto viewportTransform = [&](Vec4& v) {
+            v.x = (v.x * 0.5f + 0.5f) * width + x;
+            v.y = (-v.y * 0.5f + 0.5f) * height + y;
+            };
+        viewportTransform(va);
+        viewportTransform(vb);
+        viewportTransform(vc);
+        viewportTransform(vd);
+
+        // FRONT (+)
+        RasterizatorDIB::drawQuad(
+            target,
+            va.x, va.y,
+            vb.x, vb.y,
+            vc.x, vc.y,
+            vd.x, vd.y,
+            Color::Grayscale(0.5f).toRGBA()
+        );
     }
 
-
-    void presentToWindow()
+    void clearImpl(const Context& ctx, Target& target) noexcept
     {
-        HWND hwnd_ = (static_cast<RenderDeviceDIB&>(device)).getHwnd();
-        HDC windowDC = GetDC(hwnd_);
+        uint32_t color = ctx.clearColor.toRGBA();
+        int size = target.descriptor.width * target.descriptor.height;
+        std::fill_n(target.framebuffer, size, color);
+        // dalo by se pouzit SSE (SIMD) pro rychlejší vyplnìní, ale pro jednoduchost a pøehlednost teï použijeme std::fill_n
+    }
+
+    void presentImpl(Context& ctx, const Target& target) noexcept
+    {
+        HDC windowDC = GetDC(hwnd);
 
         BitBlt(
             windowDC,
             0, 0,
-            target->getDescriptor().width, target->getDescriptor().height,
-            (static_cast<RenderTargetDIB&>(*target)).getDC(),
+            target.descriptor.width, target.descriptor.height,
+            (static_cast<const RenderTargetDIB&>(target)).getDC(),
             0, 0,
             SRCCOPY
         );
 
-        ReleaseDC(hwnd_, windowDC);
-    }
-    
 
-    void drawPrimitivePixel(RenderContext<RenderDeviceDIB>& ctx)
+        ReleaseDC(hwnd, windowDC);
+
+        ctx.frameCnt += 1;
+    }
+
+    std::unique_ptr<RenderTargetDIB> createTargetImpl(const RenderTargetDescriptor& descriptor) noexcept
     {
-        auto a = static_cast<RenderContext<RenderDeviceDIB>>(ctx.target);
+        return std::make_unique<RenderTargetDIB>(descriptor);
     }
-
-};*/
+};

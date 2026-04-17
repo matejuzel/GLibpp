@@ -1,23 +1,17 @@
 #pragma once
-/*
-#include "IRenderTarget.h"
-#include "RenderTargetDescriptor.h"
-#include <windows.h>
-#include <cstdint>
-#include <cstring>
 
-class RenderTargetDIB : public IRenderTarget<RenderDeviceDIB> {
-private:
+class RenderDeviceDIB; // forward
 
-	HBITMAP hBitmap = nullptr;
-    HDC memDC = nullptr;
-	HGDIOBJ oldBitmap = nullptr;
-	uint32_t* framebuffer = nullptr;
-
+class RenderTargetDIB : public RenderTargetBase<RenderDeviceDIB, RenderTargetDIB>
+{
 public:
+    HBITMAP hBitmap = nullptr;
+    HDC memDC = nullptr;
+    HGDIOBJ oldBitmap = nullptr;
+    uint32_t* framebuffer = nullptr;
 
     RenderTargetDIB(const RenderTargetDescriptor& descriptor)
-        : IRenderTarget(descriptor) 
+        : RenderTargetBase<RenderDeviceDIB, RenderTargetDIB>(descriptor)
     {
 
         if (descriptor.width < 1 || descriptor.height < 1) {
@@ -33,13 +27,13 @@ public:
         bmi.bmiHeader.biWidth = int(descriptor.width);
         bmi.bmiHeader.biHeight = -int(descriptor.height);
         bmi.bmiHeader.biPlanes = 1;
-		bmi.bmiHeader.biBitCount = int(32); // @todo: mapovat z TextureFormat
+        bmi.bmiHeader.biBitCount = int(32); // @todo: mapovat z TextureFormat
         bmi.bmiHeader.biCompression = BI_RGB;
 
         HDC screen = GetDC(nullptr);
 
         hBitmap = CreateDIBSection(
-            screen, 
+            screen,
             &bmi,
             DIB_RGB_COLORS,
             (void**)&framebuffer,
@@ -47,7 +41,7 @@ public:
             0
         );
 
-        if (!hBitmap || !framebuffer) 
+        if (!hBitmap || !framebuffer)
         {
             ReleaseDC(nullptr, screen);
 
@@ -63,17 +57,17 @@ public:
                 LocalFree(buf);
                 throw std::runtime_error("Failed to create DIB section. GetLastError Message: " + msg);
             }
-            
+
         }
 
-		ReleaseDC(nullptr, screen);
+        ReleaseDC(nullptr, screen);
 
         memDC = CreateCompatibleDC(nullptr);
         oldBitmap = SelectObject(memDC, hBitmap);
 
     }
 
-    ~RenderTargetDIB() 
+    ~RenderTargetDIB()
     {
 
         SelectObject(memDC, oldBitmap);
@@ -86,15 +80,15 @@ public:
         if (memDC) {
             DeleteDC(memDC);
             memDC = nullptr;
-		}
-	}
-    
-	HDC getDC() const { return memDC; }
-	HBITMAP getBitmap() const { return hBitmap; }
-	uint32_t* getFramebuffer() const { return framebuffer; }
+        }
+    }
 
+    HDC getDC() const { return memDC; }
+    HBITMAP getBitmap() const { return hBitmap; }
+    uint32_t* getFramebuffer() const { return framebuffer; }
 
-    void putPixel(uint32_t x, uint32_t y, uint32_t color) noexcept {
+    void inline putPixel(uint32_t x, uint32_t y, uint32_t color) noexcept
+    {
 
         uint32_t width = descriptor.width;
         uint32_t height = descriptor.height;
@@ -105,8 +99,4 @@ public:
         framebuffer[y * width + x] = color;
     }
 
-
-    
-
-
-};*/
+};

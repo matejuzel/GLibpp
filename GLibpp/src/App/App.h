@@ -5,7 +5,7 @@
 #include "WindowWin32.h"
 #include "Renderer.h"
 #include "RenderCommandList.h"
-#include "RenderDeviceDIB.h"
+//#include "RenderDeviceDIB.h"
 #include "Mtx4.h"
 
 class App {
