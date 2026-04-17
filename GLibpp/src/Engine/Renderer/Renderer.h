@@ -294,7 +294,7 @@ public:
             vb.x, vb.y,
             vc.x, vc.y,
             vd.x, vd.y,
-            0xffff00ff
+            Color::Grayscale(0.5f).toRGBA()
         );
     }
 
@@ -381,6 +381,9 @@ public:
             window.getClientWidth(),
             window.getClientHeight()
         };
+
+        ctx.clearColor = Color::Grayscale(0.2f);
+
 
         device->clear(ctx, *target);
         device->draw(ctx, *target);

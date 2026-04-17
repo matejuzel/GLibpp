@@ -135,6 +135,7 @@
       <PreprocessorDefinitions>_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <AdditionalIncludeDirectories>$(ProjectDir)src;$(ProjectDir)src\App;$(ProjectDir)src\Engine;$(ProjectDir)src\Math;$(ProjectDir)src\Platform;$(ProjectDir)src\Utility;$(ProjectDir)src\Engine\Core;$(ProjectDir)src\Engine\Renderer;$(ProjectDir)src\Engine\Core\Datastruct;$(ProjectDir)src\Engine\Renderer\Backend;$(ProjectDir)src\Engine\Renderer\Backend\Common;$(ProjectDir)src\Engine\Renderer\Backend\DIB;$(ProjectDir)src\Platform\Win32;$(ProjectDir)src\Engine\Renderer\Backend\RenderCommand;$(ProjectDir)src\Engine\Core\Input</AdditionalIncludeDirectories>
+      <LanguageStandard>stdcpp20</LanguageStandard>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -150,6 +151,7 @@
       <PreprocessorDefinitions>NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <AdditionalIncludeDirectories>$(ProjectDir)src;$(ProjectDir)src\App;$(ProjectDir)src\Engine;$(ProjectDir)src\Math;$(ProjectDir)src\Platform;$(ProjectDir)src\Utility;$(ProjectDir)src\Engine\Core;$(ProjectDir)src\Engine\Renderer;$(ProjectDir)src\Engine\Core\Datastruct;$(ProjectDir)src\Engine\Renderer\Backend;$(ProjectDir)src\Engine\Renderer\Backend\Common;$(ProjectDir)src\Engine\Renderer\Backend\DIB;$(ProjectDir)src\Platform\Win32;$(ProjectDir)src\Engine\Renderer\Backend\RenderCommand;$(ProjectDir)src\Engine\Core\Input</AdditionalIncludeDirectories>
+      <LanguageStandard>stdcpp20</LanguageStandard>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
