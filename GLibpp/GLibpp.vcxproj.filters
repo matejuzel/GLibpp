@@ -275,9 +275,6 @@
     <ClInclude Include="src\Engine\Renderer\Backend\DIB\RenderDeviceDIB.h">
       <Filter>Zdrojové soubory\Engine\Renderer\Backend\DIB</Filter>
     </ClInclude>
-    <ClInclude Include="src\Engine\Renderer\Backend\Stencil\RasterizatorStencil.h">
-      <Filter>Zdrojové soubory\Engine\Renderer\Backend\Stencil</Filter>
-    </ClInclude>
     <ClInclude Include="src\Engine\Renderer\Backend\Stencil\RenderTargetStencil.h">
       <Filter>Zdrojové soubory\Engine\Renderer\Backend\Stencil</Filter>
     </ClInclude>

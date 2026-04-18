@@ -40,7 +40,6 @@
     <ClInclude Include="src\Engine\Renderer\Backend\RenderCommand\RenderCommandList.h" />
     <ClInclude Include="src\Engine\Renderer\Backend\RenderCommand\RenderCommandStructs.h" />
     <ClInclude Include="src\Engine\Renderer\Backend\RenderCommand\RenderCommandType.h" />
-    <ClInclude Include="src\Engine\Renderer\Backend\Stencil\RasterizatorStencil.h" />
     <ClInclude Include="src\Engine\Renderer\Backend\Stencil\RenderDeviceStencil.h" />
     <ClInclude Include="src\Engine\Renderer\Backend\Stencil\RenderTargetStencil.h" />
     <ClInclude Include="src\Engine\Renderer\Color.h" />

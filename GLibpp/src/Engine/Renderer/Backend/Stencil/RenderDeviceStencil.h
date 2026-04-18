@@ -1,40 +1,48 @@
 #pragma once
 
+#include "RenderTargetStencil.h"
 #include "RenderDeviceBase.h"
-#include "RasterizatorStencil.h"
 #include "RenderTargetDescriptor.h"
 #include <windows.h>
 
-class RenderTargetStencil;
+class RenderDeviceStencil;
+
+namespace internal {
+    using RenderDeviceStencilBase = RenderDeviceBase<RenderDeviceStencil, RenderTargetStencil>;
+};
 
 
-class RenderDeviceStencil : public RenderDeviceBase<RenderDeviceStencil, RenderTargetStencil>
+class RenderDeviceStencil : public internal::RenderDeviceStencilBase
 {
+private:
+
+    using Self = RenderDeviceStencil;
+    using Base = internal::RenderDeviceStencilBase;
+
 public:
 
-    using Device = RenderDeviceStencil;
     using Target = RenderTargetStencil;
-    using Context = RenderContext<Device, Target>;
-    using Backend = RenderDeviceBase<Device, Target>;
+    using Context = RenderContext<Self, Target>;
 
     RenderDeviceStencil(HWND hwnd) {}
 
-    //protected:
     void drawImpl(const Context& ctx, Target& target) noexcept
     {
-        RasterizatorStencil::drawLine(target, 0, 0, 0, 0, 0);
+        // @todo
     }
 
     void clearImpl(const Context& ctx, Target& target) noexcept
     {
+        // @todo
     }
 
     void presentImpl(Context& ctx, const Target& target) noexcept
     {
+        // @todo
     }
 
-    std::unique_ptr<RenderTargetStencil> createTargetImpl(const RenderTargetDescriptor& descriptor) noexcept
+    std::unique_ptr<Target> createTargetImpl(const RenderTargetDescriptor& descriptor) noexcept
     {
-        return std::make_unique<RenderTargetStencil>(descriptor);
+        return std::make_unique<Target>(descriptor);
     }
 };
