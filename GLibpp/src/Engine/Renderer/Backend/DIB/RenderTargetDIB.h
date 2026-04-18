@@ -1,9 +1,21 @@
 #pragma once
 
-class RenderDeviceDIB; // forward
+#include "RenderTargetBase.h"
+#include "RenderTargetDescriptor.h"
 
-class RenderTargetDIB : public RenderTargetBase<RenderDeviceDIB, RenderTargetDIB>
+class RenderDeviceDIB; // forward
+class RenderTargetDIB; // forward
+
+namespace internal {
+    using RenderTargetDIBBase = RenderTargetBase<RenderDeviceDIB, RenderTargetDIB>;
+};
+
+class RenderTargetDIB : public internal::RenderTargetDIBBase
 {
+private:
+    using Self = RenderTargetDIB;
+    using Base = internal::RenderTargetDIBBase;
+
 public:
     HBITMAP hBitmap = nullptr;
     HDC memDC = nullptr;
@@ -11,7 +23,7 @@ public:
     uint32_t* framebuffer = nullptr;
 
     RenderTargetDIB(const RenderTargetDescriptor& descriptor)
-        : RenderTargetBase<RenderDeviceDIB, RenderTargetDIB>(descriptor)
+        : Base(descriptor)
     {
 
         if (descriptor.width < 1 || descriptor.height < 1) {

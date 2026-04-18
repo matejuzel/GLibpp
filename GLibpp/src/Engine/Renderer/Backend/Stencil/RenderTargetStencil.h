@@ -13,7 +13,7 @@ class RenderTargetStencil : public internal::RenderTargetStencilBase
 {
 private:
     using Self = RenderTargetStencil;
-    using Base = RenderTargetBase<RenderDeviceStencil, Self>;
+    using Base = internal::RenderTargetStencilBase;
 
 public:
 
