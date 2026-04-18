@@ -29,12 +29,12 @@ private:
 
     std::unique_ptr<Device> device;
     std::unique_ptr<typename Device::Target> target;
-    const WindowWin32& window;
+    WindowWin32& window;
     Context ctx{};
 
 public:
-    Renderer(const WindowWin32& window)
-        : device(std::make_unique<Device>(window.getHwnd()))
+    Renderer(WindowWin32& window)
+        : device(std::make_unique<Device>(window))
         , window(window)
     {
         target = device->createTarget(RenderTargetDescriptor::Framebuffer(

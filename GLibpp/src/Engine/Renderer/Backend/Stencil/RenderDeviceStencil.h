@@ -3,7 +3,7 @@
 #include "RenderTargetStencil.h"
 #include "RenderDeviceBase.h"
 #include "RenderTargetDescriptor.h"
-#include <windows.h>
+#include "WindowWin32.h"
 
 class RenderDeviceStencil;
 
@@ -24,7 +24,7 @@ public:
     using Target = RenderTargetStencil;
     using Context = RenderContext<Self, Target>;
 
-    RenderDeviceStencil(HWND hwnd) {}
+    RenderDeviceStencil(WindowWin32& window) : Base(window) {}
 
     void drawImpl(const Context& ctx, Target& target) noexcept
     {

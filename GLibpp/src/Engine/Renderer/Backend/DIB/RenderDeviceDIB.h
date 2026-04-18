@@ -14,14 +14,11 @@ public:
     using Context = RenderContext<Device, Target>;
     using Backend = RenderDeviceBase<Device, Target>;
 
-    HWND hwnd;
-
-    RenderDeviceDIB(HWND hwnd) : hwnd(hwnd) {}
+    RenderDeviceDIB(WindowWin32& window) : RenderDeviceBase(window) {}
 
     //protected:
     void drawImpl(const Context& ctx, Target& target) noexcept
     {
-
         int verts[4][2] = {
             {-1,-1},
             { 1,-1},
@@ -89,7 +86,7 @@ public:
 
     void presentImpl(Context& ctx, const Target& target) noexcept
     {
-        HDC windowDC = GetDC(hwnd);
+        HDC windowDC = GetDC(window.getHwnd());
 
         BitBlt(
             windowDC,
@@ -101,7 +98,7 @@ public:
         );
 
 
-        ReleaseDC(hwnd, windowDC);
+        ReleaseDC(window.getHwnd(), windowDC);
 
         ctx.frameCnt += 1;
     }

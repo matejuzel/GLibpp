@@ -6,6 +6,10 @@ class RenderDeviceBase
 public:
 
     using Context = RenderContext<DerivedDevice, DerivedTarget>;
+    WindowWin32& window;
+
+    RenderDeviceBase(WindowWin32& window) : window(window) {}
+    //~RenderDeviceBase() = default;
 
     void draw(const Context& ctx, DerivedTarget& target) noexcept
     {
