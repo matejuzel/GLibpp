@@ -23,7 +23,6 @@ public:
 
     RenderDeviceDIB(WindowWin32& window) : Base(window) {}
 
-    //protected:
     void drawImpl(const Context& ctx, Target& target) noexcept
     {
         int verts[4][2] = {
