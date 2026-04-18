@@ -25,12 +25,12 @@ template <typename Device>
 class Renderer {
 private:
 
-    using Context = RenderContext<Device, typename Device::Target>;
+    WindowWin32& window;
 
     std::unique_ptr<Device> device;
     std::unique_ptr<typename Device::Target> target;
-    WindowWin32& window;
-    Context ctx{};
+
+    Device::Context ctx;
 
 public:
     Renderer(WindowWin32& window)

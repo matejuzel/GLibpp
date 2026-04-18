@@ -17,10 +17,11 @@ private:
 
 public:
 
+    RenderTargetStencil() = default;
+    ~RenderTargetStencil() {}
+
     RenderTargetStencil(const RenderTargetDescriptor& descriptor)
         : Base(descriptor)
     {}
-
-    ~RenderTargetStencil() {}
 
 };

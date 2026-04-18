@@ -9,6 +9,7 @@ public:
 
     RenderTargetDescriptor descriptor;
 
+    RenderTargetBase() = default;
     RenderTargetBase(const RenderTargetDescriptor& descriptor) :descriptor(descriptor) {}
     ~RenderTargetBase() = default;
 };

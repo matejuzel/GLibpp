@@ -22,6 +22,8 @@ public:
     HGDIOBJ oldBitmap = nullptr;
     uint32_t* framebuffer = nullptr;
 
+    RenderTargetDIB() = default;
+
     RenderTargetDIB(const RenderTargetDescriptor& descriptor)
         : Base(descriptor)
     {
