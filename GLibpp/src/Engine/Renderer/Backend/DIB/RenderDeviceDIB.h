@@ -2,19 +2,26 @@
 
 #include "RasterizatorDIB.h"
 
+
+class RenderDeviceDIB;
 class RenderTargetDIB;
 
+namespace internal {
+    using RenderDeviceDIBBase = RenderDeviceBase<RenderDeviceDIB, RenderTargetDIB>;
+};
 
-class RenderDeviceDIB : public RenderDeviceBase<RenderDeviceDIB, RenderTargetDIB>
+class RenderDeviceDIB : public internal::RenderDeviceDIBBase
 {
+private:
+
+    using Self = RenderDeviceDIB;
+    using Base = internal::RenderDeviceDIBBase;
+
 public:
-
-    using Device = RenderDeviceDIB;
     using Target = RenderTargetDIB;
-    using Context = RenderContext<Device, Target>;
-    using Backend = RenderDeviceBase<Device, Target>;
+    using Context = RenderContext<Self, Target>;
 
-    RenderDeviceDIB(WindowWin32& window) : RenderDeviceBase(window) {}
+    RenderDeviceDIB(WindowWin32& window) : Base(window) {}
 
     //protected:
     void drawImpl(const Context& ctx, Target& target) noexcept
@@ -92,7 +99,7 @@ public:
             windowDC,
             0, 0,
             target.descriptor.width, target.descriptor.height,
-            (static_cast<const RenderTargetDIB&>(target)).getDC(),
+            (static_cast<const Target&>(target)).getDC(),
             0, 0,
             SRCCOPY
         );
@@ -103,8 +110,8 @@ public:
         ctx.frameCnt += 1;
     }
 
-    std::unique_ptr<RenderTargetDIB> createTargetImpl(const RenderTargetDescriptor& descriptor) noexcept
+    std::unique_ptr<Target> createTargetImpl(const RenderTargetDescriptor& descriptor) noexcept
     {
-        return std::make_unique<RenderTargetDIB>(descriptor);
+        return std::make_unique<Target>(descriptor);
     }
 };
