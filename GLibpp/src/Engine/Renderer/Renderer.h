@@ -31,52 +31,54 @@ class Renderer {
 private:
 
     using Target_h = Device::TargetHandle;
+    using Context = Device::Context;
     
-    WindowWin32& window;
     std::unique_ptr<Device> device;
 
     RenderResourceManager<Device> resources;
 
-    Target_h target2;
-
-    Device::Context ctx;
+    Target_h framebuffer_h;
+    Target_h depthbuffer_h;
 
 public:
     Renderer(WindowWin32& window)
         : device(std::make_unique<Device>(window))
-        , window(window)
-    {
-        
-        target2 = resources.targets.add(RenderTargetDescriptor::Framebuffer(window.getClientWidth(), window.getClientHeight()));
-
-    }
+        , framebuffer_h(resources.targets.add(RenderTargetDescriptor::Framebuffer(window.getClientWidth(), window.getClientHeight())))
+        , depthbuffer_h(resources.targets.add(RenderTargetDescriptor::Framebuffer(window.getClientWidth(), window.getClientHeight()))) // @todo tady pak zmenit na ::Depthbuffer(...) az bude implementovano
+    {}
 
     void renderFrame()
     {
         
-        ctx.target = &resources.targets.get(target2);
+        Context ctx;
+
+        ctx.target = &resources.targets.get(framebuffer_h);
+
+        uint32_t width = ctx.target->descriptor.width;
+        uint32_t height = ctx.target->descriptor.height;
+        float aspect = static_cast<float>(width) / static_cast<float>(height);
 
         ctx.view = Mtx4::LookAt(
             Vec4(5,5,5,1),
             Vec4(0,0,0,1),
             Vec4(0,1,0,0)
         );
+        
+        ctx.target->descriptor.width;
 
         ctx.projection = Mtx4::Perspective(
             45.0f,
-            (float)window.getClientWidth() / (float)window.getClientHeight(),
+            aspect,
             0.01f,
             100.0f
         );
 
         ctx.viewport = {
             0,0,
-            window.getClientWidth(),
-            window.getClientHeight()
+            width,height
         };
 
         ctx.clearColor = Color::Grayscale(0.2f);
-
 
         device->clear(ctx, *ctx.target);
         device->draw(ctx, *ctx.target);
@@ -85,6 +87,6 @@ public:
 
     void resize(uint32_t width, uint32_t height)
     {
-        resources.targets.reset(target2, RenderTargetDescriptor::Framebuffer(width, height));
+        resources.targets.reset(framebuffer_h, RenderTargetDescriptor::Framebuffer(width, height));
     }
 };
