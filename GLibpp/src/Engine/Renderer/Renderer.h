@@ -80,9 +80,9 @@ public:
 
         ctx.clearColor = Color::Grayscale(0.2f);
 
-        device->clear(ctx, *ctx.target);
-        device->draw(ctx, *ctx.target);
-        device->present(ctx, *ctx.target);
+        device->clear(ctx);
+        device->draw(ctx);
+        device->present(ctx);
     }
 
     void resize(uint32_t width, uint32_t height)
