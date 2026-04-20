@@ -6,19 +6,18 @@ template <typename Device>
 struct RenderResourceManager {
 public:
     RenderResourceManager() = default;
-    //RenderTargetRegistry renderTargetRegistry; // @todo dodelat!!!
 
+    // types
+    using Target_h = Device::TargetHandle;
+    using Mesh_h = uint32_t;
+    using MeshInstance_h = uint32_t;
+    using Texture_h = uint32_t;
+    
 
-    int a = 12;
-    //RenderTargetRegistry
-
-
-    std::unique_ptr<typename Device::Target> target;
-
+    // properities
     SlotArray<typename Device::Target> targets;
 
-
-
+    // methods
 
 
 };

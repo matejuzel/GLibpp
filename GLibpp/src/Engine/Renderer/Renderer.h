@@ -30,8 +30,8 @@ template <typename Device>
 class Renderer {
 private:
 
-    using Target_h = Device::TargetHandle;
     using Context = Device::Context;
+    using Target_h = RenderResourceManager<Device>::Target_h;
     
     std::unique_ptr<Device> device;
 
@@ -60,7 +60,7 @@ public:
 
         auto ctx = device->createContext();
 
-        ctx.clearColor = Color::Grayscale(0.2f);
+        ctx.clearColor = Color::Grayscale(0.4f);
 
         ctx.view = Mtx4::LookAt(
             Vec4(5+frameCounter/100.0f,5.0f,5.0f,1.0f),
