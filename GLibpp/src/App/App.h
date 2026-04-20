@@ -100,9 +100,10 @@ public:
 
     void run()
     {
+        uint32_t frameIndex = 0;
         while (running) {
             window->pollEvents();
-            renderer->renderFrame();
+            renderer->renderFrame(frameIndex++);
         }
 	}
 

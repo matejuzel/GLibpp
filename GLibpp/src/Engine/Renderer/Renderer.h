@@ -40,8 +40,6 @@ private:
     Target_h framebuffer_h;
     Target_h depthbuffer_h;
 
-    uint32_t frameCounter = 0;
-
 public:
     Renderer(WindowWin32& window)
         : device(std::make_unique<Device>(window))
@@ -59,7 +57,7 @@ public:
     {
     }
 
-    void renderFrame()
+    void renderFrame(uint32_t frameIndex)
     {
         auto& framebuffer = resources.targets.get(framebuffer_h);
         uint32_t width = framebuffer.descriptor.width;
@@ -68,10 +66,12 @@ public:
 
         auto ctx = device->createContext();
 
+        ctx.frameIndex = frameIndex;
+
         ctx.clearColor = Color::Grayscale(0.4f);
 
         ctx.view = Mtx4::LookAt(
-            Vec4(5+frameCounter/100.0f,5.0f,5.0f,1.0f),
+            Vec4(5+ctx.frameIndex/100.0f,5.0f,5.0f,1.0f),
             Vec4(0,0,0,1),
             Vec4(0,1,0,0)
         );
@@ -91,8 +91,6 @@ public:
         device->clear(ctx, framebuffer);
         device->draw(ctx, framebuffer);
         device->present(ctx, framebuffer);
-
-        frameCounter++;
     }
 
     void resize(uint32_t width, uint32_t height)

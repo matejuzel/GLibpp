@@ -7,15 +7,14 @@ class RenderDeviceBase
 {
 public:
 
-
+    using Context = RenderContext<DerivedDevice, DerivedTarget>;
+    using Target = DerivedTarget;
     using TargetHandle = SlotArray<DerivedTarget>::Handle;
 
-
-    using Context = RenderContext<DerivedDevice, DerivedTarget>;
     WindowWin32& window;
 
     RenderDeviceBase(WindowWin32& window) : window(window) {}
-    //~RenderDeviceBase() = default;
+    ~RenderDeviceBase() = default;
 
     void draw(const Context& ctx, DerivedTarget& target) noexcept
     {
@@ -37,8 +36,6 @@ public:
     }
 
 
-    std::unique_ptr<DerivedTarget> createTarget(const RenderTargetDescriptor& descriptor) noexcept
-    {
-        return static_cast<DerivedDevice*>(this)->createTargetImpl(descriptor);
-    }
+
+    
 };

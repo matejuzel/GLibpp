@@ -1,5 +1,6 @@
 #pragma once
 
+#include <cstdint>
 #include "Viewport.h"
 #include "Mtx4.h"
 #include "Color.h"
@@ -16,7 +17,7 @@ public:
     Mtx4 view = Mtx4::Identity();
     Mtx4 projection = Mtx4::Identity();
     Color clearColor = { 0,0,0,255 };
-    int frameCnt = 0;
+    uint32_t frameIndex = 0;
     //typename Device::MeshHandle mesh = { 0 };
     //typename Device::MaterialHandle material = { 0 };
 };

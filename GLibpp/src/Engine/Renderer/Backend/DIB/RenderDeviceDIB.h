@@ -19,8 +19,6 @@ private:
     using Base = internal::RenderDeviceDIBBase;
 
 public:
-    using Target = RenderTargetDIB;
-    using Context = RenderContext<Self, Target>;
 
     RenderDeviceDIB(WindowWin32& window) : Base(window) {}
 
@@ -44,7 +42,6 @@ public:
             0, 0, 1, 0,
             0, 0, 0, 1
         );
-        model.rotateY(0.001f * ctx.frameCnt);
 
         Mtx4 mvp = ctx.projection * ctx.view * model;
 
@@ -104,10 +101,7 @@ public:
             SRCCOPY
         );
 
-
         ReleaseDC(window.getHwnd(), windowDC);
-
-        ctx.frameCnt += 1;
     }
 
     Context createContextImpl() noexcept {
@@ -115,11 +109,4 @@ public:
         return ctx;
     }
 
-
-
-
-    std::unique_ptr<Target> createTargetImpl(const RenderTargetDescriptor& descriptor) noexcept
-    {
-        return std::make_unique<Target>(descriptor);
-    }
 };
