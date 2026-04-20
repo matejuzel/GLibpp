@@ -173,7 +173,6 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="src/geometry/AABB.h" />
-    <ClInclude Include="src/geometry/Mesh.h" />
     <ClInclude Include="src/math/Mtx4.h" />
     <ClInclude Include="src/geometry/Triangle.h" />
     <ClInclude Include="src/math/Vec4.h" />
@@ -189,8 +188,6 @@
     <ClInclude Include="src\demo\ProducentConsumentDemo.h" />
     <ClInclude Include="src\DoubleBuffer.h" />
     <ClInclude Include="src\geometry\Color.h" />
-    <ClInclude Include="src\geometry\Material.h" />
-    <ClInclude Include="src\geometry\MeshInstance.h" />
     <ClInclude Include="src\render\backendDIB\RenderContextDIB.h" />
     <ClInclude Include="src\render\backendDIB\RenderDeviceDIB.h" />
     <ClInclude Include="src\render\backendDIB\RenderTargetDIB.h" />

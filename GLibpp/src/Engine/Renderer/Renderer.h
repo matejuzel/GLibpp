@@ -64,11 +64,16 @@ public:
 
     void renderFrame(uint32_t frameIndex)
     {
+
+        using MeshRegistry = AssetRegistry<Mesh>;
+        using MeshHandle_t = AssetRegistry<Mesh>::Handle;
         {
-            AssetRegistry<Mesh> meshRegistry;
-            auto cube1 = meshRegistry.add("cube1", Mesh::Cube(1.0f));
-            auto cube2 = meshRegistry.add("cube2", Mesh::Cube(1.0f));
-            auto net1 = meshRegistry.add("net1", Mesh::Net(20));
+
+            MeshRegistry meshRegistry;
+
+            MeshHandle_t cube1 = meshRegistry.add("cube1", Mesh::Cube(1.0f));
+            MeshHandle_t cube2 = meshRegistry.add("cube2", Mesh::Cube(1.0f));
+            MeshHandle_t net1 = meshRegistry.add("net1", Mesh::Net(20));
         }
         
 

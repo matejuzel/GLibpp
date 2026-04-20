@@ -58,6 +58,9 @@
     <Filter Include="Zdrojové soubory\Engine\Renderer\Backend\Stencil">
       <UniqueIdentifier>{bfca70fa-c1fc-49ed-8d68-5a2d7cb9b85c}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Zdrojové soubory\Engine\Geometry">
+      <UniqueIdentifier>{c91b9ffa-7ea2-4392-bc47-0083ea158a51}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\main.cpp">
@@ -71,6 +74,15 @@
     </ClCompile>
     <ClCompile Include="src\Math\Vec4.cpp">
       <Filter>Zdrojové soubory\Math</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Engine\Geometry\Material.cpp">
+      <Filter>Zdrojové soubory\Engine\Geometry</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Engine\Geometry\Mesh.cpp">
+      <Filter>Zdrojové soubory\Engine\Geometry</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Engine\Geometry\MeshInstance.cpp">
+      <Filter>Zdrojové soubory\Engine\Geometry</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -143,9 +155,6 @@
     <ClInclude Include="src/geometry/AABB.h">
       <Filter>Hlavičkové soubory</Filter>
     </ClInclude>
-    <ClInclude Include="src/geometry/Mesh.h">
-      <Filter>Hlavičkové soubory</Filter>
-    </ClInclude>
     <ClInclude Include="src/math/Mtx4.h">
       <Filter>Hlavičkové soubory</Filter>
     </ClInclude>
@@ -186,12 +195,6 @@
       <Filter>Hlavičkové soubory</Filter>
     </ClInclude>
     <ClInclude Include="src\geometry\Color.h">
-      <Filter>Hlavičkové soubory</Filter>
-    </ClInclude>
-    <ClInclude Include="src\geometry\Material.h">
-      <Filter>Hlavičkové soubory</Filter>
-    </ClInclude>
-    <ClInclude Include="src\geometry\MeshInstance.h">
       <Filter>Hlavičkové soubory</Filter>
     </ClInclude>
     <ClInclude Include="src\render\backendDIB\RenderContextDIB.h">
@@ -283,6 +286,18 @@
     </ClInclude>
     <ClInclude Include="src\Engine\Core\Datastruct\SlotArray.h">
       <Filter>Zdrojové soubory\Engine\Core\Datastruct</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Engine\Core\Datastruct\AssetRegistry.h">
+      <Filter>Hlavičkové soubory</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Engine\Geometry\Material.h">
+      <Filter>Zdrojové soubory\Engine\Geometry</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Engine\Geometry\Mesh.h">
+      <Filter>Zdrojové soubory\Engine\Geometry</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Engine\Geometry\MeshInstance.h">
+      <Filter>Zdrojové soubory\Engine\Geometry</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>
