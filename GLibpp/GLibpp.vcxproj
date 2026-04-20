@@ -26,6 +26,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\App\App.h" />
+    <ClInclude Include="src\Engine\Core\Datastruct\AssetRegistry.h" />
     <ClInclude Include="src\Engine\Core\Datastruct\DoubleBuffer.h" />
     <ClInclude Include="src\Engine\Core\Datastruct\SlotArray.h" />
     <ClInclude Include="src\Engine\Core\handles.h" />

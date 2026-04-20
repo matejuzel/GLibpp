@@ -6,6 +6,8 @@
 #include "WindowWin32.h"
 
 #include <cstdint>
+#include <cstring>
+#include <iostream>
 #include <memory>
 #include "Vec4.h"
 #include "Mtx4.h"
@@ -25,6 +27,7 @@
 #include "RenderResourceManager.h"
 
 #include "SlotArray.h"
+#include "AssetRegistry.h"
 
 template <typename Device>
 class Renderer {
@@ -59,6 +62,22 @@ public:
 
     void renderFrame(uint32_t frameIndex)
     {
+
+        AssetRegistry<int> ar;
+        auto handle1 = ar.add(2);
+        auto handle2 = ar.add("ahoj", 12);
+        auto handle3 = ar.add("ahoj2", 45);
+
+        auto aa = *ar.get(handle1);
+        std::cout << aa << std::endl;
+
+        return;
+
+
+
+
+
+
         auto& framebuffer = resources.targets.get(framebuffer_h);
         uint32_t width = framebuffer.descriptor.width;
         uint32_t height = framebuffer.descriptor.height;
