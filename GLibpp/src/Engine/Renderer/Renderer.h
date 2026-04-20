@@ -32,7 +32,7 @@ private:
 
     using Context = Device::Context;
     using Target_h = RenderResourceManager<Device>::Target_h;
-    
+
     std::unique_ptr<Device> device;
 
     RenderResourceManager<Device> resources;
@@ -45,18 +45,27 @@ private:
 public:
     Renderer(WindowWin32& window)
         : device(std::make_unique<Device>(window))
-        , framebuffer_h(resources.targets.add(RenderTargetDescriptor::FramebufferRGBA32bit(window.getClientWidth(), window.getClientHeight())))
-        , depthbuffer_h(resources.targets.add(RenderTargetDescriptor::Depthbuffer24bit(window.getClientWidth(), window.getClientHeight()))) // @todo tady pak zmenit na ::Depthbuffer(...) az bude implementovano
-    {}
+        , framebuffer_h(
+            resources.targets.add(
+                RenderTargetDescriptor::FramebufferRGBA32bit(window.getClientWidth(), window.getClientHeight())
+            )
+        )
+        , depthbuffer_h(
+                resources.targets.add(
+                    RenderTargetDescriptor::Depthbuffer24bit(window.getClientWidth(), window.getClientHeight()
+                )
+            )
+        )
+    {
+    }
 
     void renderFrame()
     {
-
-        auto& framebuffer = resources.targets.get(framebuffer_h);
-
         uint32_t width = framebuffer.descriptor.width;
         uint32_t height = framebuffer.descriptor.height;
         float aspect = static_cast<float>(width) / static_cast<float>(height);
+
+        auto& framebuffer = resources.targets.get(framebuffer_h);
 
         auto ctx = device->createContext();
 
