@@ -3,6 +3,9 @@
 #include "RasterizatorDIB.h"
 #include "Color.h"
 
+// forward - kvuli pouziti friend
+template<typename D, typename T>
+class RenderDeviceBase;
 
 class RenderDeviceDIB;
 class RenderTargetDIB;
@@ -13,6 +16,9 @@ namespace internal {
 
 class RenderDeviceDIB : public internal::RenderDeviceDIBBase
 {
+    template<typename D, typename T>
+    friend class RenderDeviceBase;   // Base má pøístup do private Derived ...Impl(), ktere nemaji byt videt zvenci
+
 private:
 
     using Self = RenderDeviceDIB;
@@ -21,6 +27,8 @@ private:
 public:
 
     RenderDeviceDIB(WindowWin32& window) : Base(window) {}
+
+private:
 
     void drawImpl(const Context& ctx, Target& target) noexcept
     {
