@@ -281,5 +281,8 @@
     <ClInclude Include="src\Engine\Renderer\Backend\Stencil\RenderDeviceStencil.h">
       <Filter>Zdrojové soubory\Engine\Renderer\Backend\Stencil</Filter>
     </ClInclude>
+    <ClInclude Include="src\Engine\Core\Datastruct\SlotArray.h">
+      <Filter>Zdrojové soubory\Engine\Core\Datastruct</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

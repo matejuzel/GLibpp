@@ -21,11 +21,19 @@
 // Backend Stencil
 #include "RenderDeviceStencil.h"
 
+
+#include "RenderResourceManager.h"
+
+#include "SlotArray.h"
+
 template <typename Device>
 class Renderer {
 private:
 
+    using Target_h = SlotArray<typename Device::Target>::Handle;
+
     WindowWin32& window;
+    RenderResourceManager<Device> resources;
 
     std::unique_ptr<Device> device;
     std::unique_ptr<typename Device::Target> target;
@@ -41,6 +49,27 @@ public:
             window.getClientWidth(),
             window.getClientHeight()
         ));
+        
+        
+        Target_h t = resources.targets.add(RenderTargetDescriptor::Framebuffer(800, 600));
+
+        /*
+        SlotArray<int> a;
+
+        using SAI_h = SlotArray<int>::Handle;
+        SAI_h h1 = a.add(12);
+        SAI_h h2 = a.add(13);
+        SAI_h h3 = a.add(14);
+
+        std::cout << a.get(h1) << std::endl;
+        std::cout << a.get(h2) << std::endl;
+        std::cout << a.get(h3) << std::endl;
+
+        */
+       
+
+
+
    
     }
 
@@ -72,7 +101,7 @@ public:
 
 
         device->clear(ctx, *target);
-        device->draw(ctx, *target);
+        //device->draw(ctx, *target);
         device->present(ctx, *target);
     }
 
