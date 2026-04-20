@@ -61,11 +61,10 @@ public:
 
     void renderFrame()
     {
+        auto& framebuffer = resources.targets.get(framebuffer_h);
         uint32_t width = framebuffer.descriptor.width;
         uint32_t height = framebuffer.descriptor.height;
         float aspect = static_cast<float>(width) / static_cast<float>(height);
-
-        auto& framebuffer = resources.targets.get(framebuffer_h);
 
         auto ctx = device->createContext();
 
