@@ -11,7 +11,7 @@ public:
     RenderContext() = default;
     ~RenderContext() = default;
 
-    Target* target = nullptr;
+    //Target* target = nullptr;
     Viewport viewport = { 0,0,800,600 };
     Mtx4 view = Mtx4::Identity();
     Mtx4 projection = Mtx4::Identity();

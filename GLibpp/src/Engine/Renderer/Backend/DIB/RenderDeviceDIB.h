@@ -1,6 +1,7 @@
 #pragma once
 
 #include "RasterizatorDIB.h"
+#include "Color.h"
 
 
 class RenderDeviceDIB;
@@ -23,7 +24,7 @@ public:
 
     RenderDeviceDIB(WindowWin32& window) : Base(window) {}
 
-    void drawImpl(const Context& ctx) noexcept
+    void drawImpl(const Context& ctx, Target& target) noexcept
     {
         int verts[4][2] = {
             {-1,-1},
@@ -73,7 +74,7 @@ public:
 
         // FRONT (+)
         RasterizatorDIB::drawQuad(
-            *ctx.target,
+            target,
             va.x, va.y,
             vb.x, vb.y,
             vc.x, vc.y,
@@ -82,23 +83,23 @@ public:
         );
     }
 
-    void clearImpl(const Context& ctx) noexcept
+    void clearImpl(const Context& ctx, Target& target) noexcept
     {
         uint32_t color = ctx.clearColor.toRGBA();
-        int size = ctx.target->descriptor.width * ctx.target->descriptor.height;
-        std::fill_n(ctx.target->framebuffer, size, color);
+        int size = target.descriptor.width * target.descriptor.height;
+        std::fill_n(target.framebuffer, size, color);
         // dalo by se pouzit SSE (SIMD) pro rychlejší vyplnìní, ale pro jednoduchost a pøehlednost teï použijeme std::fill_n
     }
 
-    void presentImpl(Context& ctx) noexcept
+    void presentImpl(Context& ctx, Target& target) noexcept
     {
         HDC windowDC = GetDC(window.getHwnd());
 
         BitBlt(
             windowDC,
             0, 0,
-            ctx.target->descriptor.width, ctx.target->descriptor.height,
-            (static_cast<const Target&>(*ctx.target)).getDC(),
+            target.descriptor.width, target.descriptor.height,
+            (static_cast<const Target&>(target)).getDC(),
             0, 0,
             SRCCOPY
         );
@@ -108,6 +109,14 @@ public:
 
         ctx.frameCnt += 1;
     }
+
+    Context createContextImpl() noexcept {
+        Context ctx;
+        return ctx;
+    }
+
+
+
 
     std::unique_ptr<Target> createTargetImpl(const RenderTargetDescriptor& descriptor) noexcept
     {

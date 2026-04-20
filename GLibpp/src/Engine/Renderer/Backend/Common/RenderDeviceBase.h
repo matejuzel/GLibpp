@@ -17,22 +17,24 @@ public:
     RenderDeviceBase(WindowWin32& window) : window(window) {}
     //~RenderDeviceBase() = default;
 
-    void draw(const Context& ctx) noexcept
+    void draw(const Context& ctx, DerivedTarget& target) noexcept
     {
-        static_cast<DerivedDevice*>(this)->drawImpl(ctx);
+        static_cast<DerivedDevice*>(this)->drawImpl(ctx, target);
     }
 
-    void clear(const Context& ctx) noexcept
+    void clear(const Context& ctx, DerivedTarget& target) noexcept
     {
-        static_cast<DerivedDevice*>(this)->clearImpl(ctx);
+        static_cast<DerivedDevice*>(this)->clearImpl(ctx, target);
     }
 
-    void present(Context& ctx) noexcept
+    void present(Context& ctx, DerivedTarget& target) noexcept
     {
-        static_cast<DerivedDevice*>(this)->presentImpl(ctx);
+        static_cast<DerivedDevice*>(this)->presentImpl(ctx, target);
     }
 
-
+    Context createContext() noexcept {
+        return static_cast<DerivedDevice*>(this)->createContextImpl();
+    }
 
 
     std::unique_ptr<DerivedTarget> createTarget(const RenderTargetDescriptor& descriptor) noexcept

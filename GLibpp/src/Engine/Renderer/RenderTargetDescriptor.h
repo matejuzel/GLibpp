@@ -25,12 +25,20 @@ struct RenderTargetDescriptor {
         samples(samples), mipLevels(mipLevels)
     {}
 
-    static RenderTargetDescriptor Framebuffer(uint32_t width, uint32_t height) {
+    static RenderTargetDescriptor FramebufferRGBA32bit(uint32_t width, uint32_t height) {
         return RenderTargetDescriptor(
             width, height,
             TextureFormat::RGBA32F,
             TextureUsage::ColorAttachment,
             1,1
+        );
+    }
+    static RenderTargetDescriptor Depthbuffer24bit(uint32_t width, uint32_t height) {
+        return RenderTargetDescriptor(
+            width, height,
+            TextureFormat::Depth24,
+            TextureUsage::ColorAttachment,
+            1, 1
         );
     }
 };

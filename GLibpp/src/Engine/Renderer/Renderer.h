@@ -40,31 +40,33 @@ private:
     Target_h framebuffer_h;
     Target_h depthbuffer_h;
 
+    uint32_t frameCounter = 0;
+
 public:
     Renderer(WindowWin32& window)
         : device(std::make_unique<Device>(window))
-        , framebuffer_h(resources.targets.add(RenderTargetDescriptor::Framebuffer(window.getClientWidth(), window.getClientHeight())))
-        , depthbuffer_h(resources.targets.add(RenderTargetDescriptor::Framebuffer(window.getClientWidth(), window.getClientHeight()))) // @todo tady pak zmenit na ::Depthbuffer(...) az bude implementovano
+        , framebuffer_h(resources.targets.add(RenderTargetDescriptor::FramebufferRGBA32bit(window.getClientWidth(), window.getClientHeight())))
+        , depthbuffer_h(resources.targets.add(RenderTargetDescriptor::Depthbuffer24bit(window.getClientWidth(), window.getClientHeight()))) // @todo tady pak zmenit na ::Depthbuffer(...) az bude implementovano
     {}
 
     void renderFrame()
     {
-        
-        Context ctx;
 
-        ctx.target = &resources.targets.get(framebuffer_h);
+        auto& framebuffer = resources.targets.get(framebuffer_h);
 
-        uint32_t width = ctx.target->descriptor.width;
-        uint32_t height = ctx.target->descriptor.height;
+        uint32_t width = framebuffer.descriptor.width;
+        uint32_t height = framebuffer.descriptor.height;
         float aspect = static_cast<float>(width) / static_cast<float>(height);
 
+        auto ctx = device->createContext();
+
+        ctx.clearColor = Color::Grayscale(0.2f);
+
         ctx.view = Mtx4::LookAt(
-            Vec4(5,5,5,1),
+            Vec4(5+frameCounter/100.0f,5.0f,5.0f,1.0f),
             Vec4(0,0,0,1),
             Vec4(0,1,0,0)
         );
-        
-        ctx.target->descriptor.width;
 
         ctx.projection = Mtx4::Perspective(
             45.0f,
@@ -78,15 +80,16 @@ public:
             width,height
         };
 
-        ctx.clearColor = Color::Grayscale(0.2f);
+        device->clear(ctx, framebuffer);
+        device->draw(ctx, framebuffer);
+        device->present(ctx, framebuffer);
 
-        device->clear(ctx);
-        device->draw(ctx);
-        device->present(ctx);
+        frameCounter++;
     }
 
     void resize(uint32_t width, uint32_t height)
     {
-        resources.targets.reset(framebuffer_h, RenderTargetDescriptor::Framebuffer(width, height));
+        resources.targets.reset(framebuffer_h, RenderTargetDescriptor::FramebufferRGBA32bit(width, height));
+        resources.targets.reset(depthbuffer_h, RenderTargetDescriptor::Depthbuffer24bit(width, height));
     }
 };
