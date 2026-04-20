@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 
 #include <cassert>
 template<typename T>
@@ -51,6 +51,20 @@ public:
         assert(isValid(h));
         return *items[h.index];
     }
+
+    template<typename... Args>
+    void reset(Handle h, Args&&... args) {
+        assert(isValid(h));
+
+        // znič starý objekt
+        items[h.index].reset();
+
+        // vytvoř nový objekt na stejném místě
+        items[h.index] = std::make_unique<T>(std::forward<Args>(args)...);
+
+        // generace se NEMĚNÍ → handle zůstává validní
+    }
+
 
 private:
     std::vector<std::unique_ptr<T>> items;

@@ -1,9 +1,15 @@
 #pragma once
 
+#include "SlotArray.h"
+
 template <typename DerivedDevice, typename DerivedTarget>
 class RenderDeviceBase
 {
 public:
+
+
+    using TargetHandle = SlotArray<DerivedTarget>::Handle;
+
 
     using Context = RenderContext<DerivedDevice, DerivedTarget>;
     WindowWin32& window;

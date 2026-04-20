@@ -30,13 +30,14 @@ template <typename Device>
 class Renderer {
 private:
 
-    using Target_h = SlotArray<typename Device::Target>::Handle;
-
+    using Target_h = Device::TargetHandle;
+    
     WindowWin32& window;
+    std::unique_ptr<Device> device;
+
     RenderResourceManager<Device> resources;
 
-    std::unique_ptr<Device> device;
-    std::unique_ptr<typename Device::Target> target;
+    Target_h target2;
 
     Device::Context ctx;
 
@@ -45,38 +46,15 @@ public:
         : device(std::make_unique<Device>(window))
         , window(window)
     {
-        target = device->createTarget(RenderTargetDescriptor::Framebuffer(
-            window.getClientWidth(),
-            window.getClientHeight()
-        ));
         
-        
-        Target_h t = resources.targets.add(RenderTargetDescriptor::Framebuffer(800, 600));
+        target2 = resources.targets.add(RenderTargetDescriptor::Framebuffer(window.getClientWidth(), window.getClientHeight()));
 
-        /*
-        SlotArray<int> a;
-
-        using SAI_h = SlotArray<int>::Handle;
-        SAI_h h1 = a.add(12);
-        SAI_h h2 = a.add(13);
-        SAI_h h3 = a.add(14);
-
-        std::cout << a.get(h1) << std::endl;
-        std::cout << a.get(h2) << std::endl;
-        std::cout << a.get(h3) << std::endl;
-
-        */
-       
-
-
-
-   
     }
 
     void renderFrame()
     {
         
-        ctx.target = target.get();
+        ctx.target = &resources.targets.get(target2);
 
         ctx.view = Mtx4::LookAt(
             Vec4(5,5,5,1),
@@ -100,13 +78,13 @@ public:
         ctx.clearColor = Color::Grayscale(0.2f);
 
 
-        device->clear(ctx, *target);
-        //device->draw(ctx, *target);
-        device->present(ctx, *target);
+        device->clear(ctx, *ctx.target);
+        device->draw(ctx, *ctx.target);
+        device->present(ctx, *ctx.target);
     }
 
     void resize(uint32_t width, uint32_t height)
     {
-        target = device->createTarget(RenderTargetDescriptor::Framebuffer(width, height));
+        resources.targets.reset(target2, RenderTargetDescriptor::Framebuffer(width, height));
     }
 };
