@@ -1,1 +1,3 @@
-#include "scene/SceneState.h"
+#pragma once
+
+//#include "scene/SceneState.h"

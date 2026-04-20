@@ -19,6 +19,9 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="src\Engine\Geometry\Material.cpp" />
+    <ClCompile Include="src\Engine\Geometry\Mesh.cpp" />
+    <ClCompile Include="src\Engine\Geometry\MeshInstance.cpp" />
     <ClCompile Include="src\main.cpp" />
     <ClCompile Include="src\Math\Mtx4.cpp" />
     <ClCompile Include="src\Math\Vec4.cpp" />
@@ -30,6 +33,9 @@
     <ClInclude Include="src\Engine\Core\Datastruct\DoubleBuffer.h" />
     <ClInclude Include="src\Engine\Core\Datastruct\SlotArray.h" />
     <ClInclude Include="src\Engine\Core\handles.h" />
+    <ClInclude Include="src\Engine\Geometry\Material.h" />
+    <ClInclude Include="src\Engine\Geometry\Mesh.h" />
+    <ClInclude Include="src\Engine\Geometry\MeshInstance.h" />
     <ClInclude Include="src\Engine\Renderer\Backend\Common\RenderContext.h" />
     <ClInclude Include="src\Engine\Renderer\Backend\Common\RenderDeviceBase.h" />
     <ClInclude Include="src\Engine\Renderer\Backend\Common\RenderTargetBase.h" />
@@ -141,7 +147,7 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>$(ProjectDir)src;$(ProjectDir)src\App;$(ProjectDir)src\Engine;$(ProjectDir)src\Math;$(ProjectDir)src\Platform;$(ProjectDir)src\Utility;$(ProjectDir)src\Engine\Core;$(ProjectDir)src\Engine\Renderer;$(ProjectDir)src\Engine\Core\Datastruct;$(ProjectDir)src\Engine\Renderer\Backend;$(ProjectDir)src\Engine\Renderer\Backend\Common;$(ProjectDir)src\Engine\Renderer\Backend\DIB;$(ProjectDir)src\Platform\Win32;$(ProjectDir)src\Engine\Renderer\Backend\RenderCommand;$(ProjectDir)src\Engine\Core\Input;$(ProjectDir)src\Engine\Renderer\Backend\Stencil</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ProjectDir)src;$(ProjectDir)src\App;$(ProjectDir)src\Engine;$(ProjectDir)src\Math;$(ProjectDir)src\Platform;$(ProjectDir)src\Utility;$(ProjectDir)src\Engine\Core;$(ProjectDir)src\Engine\Renderer;$(ProjectDir)src\Engine\Core\Datastruct;$(ProjectDir)src\Engine\Renderer\Backend;$(ProjectDir)src\Engine\Renderer\Backend\Common;$(ProjectDir)src\Engine\Renderer\Backend\DIB;$(ProjectDir)src\Platform\Win32;$(ProjectDir)src\Engine\Renderer\Backend\RenderCommand;$(ProjectDir)src\Engine\Core\Input;$(ProjectDir)src\Engine\Renderer\Backend\Stencil;$(ProjectDir)src\Engine\Geometry</AdditionalIncludeDirectories>
       <LanguageStandard>stdcpp20</LanguageStandard>
     </ClCompile>
     <Link>

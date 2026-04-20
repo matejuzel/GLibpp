@@ -1,4 +1,4 @@
-#include "geometry/Mesh.h"
+#include "Mesh.h"
 #include <algorithm> // std::min, std::max
 
 // ------------------------------------------------------------
@@ -22,7 +22,7 @@ Mesh& Mesh::addQuad(float scale)
         2, 3, 0
     };
 
-    computeAABB();
+    //computeAABB();
     return *this;
 }
 
@@ -76,7 +76,7 @@ Mesh& Mesh::addCube(float scale)
         5, 4, 0
     };
 
-    computeAABB();
+    //computeAABB();
     return *this;
 }
 
@@ -121,7 +121,7 @@ Mesh& Mesh::addNet(uint32_t size)
         }
     }
 
-    computeAABB();
+    //computeAABB();
     return *this;
 }
 
@@ -134,7 +134,7 @@ const std::vector<uint32_t>& Mesh::getIndexBuffer() const
 {
     return indexBuffer;
 }
-
+/*
 // ------------------------------------------------------------
 // computeAABB
 // ------------------------------------------------------------
@@ -161,3 +161,4 @@ void Mesh::computeAABB()
     boundingBox.min = minV;
     boundingBox.max = maxV;
 }
+*/

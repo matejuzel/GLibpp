@@ -26,6 +26,8 @@
 
 #include "RenderResourceManager.h"
 
+#include "Mesh.h"
+
 #include "SlotArray.h"
 #include "AssetRegistry.h"
 
@@ -62,20 +64,15 @@ public:
 
     void renderFrame(uint32_t frameIndex)
     {
+        {
+            AssetRegistry<Mesh> meshRegistry;
+            auto cube1 = meshRegistry.add("cube1", Mesh::Cube(1.0f));
+            auto cube2 = meshRegistry.add("cube2", Mesh::Cube(1.0f));
+            auto net1 = meshRegistry.add("net1", Mesh::Net(20));
+        }
+        
 
-        AssetRegistry<int> ar;
-        auto handle1 = ar.add(2);
-        auto handle2 = ar.add("ahoj", 12);
-        auto handle3 = ar.add("ahoj2", 45);
-
-        auto aa = *ar.get(handle1);
-        std::cout << aa << std::endl;
-
-        return;
-
-
-
-
+        //return;
 
 
         auto& framebuffer = resources.targets.get(framebuffer_h);
@@ -85,31 +82,32 @@ public:
 
         auto ctx = device->createContext();
 
-        ctx.frameIndex = frameIndex;
+        {
+            ctx.frameIndex = frameIndex;
+            ctx.clearColor = Color::Grayscale(0.4f);
+            ctx.view = Mtx4::LookAt(
+                Vec4(5 + ctx.frameIndex / 100.0f, 5.0f, 5.0f, 1.0f),
+                Vec4(0, 0, 0, 1),
+                Vec4(0, 1, 0, 0)
+            );
+            ctx.projection = Mtx4::Perspective(
+                45.0f,
+                aspect,
+                0.01f,
+                100.0f
+            );
+            ctx.viewport = {
+                0,0,
+                width,height
+            };
+        }
 
-        ctx.clearColor = Color::Grayscale(0.4f);
-
-        ctx.view = Mtx4::LookAt(
-            Vec4(5+ctx.frameIndex/100.0f,5.0f,5.0f,1.0f),
-            Vec4(0,0,0,1),
-            Vec4(0,1,0,0)
-        );
-
-        ctx.projection = Mtx4::Perspective(
-            45.0f,
-            aspect,
-            0.01f,
-            100.0f
-        );
-
-        ctx.viewport = {
-            0,0,
-            width,height
-        };
-
-        device->clear(ctx, framebuffer);
-        device->draw(ctx, framebuffer);
-        device->present(ctx, framebuffer);
+        {
+            device->clear(ctx, framebuffer);
+            device->draw(ctx, framebuffer);
+            device->present(ctx, framebuffer);
+        }
+        
     }
 
     void resize(uint32_t width, uint32_t height)

@@ -1,7 +1,7 @@
 #pragma once
 
 #include <memory>
-#include "geometry/Color.h"
+#include "Color.h"
 
 class Material {
 public:
