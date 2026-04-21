@@ -1,5 +1,5 @@
 #pragma once
-
+/*
 #include "RenderTargetBase.h"
 #include "RenderTargetDescriptor.h"
 class RenderDeviceStencil; // forward
@@ -25,3 +25,4 @@ public:
     {}
 
 };
+*/

@@ -3,6 +3,19 @@
 #include "Mesh.h"
 #include "SlotArray.h"
 #include "AssetRegistry.h"
+#include "VertexBuffer.h"
+
+
+#include <vector>
+
+
+
+
+
+
+
+
+
 
 template <typename Device>
 struct RenderResourceManager {
@@ -10,7 +23,7 @@ public:
     RenderResourceManager() = default;
 
     using MeshRegistry = AssetRegistry<Mesh>;
-    using MeshHandle = MeshRegistry::Handle;
+    using MeshHandle = typename MeshRegistry::Handle;
 
     // types
     using TargetHandle = typename Device::TargetHandle;
@@ -23,6 +36,8 @@ public:
 
     MeshRegistry meshRegistry;
 
+    VertexBuffer<Device> vertexBuffer;
+    
     // methods
 
 
