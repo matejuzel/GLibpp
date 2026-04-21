@@ -1,18 +1,27 @@
 #pragma once
 
-#include "RenderDeviceTraits.h"
 #include "RasterizatorDIB.h"
 #include "Color.h"
 
 #include <vector>
 
-// forward - kvuli pouziti friend
-template<typename D, typename T>
-class RenderDeviceBase;
+template<>
+struct DeviceTraits<RenderDeviceDIB>
+{
+    template<typename T>
+    using GpuBuffer = std::vector<T>;
 
+    using GpuBuffer3D = GpuBuffer<float>;
+    using GpuBuffer2D = GpuBuffer<float>;
+    using GpuIndexBuffer = GpuBuffer<uint32_t>;
+};
+
+// forward - kvuli pouziti friend
+template<typename D, typename T> class RenderDeviceBase;
 class RenderDeviceDIB;
 class RenderTargetDIB;
 
+// alias - schovame pred svetem - pouze pro interni zjednoduseni
 namespace internal {
     using RenderDeviceDIBBase = RenderDeviceBase<RenderDeviceDIB, RenderTargetDIB>;
 };
@@ -29,14 +38,11 @@ private:
 
 public:
 
+    using GpuBuffer3D = DeviceTraits<Self>::GpuBuffer3D;
+    using GpuBuffer2D = DeviceTraits<Self>::GpuBuffer2D;
+    using GpuIndexBuffer = DeviceTraits<Self>::GpuIndexBuffer;
+
     RenderDeviceDIB(WindowWin32& window) : Base(window) {}
-
-    template <typename T>
-    using GpuBuffer = std::vector<T>;
-
-    using GpuBuffer3D = GpuBuffer<float>;
-    using GpuBuffer2D = GpuBuffer<float>;
-    using GpuIndexBuffer = GpuBuffer<uint32_t>;
 
 private:
 
@@ -137,13 +143,3 @@ private:
 
 };
 
-template<>
-struct DeviceTraits<RenderDeviceDIB>
-{
-    template<typename T>
-    using GpuBuffer = std::vector<T>;
-
-    using GpuBuffer3D = GpuBuffer<float>;
-    //using GpuBuffer2D = GpuBuffer<float>;
-    //using GpuIndexBuffer = GpuBuffer<uint32_t>;
-};

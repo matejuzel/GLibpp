@@ -188,8 +188,5 @@
     <ClInclude Include="src\Engine\Renderer\VertexBuffer.h">
       <Filter>Zdrojové soubory\Engine\Renderer</Filter>
     </ClInclude>
-    <ClInclude Include="src\Engine\Renderer\Backend\Common\RenderDeviceTraits.h">
-      <Filter>Zdrojové soubory\Engine\Renderer\Backend\Common</Filter>
-    </ClInclude>
   </ItemGroup>
 </Project>

@@ -1,21 +1,28 @@
 #pragma once
 
-#include "RenderDeviceTraits.h"
 #include "SlotArray.h"
 #include "Mesh.h"
 
+// trails - cpp koncept pro predavani informaci o typu (compile-time)
+// potreba, aby RenderDeviceBase mohl deklarovat VertexBuffer (a dalsi) jako sablonu a kazdy backend tyto typy musel poskytovat
+template<typename Device>
+struct DeviceTraits;
+
+// pouzit CRTP — Curiously Recurring Template Pattern
+// v podstate compile-time polymorfizmus
+// RenderDeviceBase definuje rozhrani, ktere kazdy backend "DerivedDevice" musi implementovat
 template <typename DerivedDevice, typename DerivedTarget>
 class RenderDeviceBase
 {
 public:
 
-    using Context = RenderContext<DerivedDevice, DerivedTarget>;
-    using Target = DerivedTarget;
+    using Context      = RenderContext<DerivedDevice, DerivedTarget>;
+    using Target       = DerivedTarget;
     using TargetHandle = SlotArray<DerivedTarget>::Handle;
 
-    using VertexBuffer = typename DeviceTraits<DerivedDevice>::GpuBuffer3D;
-    //using UVsBuffer      = typename DerivedDevice::GpuBuffer2D;
-    //using GpuIndexBuffer = typename DerivedDevice::GpuIndexBuffer;
+    using VertexBuffer   = typename DeviceTraits<DerivedDevice>::GpuBuffer3D;
+    using UVsBuffer      = typename DeviceTraits<DerivedDevice>::GpuBuffer2D;
+    using GpuIndexBuffer = typename DeviceTraits<DerivedDevice>::GpuIndexBuffer;
 
     WindowWin32& window;
 

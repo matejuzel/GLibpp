@@ -1,5 +1,6 @@
 #pragma once
 
+#include "RenderDeviceBase.h"
 
 template <typename Device>
 struct VertexBuffer {
