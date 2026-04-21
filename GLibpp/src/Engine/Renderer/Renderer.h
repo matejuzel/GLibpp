@@ -105,42 +105,14 @@ public:
                 0,0,
                 width,height
             };
-
+            
             device->clear(ctx, framebuffer);
             device->draw(ctx, framebuffer);
         }
 
-        {
-            uint32_t width = framebuffer.descriptor.width;
-            uint32_t height = framebuffer.descriptor.height;
-            float aspect = static_cast<float>(width) / static_cast<float>(height);
-
-            auto ctx = device->createContext();
-
-            ctx.frameIndex = frameIndex;
-            ctx.clearColor = Color::Grayscale(0.7f);
-            ctx.view = Mtx4::LookAt(
-                Vec4(5 + ctx.frameIndex / 100.0f, 5.0f, 5.0f, 1.0f),
-                Vec4(0, 0, 0, 1),
-                Vec4(0, 1, 0, 0)
-            );
-            ctx.projection = Mtx4::Perspective(
-                45.0f,
-                aspect,
-                0.01f,
-                100.0f
-            );
-            ctx.viewport = {
-                100,100,
-                100,100
-            };
-
-            ctx.clearColor = Color::Black();
-            
-            device->draw(ctx, framebuffer);
-        }
-
         device->present(framebuffer);
+        
+        //device-> // tady mi IDE nenapovida spravne...
         
     }
 

@@ -18,7 +18,7 @@ private:
 #if defined(_RENDER_BACKEND_DIB_)
     using RenderBackend = Renderer<RenderDeviceDIB>;
 #elif defined(_RENDER_BACKEND_STENCIL_)
-    using Backend = Renderer<RenderDeviceStencil>;
+    using Backend = RenderBackend<RenderDeviceStencil>;
 #else
     #error "Neni definovan backend!"
 #endif
