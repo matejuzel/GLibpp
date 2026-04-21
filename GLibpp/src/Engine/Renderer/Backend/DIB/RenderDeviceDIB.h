@@ -2,9 +2,14 @@
 
 #include "RasterizatorDIB.h"
 #include "Color.h"
+#include "VertexBuffer.h"
 
 #include <vector>
 
+// forward - kvuli pouziti friend
+template<typename D, typename T> class RenderDeviceBase;
+
+// Device traits
 template<>
 struct DeviceTraits<RenderDeviceDIB>
 {
@@ -16,10 +21,9 @@ struct DeviceTraits<RenderDeviceDIB>
     using GpuIndexBuffer = GpuBuffer<uint32_t>;
 };
 
-// forward - kvuli pouziti friend
-template<typename D, typename T> class RenderDeviceBase;
-class RenderDeviceDIB;
-class RenderTargetDIB;
+// forward - asi ani neni nutne
+//class RenderDeviceDIB;
+//class RenderTargetDIB;
 
 // alias - schovame pred svetem - pouze pro interni zjednoduseni
 namespace internal {
@@ -45,6 +49,10 @@ public:
     RenderDeviceDIB(WindowWin32& window) : Base(window) {}
 
 private:
+
+    VertexBuffer<Self> vertexBuffer;
+
+
 
     void drawImpl(const Context& ctx, Target& target) noexcept
     {
@@ -132,7 +140,30 @@ private:
 
     void registerMeshImpl(const Mesh& mesh) noexcept
     {
+
+
+        vertexBuffer.positions.push_back(3.14f);
+        vertexBuffer.positions.push_back(4.0f);
+        vertexBuffer.positions.push_back(54.2f);
+
+        std::cout << "RegisterMesh(@todo)" << std::endl;
+        for (auto v : vertexBuffer.positions) {
+
+            std::cout << v << std::endl;
+        }
+        /*
+        
+
+        vertexBuffer.push_back(3.14159f);
+        vertexBuffer.push_back(2.0f);
+        vertexBuffer.push_back(3.23f);
+        vertexBuffer.push_back(5.112f);
+        vertexBuffer.push_back(7.23f);
+
+        
+
         mesh.getIndexBuffer();
+        */
     }
 
 

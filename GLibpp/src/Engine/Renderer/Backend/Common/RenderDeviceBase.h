@@ -20,9 +20,11 @@ public:
     using Target       = DerivedTarget;
     using TargetHandle = SlotArray<DerivedTarget>::Handle;
 
-    using VertexBuffer   = typename DeviceTraits<DerivedDevice>::GpuBuffer3D;
-    using UVsBuffer      = typename DeviceTraits<DerivedDevice>::GpuBuffer2D;
-    using GpuIndexBuffer = typename DeviceTraits<DerivedDevice>::GpuIndexBuffer;
+    // typy pro buffery
+    using PositionBuffer = typename DeviceTraits<DerivedDevice>::GpuBuffer3D;
+    using VectorBuffer   = typename DeviceTraits<DerivedDevice>::GpuBuffer3D;
+    using UVBuffer       = typename DeviceTraits<DerivedDevice>::GpuBuffer2D;
+    using IndexBuffer    = typename DeviceTraits<DerivedDevice>::GpuIndexBuffer;
 
     WindowWin32& window;
 
@@ -46,7 +48,7 @@ public:
 
     void registerMesh(const Mesh& mesh) noexcept
     {
-        static_cast<DerivedDevice*>(this)->registerMesh(mesh);
+        static_cast<DerivedDevice*>(this)->registerMeshImpl(mesh);
     }
 
     Context createContext() noexcept {

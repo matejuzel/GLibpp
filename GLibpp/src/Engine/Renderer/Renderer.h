@@ -77,6 +77,9 @@ public:
 
             Mesh* msh = resources.meshRegistry.get(MeshCubeHandler);
 
+
+            device->registerMesh(*msh);
+
         }
 
         auto& framebuffer = resources.targets.get(framebufferHandle);
