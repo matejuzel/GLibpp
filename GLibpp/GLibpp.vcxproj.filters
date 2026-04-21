@@ -134,9 +134,6 @@
     <ClInclude Include="src\Engine\Renderer\Backend\RenderCommand\RenderCommandType.h">
       <Filter>Zdrojové soubory\Engine\Renderer\Backend\RenderCommand</Filter>
     </ClInclude>
-    <ClInclude Include="src\Engine\Renderer\Backend\RenderCommand\RCMD_SetViewport.h">
-      <Filter>Hlavičkové soubory</Filter>
-    </ClInclude>
     <ClInclude Include="src\Engine\Renderer\Backend\RenderCommand\RenderCommandStructs.h">
       <Filter>Zdrojové soubory\Engine\Renderer\Backend\RenderCommand</Filter>
     </ClInclude>
@@ -148,117 +145,6 @@
     </ClInclude>
     <ClInclude Include="src\Engine\Core\Datastruct\DoubleBuffer.h">
       <Filter>Zdrojové soubory\Engine\Core\Datastruct</Filter>
-    </ClInclude>
-    <ClInclude Include="src\DoubleBuffer.h">
-      <Filter>Hlavičkové soubory</Filter>
-    </ClInclude>
-    <ClInclude Include="src/geometry/AABB.h">
-      <Filter>Hlavičkové soubory</Filter>
-    </ClInclude>
-    <ClInclude Include="src/math/Mtx4.h">
-      <Filter>Hlavičkové soubory</Filter>
-    </ClInclude>
-    <ClInclude Include="src/geometry/Triangle.h">
-      <Filter>Hlavičkové soubory</Filter>
-    </ClInclude>
-    <ClInclude Include="src/math/Vec4.h">
-      <Filter>Hlavičkové soubory</Filter>
-    </ClInclude>
-    <ClInclude Include="src/geometry/Vertex.h">
-      <Filter>Hlavičkové soubory</Filter>
-    </ClInclude>
-    <ClInclude Include="src\branch.h">
-      <Filter>Hlavičkové soubory</Filter>
-    </ClInclude>
-    <ClInclude Include="src\core\EngineApp.h">
-      <Filter>Hlavičkové soubory</Filter>
-    </ClInclude>
-    <ClInclude Include="src\core\input\Keyboard.h">
-      <Filter>Hlavičkové soubory</Filter>
-    </ClInclude>
-    <ClInclude Include="src\core\input\Keymap.h">
-      <Filter>Hlavičkové soubory</Filter>
-    </ClInclude>
-    <ClInclude Include="src\core\MeshInstanceRegistry.h">
-      <Filter>Hlavičkové soubory</Filter>
-    </ClInclude>
-    <ClInclude Include="src\core\Types.h">
-      <Filter>Hlavičkové soubory</Filter>
-    </ClInclude>
-    <ClInclude Include="src\demo\RenderLoopDemo.h">
-      <Filter>Hlavičkové soubory</Filter>
-    </ClInclude>
-    <ClInclude Include="src\demo\DemoRunner.h">
-      <Filter>Hlavičkové soubory</Filter>
-    </ClInclude>
-    <ClInclude Include="src\demo\ProducentConsumentDemo.h">
-      <Filter>Hlavičkové soubory</Filter>
-    </ClInclude>
-    <ClInclude Include="src\geometry\Color.h">
-      <Filter>Hlavičkové soubory</Filter>
-    </ClInclude>
-    <ClInclude Include="src\render\backendDIB\RenderContextDIB.h">
-      <Filter>Hlavičkové soubory</Filter>
-    </ClInclude>
-    <ClInclude Include="src\render\backendDIB\RenderDeviceDIB.h">
-      <Filter>Hlavičkové soubory</Filter>
-    </ClInclude>
-    <ClInclude Include="src\render\backendDIB\RenderTargetDIB.h">
-      <Filter>Hlavičkové soubory</Filter>
-    </ClInclude>
-    <ClInclude Include="src\render\IRenderContext.h">
-      <Filter>Hlavičkové soubory</Filter>
-    </ClInclude>
-    <ClInclude Include="src\render\IRenderDevice.h">
-      <Filter>Hlavičkové soubory</Filter>
-    </ClInclude>
-    <ClInclude Include="src\render\IRenderTarget.h">
-      <Filter>Hlavičkové soubory</Filter>
-    </ClInclude>
-    <ClInclude Include="src\scene\Camera.h">
-      <Filter>Hlavičkové soubory</Filter>
-    </ClInclude>
-    <ClInclude Include="src\scene\Light.h">
-      <Filter>Hlavičkové soubory</Filter>
-    </ClInclude>
-    <ClInclude Include="src\scene\SceneState.h">
-      <Filter>Hlavičkové soubory</Filter>
-    </ClInclude>
-    <ClInclude Include="src\utils\cpu_pause.h">
-      <Filter>Hlavičkové soubory</Filter>
-    </ClInclude>
-    <ClInclude Include="src\utils\datastruct\AssetRegistry.h">
-      <Filter>Hlavičkové soubory</Filter>
-    </ClInclude>
-    <ClInclude Include="src\utils\datastruct\SPSCQueue.h">
-      <Filter>Hlavičkové soubory</Filter>
-    </ClInclude>
-    <ClInclude Include="src\utils\datastruct\TripleBuffer.h">
-      <Filter>Hlavičkové soubory</Filter>
-    </ClInclude>
-    <ClInclude Include="src\utils\datastruct\Viewport.h">
-      <Filter>Hlavičkové soubory</Filter>
-    </ClInclude>
-    <ClInclude Include="src\utils\timer\FixedTimestep.h">
-      <Filter>Hlavičkové soubory</Filter>
-    </ClInclude>
-    <ClInclude Include="src\utils\timer\Fps.h">
-      <Filter>Hlavičkové soubory</Filter>
-    </ClInclude>
-    <ClInclude Include="src\utils\timer\HighResTimer.h">
-      <Filter>Hlavičkové soubory</Filter>
-    </ClInclude>
-    <ClInclude Include="src\window\ConsoleDoubleBuffer.h">
-      <Filter>Hlavičkové soubory</Filter>
-    </ClInclude>
-    <ClInclude Include="src\window\DIB\DIBFramebuffer.h">
-      <Filter>Hlavičkové soubory</Filter>
-    </ClInclude>
-    <ClInclude Include="src\window\DIB\DIBRenderer.h">
-      <Filter>Hlavičkové soubory</Filter>
-    </ClInclude>
-    <ClInclude Include="src\window\WindowWin32.h">
-      <Filter>Hlavičkové soubory</Filter>
     </ClInclude>
     <ClInclude Include="src\Engine\Renderer\Backend\Common\RenderContext.h">
       <Filter>Zdrojové soubory\Engine\Renderer\Backend\Common</Filter>
@@ -287,9 +173,6 @@
     <ClInclude Include="src\Engine\Core\Datastruct\SlotArray.h">
       <Filter>Zdrojové soubory\Engine\Core\Datastruct</Filter>
     </ClInclude>
-    <ClInclude Include="src\Engine\Core\Datastruct\AssetRegistry.h">
-      <Filter>Hlavičkové soubory</Filter>
-    </ClInclude>
     <ClInclude Include="src\Engine\Geometry\Material.h">
       <Filter>Zdrojové soubory\Engine\Geometry</Filter>
     </ClInclude>
@@ -298,6 +181,9 @@
     </ClInclude>
     <ClInclude Include="src\Engine\Geometry\MeshInstance.h">
       <Filter>Zdrojové soubory\Engine\Geometry</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Engine\Core\Datastruct\AssetRegistry.h">
+      <Filter>Zdrojové soubory\Engine\Core\Datastruct</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

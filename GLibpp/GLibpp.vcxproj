@@ -42,7 +42,6 @@
     <ClInclude Include="src\Engine\Renderer\Backend\DIB\RasterizatorDIB.h" />
     <ClInclude Include="src\Engine\Renderer\Backend\DIB\RenderDeviceDIB.h" />
     <ClInclude Include="src\Engine\Renderer\Backend\DIB\RenderTargetDIB.h" />
-    <ClInclude Include="src\Engine\Renderer\Backend\RenderCommand\RCMD_SetViewport.h" />
     <ClInclude Include="src\Engine\Renderer\Backend\RenderCommand\RenderCommand.h" />
     <ClInclude Include="src\Engine\Renderer\Backend\RenderCommand\RenderCommandData.h" />
     <ClInclude Include="src\Engine\Renderer\Backend\RenderCommand\RenderCommandList.h" />
@@ -171,45 +170,6 @@
       <GenerateDebugInformation>true</GenerateDebugInformation>
     </Link>
   </ItemDefinitionGroup>
-  <ItemGroup>
-    <ClInclude Include="src/geometry/AABB.h" />
-    <ClInclude Include="src/math/Mtx4.h" />
-    <ClInclude Include="src/geometry/Triangle.h" />
-    <ClInclude Include="src/math/Vec4.h" />
-    <ClInclude Include="src/geometry/Vertex.h" />
-    <ClInclude Include="src\branch.h" />
-    <ClInclude Include="src\core\EngineApp.h" />
-    <ClInclude Include="src\core\input\Keyboard.h" />
-    <ClInclude Include="src\core\input\Keymap.h" />
-    <ClInclude Include="src\core\MeshInstanceRegistry.h" />
-    <ClInclude Include="src\core\Types.h" />
-    <ClInclude Include="src\demo\RenderLoopDemo.h" />
-    <ClInclude Include="src\demo\DemoRunner.h" />
-    <ClInclude Include="src\demo\ProducentConsumentDemo.h" />
-    <ClInclude Include="src\DoubleBuffer.h" />
-    <ClInclude Include="src\geometry\Color.h" />
-    <ClInclude Include="src\render\backendDIB\RenderContextDIB.h" />
-    <ClInclude Include="src\render\backendDIB\RenderDeviceDIB.h" />
-    <ClInclude Include="src\render\backendDIB\RenderTargetDIB.h" />
-    <ClInclude Include="src\render\IRenderContext.h" />
-    <ClInclude Include="src\render\IRenderDevice.h" />
-    <ClInclude Include="src\render\IRenderTarget.h" />
-    <ClInclude Include="src\scene\Camera.h" />
-    <ClInclude Include="src\scene\Light.h" />
-    <ClInclude Include="src\scene\SceneState.h" />
-    <ClInclude Include="src\utils\cpu_pause.h" />
-    <ClInclude Include="src\utils\datastruct\AssetRegistry.h" />
-    <ClInclude Include="src\utils\datastruct\SPSCQueue.h" />
-    <ClInclude Include="src\utils\datastruct\TripleBuffer.h" />
-    <ClInclude Include="src\utils\datastruct\Viewport.h" />
-    <ClInclude Include="src\utils\timer\FixedTimestep.h" />
-    <ClInclude Include="src\utils\timer\Fps.h" />
-    <ClInclude Include="src\utils\timer\HighResTimer.h" />
-    <ClInclude Include="src\window\ConsoleDoubleBuffer.h" />
-    <ClInclude Include="src\window\DIB\DIBFramebuffer.h" />
-    <ClInclude Include="src\window\DIB\DIBRenderer.h" />
-    <ClInclude Include="src\window\WindowWin32.h" />
-  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>

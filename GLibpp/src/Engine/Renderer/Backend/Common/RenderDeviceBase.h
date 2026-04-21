@@ -26,9 +26,9 @@ public:
         static_cast<DerivedDevice*>(this)->clearImpl(ctx, target);
     }
 
-    void present(Context& ctx, DerivedTarget& target) noexcept
+    void present(DerivedTarget& target) noexcept
     {
-        static_cast<DerivedDevice*>(this)->presentImpl(ctx, target);
+        static_cast<DerivedDevice*>(this)->presentImpl(target);
     }
 
     Context createContext() noexcept {

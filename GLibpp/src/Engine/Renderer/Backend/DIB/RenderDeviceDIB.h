@@ -96,7 +96,7 @@ private:
         // dalo by se pouzit SSE (SIMD) pro rychlejší vyplnìní, ale pro jednoduchost a pøehlednost teï použijeme std::fill_n
     }
 
-    void presentImpl(Context& ctx, Target& target) noexcept
+    void presentImpl(Target& target) noexcept
     {
         HDC windowDC = GetDC(window.getHwnd());
 

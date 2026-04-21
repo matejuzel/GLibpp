@@ -35,28 +35,31 @@ template <typename Device>
 class Renderer {
 private:
 
-    using Context = Device::Context;
-    using Target_h = RenderResourceManager<Device>::Target_h;
-
     std::unique_ptr<Device> device;
 
-    RenderResourceManager<Device> resources;
 
-    Target_h framebuffer_h;
-    Target_h depthbuffer_h;
+    using Context = Device::Context;
+    using ResourceManager = RenderResourceManager<Device>;
+
+    using TargetHandle = ResourceManager::TargetHandle;
+
+    ResourceManager resources;
+    
+
+    TargetHandle framebufferHandle;
+    TargetHandle depthbufferHandle;
 
 public:
     Renderer(WindowWin32& window)
         : device(std::make_unique<Device>(window))
-        , framebuffer_h(
+        , framebufferHandle(
             resources.targets.add(
                 RenderTargetDescriptor::FramebufferRGBA32bit(window.getClientWidth(), window.getClientHeight())
             )
         )
-        , depthbuffer_h(
-                resources.targets.add(
-                    RenderTargetDescriptor::Depthbuffer24bit(window.getClientWidth(), window.getClientHeight()
-                )
+        , depthbufferHandle(
+            resources.targets.add(
+                RenderTargetDescriptor::Depthbuffer24bit(window.getClientWidth(), window.getClientHeight())
             )
         )
     {
@@ -65,29 +68,26 @@ public:
     void renderFrame(uint32_t frameIndex)
     {
 
-        using MeshRegistry = AssetRegistry<Mesh>;
-        using MeshHandle_t = AssetRegistry<Mesh>::Handle;
         {
+            // zatim pouze pro testovani - pak to tu nebude
+            using MeshHandle = RenderResourceManager<Device>::MeshHandle;
+            
+            MeshHandle MeshCubeHandler = resources.meshRegistry.add(Mesh::Cube(1.0f));
+            MeshHandle MeshNetHandler = resources.meshRegistry.add(Mesh::Net(20));
 
-            MeshRegistry meshRegistry;
+            Mesh* msh = resources.meshRegistry.get(MeshCubeHandler);
 
-            MeshHandle_t cube1 = meshRegistry.add("cube1", Mesh::Cube(1.0f));
-            MeshHandle_t cube2 = meshRegistry.add("cube2", Mesh::Cube(1.0f));
-            MeshHandle_t net1 = meshRegistry.add("net1", Mesh::Net(20));
         }
-        
 
-        //return;
-
-
-        auto& framebuffer = resources.targets.get(framebuffer_h);
-        uint32_t width = framebuffer.descriptor.width;
-        uint32_t height = framebuffer.descriptor.height;
-        float aspect = static_cast<float>(width) / static_cast<float>(height);
-
-        auto ctx = device->createContext();
+        auto& framebuffer = resources.targets.get(framebufferHandle);
 
         {
+            
+            uint32_t width = framebuffer.descriptor.width;
+            uint32_t height = framebuffer.descriptor.height;
+            float aspect = static_cast<float>(width) / static_cast<float>(height);
+
+            auto ctx = device->createContext();
             ctx.frameIndex = frameIndex;
             ctx.clearColor = Color::Grayscale(0.4f);
             ctx.view = Mtx4::LookAt(
@@ -105,19 +105,48 @@ public:
                 0,0,
                 width,height
             };
+
+            device->clear(ctx, framebuffer);
+            device->draw(ctx, framebuffer);
         }
 
         {
-            device->clear(ctx, framebuffer);
+            uint32_t width = framebuffer.descriptor.width;
+            uint32_t height = framebuffer.descriptor.height;
+            float aspect = static_cast<float>(width) / static_cast<float>(height);
+
+            auto ctx = device->createContext();
+
+            ctx.frameIndex = frameIndex;
+            ctx.clearColor = Color::Grayscale(0.7f);
+            ctx.view = Mtx4::LookAt(
+                Vec4(5 + ctx.frameIndex / 100.0f, 5.0f, 5.0f, 1.0f),
+                Vec4(0, 0, 0, 1),
+                Vec4(0, 1, 0, 0)
+            );
+            ctx.projection = Mtx4::Perspective(
+                45.0f,
+                aspect,
+                0.01f,
+                100.0f
+            );
+            ctx.viewport = {
+                100,100,
+                100,100
+            };
+
+            ctx.clearColor = Color::Black();
+            
             device->draw(ctx, framebuffer);
-            device->present(ctx, framebuffer);
         }
+
+        device->present(framebuffer);
         
     }
 
     void resize(uint32_t width, uint32_t height)
     {
-        resources.targets.reset(framebuffer_h, RenderTargetDescriptor::FramebufferRGBA32bit(width, height));
-        resources.targets.reset(depthbuffer_h, RenderTargetDescriptor::Depthbuffer24bit(width, height));
+        resources.targets.reset(framebufferHandle, RenderTargetDescriptor::FramebufferRGBA32bit(width, height));
+        resources.targets.reset(depthbufferHandle, RenderTargetDescriptor::Depthbuffer24bit(width, height));
     }
 };

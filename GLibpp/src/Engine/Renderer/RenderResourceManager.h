@@ -1,21 +1,27 @@
 #pragma once
 
+#include "Mesh.h"
 #include "SlotArray.h"
+#include "AssetRegistry.h"
 
 template <typename Device>
 struct RenderResourceManager {
 public:
     RenderResourceManager() = default;
 
+    using MeshRegistry = AssetRegistry<Mesh>;
+    using MeshHandle = MeshRegistry::Handle;
+
     // types
-    using Target_h = Device::TargetHandle;
-    using Mesh_h = uint32_t;
-    using MeshInstance_h = uint32_t;
-    using Texture_h = uint32_t;
+    using TargetHandle = typename Device::TargetHandle;
+    using MeshInstanceHandle = uint32_t;
+    using TextureHandle = uint32_t;
     
 
     // properities
     SlotArray<typename Device::Target> targets;
+
+    MeshRegistry meshRegistry;
 
     // methods
 
