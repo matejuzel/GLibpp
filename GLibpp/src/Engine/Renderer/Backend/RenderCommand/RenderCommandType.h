@@ -2,12 +2,16 @@
 
 #include <cstdint>
 
-enum class RenderCommandType : uint8_t {
-    SetViewport,
-    SetMatrixProjection,
-    SetMatrixView,
-    BindMesh,
-    BindTarget,
-    Draw,
-    Clear,
-};
+namespace Render {
+
+    enum class RenderCommandType : uint8_t {
+        SetViewport,
+        SetMatrixProjection,
+        SetMatrixView,
+        BindMesh,
+        BindTarget,
+        Draw,
+        Clear,
+    };
+
+}

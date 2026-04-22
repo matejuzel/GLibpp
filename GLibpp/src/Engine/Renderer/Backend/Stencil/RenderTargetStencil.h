@@ -1,4 +1,12 @@
 #pragma once
+
+
+namespace Render {
+
+
+}
+
+
 /*
 #include "RenderTargetBase.h"
 #include "RenderTargetDescriptor.h"

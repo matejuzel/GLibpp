@@ -6,9 +6,13 @@
 #include "RenderCommandType.h"
 #include "RenderCommandData.h"
 
-struct RenderCommand { 
-	RenderCommandType type; 
-	RenderCommandData data; 
-};
+namespace Render {
+
+	struct RenderCommand {
+		RenderCommandType type;
+		RenderCommandData data;
+	};
+
+}
 
 

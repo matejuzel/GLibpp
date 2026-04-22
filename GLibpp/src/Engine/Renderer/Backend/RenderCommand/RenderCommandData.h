@@ -1,4 +1,10 @@
 #pragma once 
+
+namespace Render {
+
+
+}
+
 /*
 #include "RenderCommandStructs.h"
 

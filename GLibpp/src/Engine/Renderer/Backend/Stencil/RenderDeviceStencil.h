@@ -1,4 +1,10 @@
 #pragma once
+
+namespace Render {
+
+
+}
+
 /*
 #include "RenderTargetStencil.h"
 #include "RenderDeviceBase.h"

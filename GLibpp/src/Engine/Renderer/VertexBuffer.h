@@ -1,11 +1,15 @@
 #pragma once
 
-template <typename Device>
-struct VertexBuffer {
+namespace Render {
 
-    // SoA layout
-    typename Device::PositionBuffer positions;
-    typename Device::VectorBuffer normals;
-    typename Device::UVBuffer uvs;
+    template <typename Device>
+    struct VertexBuffer {
 
-};
+        // SoA layout
+        typename Device::PositionBuffer positions;
+        typename Device::VectorBuffer normals;
+        typename Device::UVBuffer uvs;
+
+    };
+
+}

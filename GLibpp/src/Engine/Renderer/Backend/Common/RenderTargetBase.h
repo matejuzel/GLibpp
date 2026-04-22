@@ -2,14 +2,18 @@
 
 #include "RenderContext.h"
 
-template<typename Device, typename DerivedTarget>
-class RenderTargetBase
-{
-public:
+namespace Render {
 
-    RenderTargetDescriptor descriptor;
+    template<typename Device, typename DerivedTarget>
+    class RenderTargetBase
+    {
+    public:
 
-    RenderTargetBase() = default;
-    RenderTargetBase(const RenderTargetDescriptor& descriptor) :descriptor(descriptor) {}
-    ~RenderTargetBase() = default;
-};
+        RenderTargetDescriptor descriptor;
+
+        RenderTargetBase() = default;
+        RenderTargetBase(const RenderTargetDescriptor& descriptor) :descriptor(descriptor) {}
+        ~RenderTargetBase() = default;
+    };
+
+}

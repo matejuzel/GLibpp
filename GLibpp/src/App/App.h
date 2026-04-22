@@ -11,7 +11,7 @@
 
 #if defined(RENDER_BACKEND_DIB)
 #include "RenderDeviceDIB.h"
-using RenderDevice = RenderDeviceDIB;
+using RenderDevice = Render::RenderDeviceDIB;
 #elif defined(RENDER_BACKEND_STENCIL)
 #include "RenderDeviceStencil.h"
 using RenderDevice = RenderDeviceStencil;
@@ -22,7 +22,7 @@ using RenderDevice = RenderDeviceStencil;
 class App {
 private:
 
-    using Renderer = Renderer<RenderDevice>;
+    using Renderer = Render::Renderer<RenderDevice>;
 
     std::unique_ptr<WindowWin32> window;
     std::unique_ptr<Renderer> renderer;

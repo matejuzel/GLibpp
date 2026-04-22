@@ -2,9 +2,13 @@
 
 #include <cstdint>
 
-enum class TextureUsage : uint8_t {
-    ColorAttachment,
-    DepthAttachment,
-    ShaderResource,
-    Storage,
-};
+namespace Render {
+
+    enum class TextureUsage : uint8_t {
+        ColorAttachment,
+        DepthAttachment,
+        ShaderResource,
+        Storage,
+    };
+
+}

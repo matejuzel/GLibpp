@@ -1,4 +1,12 @@
 #pragma once
+
+namespace Render {
+
+
+
+}
+
+
 /*
 // Závislé typy (pøedpokládá, že include search path je nastaven)
 #include "Mtx4.h"

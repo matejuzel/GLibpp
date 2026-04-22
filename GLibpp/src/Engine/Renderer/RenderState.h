@@ -5,6 +5,11 @@
 #include "Viewport.h"
 
 
-struct RenderState {
-    
-};
+namespace Render {
+
+	struct RenderState {
+
+	};
+
+}
+
