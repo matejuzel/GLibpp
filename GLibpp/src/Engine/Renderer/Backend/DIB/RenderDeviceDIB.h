@@ -11,6 +11,10 @@ namespace Render {
     // forward - kvuli pouziti friend
     template<typename D, typename T> class RenderDeviceBase;
 
+    // forward
+    class RenderDeviceDIB;
+    class RenderTargetDIB;
+
     // Device traits
     template<>
     struct DeviceTraits<RenderDeviceDIB>
@@ -22,10 +26,6 @@ namespace Render {
         using GpuBuffer2D = GpuBuffer<float>;
         using GpuIndexBuffer = GpuBuffer<uint32_t>;
     };
-
-    // forward - asi ani neni nutne
-    //class RenderDeviceDIB;
-    //class RenderTargetDIB;
 
     // alias - schovame pred svetem - pouze pro interni zjednoduseni
     namespace internal {
@@ -44,17 +44,15 @@ namespace Render {
 
     public:
 
-        using GpuBuffer3D = DeviceTraits<Self>::GpuBuffer3D;
-        using GpuBuffer2D = DeviceTraits<Self>::GpuBuffer2D;
-        using GpuIndexBuffer = DeviceTraits<Self>::GpuIndexBuffer;
-
         RenderDeviceDIB(WindowWin32& window) : Base(window) {}
 
     private:
 
+        using GpuBuffer3D = DeviceTraits<Self>::GpuBuffer3D;
+        using GpuBuffer2D = DeviceTraits<Self>::GpuBuffer2D;
+        using GpuIndexBuffer = DeviceTraits<Self>::GpuIndexBuffer;
+
         VertexBuffer<Self> vertexBuffer;
-
-
 
         void drawImpl(const Context& ctx, Target& target) noexcept
         {
@@ -117,7 +115,7 @@ namespace Render {
         void clearImpl(const Context& ctx, Target& target) noexcept
         {
             uint32_t color = ctx.clearColor.toRGBA();
-            int size = target.descriptor.width * target.descriptor.height;
+            size_t size = target.descriptor.width * target.descriptor.height;
             std::fill_n(target.framebuffer, size, color);
             // dalo by se pouzit SSE (SIMD) pro rychlejší vyplnìní, ale pro jednoduchost a pøehlednost teï použijeme std::fill_n
         }
@@ -130,7 +128,7 @@ namespace Render {
                 windowDC,
                 0, 0,
                 target.descriptor.width, target.descriptor.height,
-                (static_cast<const Target&>(target)).getDC(),
+                target.getDC(),
                 0, 0,
                 SRCCOPY
             );

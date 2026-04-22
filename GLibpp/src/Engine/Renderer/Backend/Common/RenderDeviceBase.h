@@ -16,6 +16,10 @@ namespace Render {
     template <typename DerivedDevice, typename DerivedTarget>
     class RenderDeviceBase
     {
+
+    protected:
+        WindowWin32& window;
+
     public:
 
         using Context = RenderContext<DerivedDevice, DerivedTarget>;
@@ -27,8 +31,6 @@ namespace Render {
         using VectorBuffer = typename DeviceTraits<DerivedDevice>::GpuBuffer3D;
         using UVBuffer = typename DeviceTraits<DerivedDevice>::GpuBuffer2D;
         using IndexBuffer = typename DeviceTraits<DerivedDevice>::GpuIndexBuffer;
-
-        WindowWin32& window;
 
         RenderDeviceBase(WindowWin32& window) : window(window) {}
         ~RenderDeviceBase() = default;
