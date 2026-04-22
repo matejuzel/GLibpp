@@ -124,22 +124,12 @@ namespace Render {
 
         void presentImpl(Target& target) noexcept
         {
-            Win32DC wDc(window.getHwnd());
-            BitBlt(
-                wDc.get(),
-                0, 0,
-                target.descriptor.width, target.descriptor.height,
-                target.getDC(),
-                0, 0,
-                SRCCOPY
-            );
-
-
-            /*
+            Win32DC win32DC(window.getHwnd());
+            HDC targetDC = win32DC.get();
+            HDC sourceHDC = target.getDC();
             uint32_t width = target.descriptor.width;
             uint32_t height = target.descriptor.height;
-            window.presentToDc(width, height, target.getDC());
-            */
+            BitBlt(targetDC, 0, 0, width, height, sourceHDC, 0, 0, SRCCOPY);
         }
 
         void registerMeshImpl(const Mesh& mesh) noexcept

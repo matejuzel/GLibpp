@@ -10,6 +10,7 @@
 #include <memory>
 #include "math/Vec4.h"
 #include "core/input/Keymap.h"
+#include "Win32DC.h"
 
 class WindowWin32;
 
@@ -46,6 +47,9 @@ public:
 			hwnd = nullptr;
 		}
 	}
+
+	WindowWin32(const WindowWin32&) = delete;
+	WindowWin32& operator=(const WindowWin32&) = delete;
 
 	static const wchar_t* GetClassName() {
 		return L"EngineWindowClass";
@@ -86,6 +90,13 @@ public:
 	uint32_t getClientHeight() const noexcept;
 	void hideCursor() const noexcept;
 	void showCursor() const noexcept;
+
+	HDC getDeviceContext() const {
+		return GetDC(hwnd);
+	}
+	void releaseDeviceContext(HDC hdc) const {
+		ReleaseDC(hwnd, hdc);
+	}
 
 private:
 

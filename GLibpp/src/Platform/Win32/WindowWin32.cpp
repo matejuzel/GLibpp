@@ -58,6 +58,9 @@ LRESULT WindowWin32::handleMessage(UINT msg, WPARAM wParam, LPARAM lParam)
         return 0;
         */
 
+    case WM_ERASEBKGND:
+        return 1; // rikame systemu - nemaz pozadi pro rendering - resim to sam
+
     case WM_INPUT:
         if (onKeyEvent) {
             UINT size = 0;
@@ -130,7 +133,7 @@ bool WindowWin32::RegisterWindowClass(HINSTANCE hInstance) {
     wc.lpszClassName = GetClassName();
 
     wc.hCursor = LoadCursor(nullptr, IDC_ARROW);
-    wc.hbrBackground = (HBRUSH)(COLOR_WINDOW + 1);
+    wc.hbrBackground = nullptr; // (HBRUSH)(COLOR_WINDOW + 1);
 
     ATOM cls = RegisterClass(&wc);
     if (cls == 0) return false;
