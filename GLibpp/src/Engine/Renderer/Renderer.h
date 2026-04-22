@@ -67,7 +67,7 @@ public:
 
     void renderFrame(uint32_t frameIndex)
     {
-
+        if (0)
         {
             // zatim pouze pro testovani - pak to tu nebude
             using MeshHandle = RenderResourceManager<Device>::MeshHandle;

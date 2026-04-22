@@ -12,7 +12,7 @@ int main()
     try 
     {
         App app;
-		app.initialize(800, 600);
+		app.initialize(400, 260);
         app.run();
     }
     catch (std::runtime_error error) 

@@ -18,7 +18,7 @@ public:
 
     using Context      = RenderContext<DerivedDevice, DerivedTarget>;
     using Target       = DerivedTarget;
-    using TargetHandle = SlotArray<DerivedTarget>::Handle;
+    using TargetHandle = typename SlotArray<DerivedTarget>::Handle;
 
     // typy pro buffery
     using PositionBuffer = typename DeviceTraits<DerivedDevice>::GpuBuffer3D;

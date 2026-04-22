@@ -6,25 +6,26 @@
 #include "RenderCommandList.h"
 #include "Mtx4.h"
 
+#define RENDER_BACKEND_DIB
+
+
+#if defined(RENDER_BACKEND_DIB)
 #include "RenderDeviceDIB.h"
+using RenderDevice = RenderDeviceDIB;
+#elif defined(RENDER_BACKEND_STENCIL)
 #include "RenderDeviceStencil.h"
-
-
-#define _RENDER_BACKEND_DIB_
+using RenderDevice = RenderDeviceStencil;
+#else
+#error "Neni definovan backend!"
+#endif
 
 class App {
 private:
-    
-#if defined(_RENDER_BACKEND_DIB_)
-    using RenderBackend = Renderer<RenderDeviceDIB>;
-#elif defined(_RENDER_BACKEND_STENCIL_)
-    using Backend = RenderBackend<RenderDeviceStencil>;
-#else
-    #error "Neni definovan backend!"
-#endif
+
+    using Renderer = Renderer<RenderDevice>;
 
     std::unique_ptr<WindowWin32> window;
-    std::unique_ptr<RenderBackend> renderer;
+    std::unique_ptr<Renderer> renderer;
 
     bool fullscreen = false;
 	bool running = true;
@@ -48,7 +49,6 @@ public:
 
     void initialize(uint32_t width, uint32_t height) 
     {
-
         {
             // WINDOW
             window = std::make_unique<WindowWin32>(width, height, false);
@@ -85,7 +85,7 @@ public:
 
         {
             // RENDERER
-            renderer = std::make_unique<RenderBackend>(*window);
+            renderer = std::make_unique<Renderer>(*window);
         }
 	}
 
