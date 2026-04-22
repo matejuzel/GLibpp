@@ -27,6 +27,7 @@ private:
 	std::function<void(uint32_t width, uint32_t height)> onResize;
 
 	HWND hwnd = nullptr;
+	HDC hdc = nullptr;
 	int width;
 	int height;
 	bool maximized = false;
@@ -42,7 +43,14 @@ public:
 
 	~WindowWin32()
 	{
-		if (hwnd) {
+		if (hwnd && hdc)
+		{
+			ReleaseDC(hwnd, hdc);
+			hdc = nullptr;
+		}
+
+		if (hwnd) 
+		{
 			DestroyWindow(hwnd);
 			hwnd = nullptr;
 		}
@@ -91,9 +99,8 @@ public:
 	void hideCursor() const noexcept;
 	void showCursor() const noexcept;
 
-	HDC getDeviceContext() const {
-		return GetDC(hwnd);
-	}
+	HDC getHDC() const noexcept { return hdc; }
+
 	void releaseDeviceContext(HDC hdc) const {
 		ReleaseDC(hwnd, hdc);
 	}

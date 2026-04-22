@@ -134,6 +134,7 @@ bool WindowWin32::RegisterWindowClass(HINSTANCE hInstance) {
 
     wc.hCursor = LoadCursor(nullptr, IDC_ARROW);
     wc.hbrBackground = nullptr; // (HBRUSH)(COLOR_WINDOW + 1);
+    wc.style = CS_HREDRAW | CS_VREDRAW | CS_OWNDC; // okno bude mit svuj vlastni Device Context
 
     ATOM cls = RegisterClass(&wc);
     if (cls == 0) return false;
@@ -198,6 +199,8 @@ bool WindowWin32::build()
 
     ShowWindow(this->hwnd, winShowMode);
     UpdateWindow(this->hwnd);
+
+    hdc = GetDC(hwnd);
 
     return true;
 }
