@@ -110,9 +110,6 @@
     <ClInclude Include="src\Engine\Renderer\TextureUsage.h">
       <Filter>Zdrojové soubory\Engine\Renderer</Filter>
     </ClInclude>
-    <ClInclude Include="src\Engine\Renderer\DeviceTargetHandle.h">
-      <Filter>Zdrojové soubory\Engine\Renderer</Filter>
-    </ClInclude>
     <ClInclude Include="src\Engine\Renderer\RenderState.h">
       <Filter>Zdrojové soubory\Engine\Renderer</Filter>
     </ClInclude>
@@ -187,6 +184,9 @@
     </ClInclude>
     <ClInclude Include="src\Engine\Renderer\VertexBuffer.h">
       <Filter>Zdrojové soubory\Engine\Renderer</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Platform\Win32\Win32DC.h">
+      <Filter>Zdrojové soubory\Platform\Win32</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

@@ -3,6 +3,8 @@
 #include "RasterizatorDIB.h"
 #include "Color.h"
 #include "VertexBuffer.h"
+#include "WindowWin32.h"
+#include "Win32Dc.h"
 
 #include <vector>
 
@@ -122,10 +124,9 @@ namespace Render {
 
         void presentImpl(Target& target) noexcept
         {
-            HDC windowDC = GetDC(window.getHwnd());
-
+            Win32DC wDc(window.getHwnd());
             BitBlt(
-                windowDC,
+                wDc.get(),
                 0, 0,
                 target.descriptor.width, target.descriptor.height,
                 target.getDC(),
@@ -133,14 +134,16 @@ namespace Render {
                 SRCCOPY
             );
 
-            ReleaseDC(window.getHwnd(), windowDC);
+
+            /*
+            uint32_t width = target.descriptor.width;
+            uint32_t height = target.descriptor.height;
+            window.presentToDc(width, height, target.getDC());
+            */
         }
-
-
 
         void registerMeshImpl(const Mesh& mesh) noexcept
         {
-
 
             vertexBuffer.positions.push_back(3.14f);
             vertexBuffer.positions.push_back(4.0f);

@@ -60,6 +60,7 @@
     <ClInclude Include="src\Engine\Renderer\Viewport.h" />
     <ClInclude Include="src\Math\Mtx4.h" />
     <ClInclude Include="src\Math\Vec4.h" />
+    <ClInclude Include="src\Platform\Win32\Win32DC.h" />
     <ClInclude Include="src\Platform\Win32\WindowWin32.h" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
