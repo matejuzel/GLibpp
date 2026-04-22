@@ -50,7 +50,6 @@
     <ClInclude Include="src\Engine\Renderer\Backend\Stencil\RenderDeviceStencil.h" />
     <ClInclude Include="src\Engine\Renderer\Backend\Stencil\RenderTargetStencil.h" />
     <ClInclude Include="src\Engine\Renderer\Color.h" />
-    <ClInclude Include="src\Engine\Renderer\DeviceTargetHandle.h" />
     <ClInclude Include="src\Engine\Renderer\Renderer.h" />
     <ClInclude Include="src\Engine\Renderer\RenderResourceManager.h" />
     <ClInclude Include="src\Engine\Renderer\RenderState.h" />
