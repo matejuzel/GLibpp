@@ -143,7 +143,7 @@
     <ClInclude Include="src\Engine\Core\Datastruct\DoubleBuffer.h">
       <Filter>Zdrojové soubory\Engine\Core\Datastruct</Filter>
     </ClInclude>
-    <ClInclude Include="src\Engine\Renderer\Backend\Common\RenderContext.h">
+    <ClInclude Include="src\Engine\Renderer\Backend\Common\DeviceContext.h">
       <Filter>Zdrojové soubory\Engine\Renderer\Backend\Common</Filter>
     </ClInclude>
     <ClInclude Include="src\Engine\Renderer\Backend\Common\RenderTargetBase.h">
