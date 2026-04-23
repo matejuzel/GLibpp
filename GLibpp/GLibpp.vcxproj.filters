@@ -152,7 +152,7 @@
     <ClInclude Include="src\Engine\Renderer\Backend\Common\RenderDeviceBase.h">
       <Filter>Zdrojové soubory\Engine\Renderer\Backend\Common</Filter>
     </ClInclude>
-    <ClInclude Include="src\Engine\Renderer\Backend\DIB\RenderTargetDIB.h">
+    <ClInclude Include="src\Engine\Renderer\Backend\DIB\DeviceTargetDIB.h">
       <Filter>Zdrojové soubory\Engine\Renderer\Backend\DIB</Filter>
     </ClInclude>
     <ClInclude Include="src\Engine\Renderer\Backend\DIB\RasterizatorDIB.h">

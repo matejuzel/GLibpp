@@ -3,7 +3,7 @@
 #include <cstdint>
 #include <algorithm>
 #include "DeviceTargetBase.h"
-#include "RenderTargetDIB.h"
+#include "DeviceTargetDIB.h"
 
 
 namespace Render {
@@ -12,7 +12,7 @@ namespace Render {
 
     public:
 
-        static void inline drawLine(RenderTargetDIB& target, int x0, int y0, int x1, int y1, uint32_t color) noexcept
+        static void inline drawLine(DeviceTargetDIB& target, int x0, int y0, int x1, int y1, uint32_t color) noexcept
         {
             int dx = abs(x1 - x0);
             int sx = x0 < x1 ? 1 : -1;
@@ -41,7 +41,7 @@ namespace Render {
             }
         }
 
-        static void inline drawTriangle(RenderTargetDIB& target, int x0, int y0, int x1, int y1, int x2, int y2, uint32_t color) noexcept
+        static void inline drawTriangle(DeviceTargetDIB& target, int x0, int y0, int x1, int y1, int x2, int y2, uint32_t color) noexcept
         {
             // Seøadíme vrcholy podle Y (od nejnižšího)
             if (y1 < y0) { std::swap(y0, y1); std::swap(x0, x1); }
@@ -89,13 +89,13 @@ namespace Render {
             }
         }
 
-        static void inline drawQuad(RenderTargetDIB& target, int x0, int y0, int x1, int y1, int x2, int y2, int x3, int y3, uint32_t color) noexcept
+        static void inline drawQuad(DeviceTargetDIB& target, int x0, int y0, int x1, int y1, int x2, int y2, int x3, int y3, uint32_t color) noexcept
         {
             drawTriangle(target, x0, y0, x1, y1, x2, y2, color);
             drawTriangle(target, x0, y0, x2, y2, x3, y3, color);
         }
 
-        static void inline drawQuad(RenderTargetDIB& target, float x0, float y0, float x1, float y1, float x2, float y2, float x3, float y3, uint32_t color) noexcept
+        static void inline drawQuad(DeviceTargetDIB& target, float x0, float y0, float x1, float y1, float x2, float y2, float x3, float y3, uint32_t color) noexcept
         {
             drawQuad(target,
                 static_cast<int>(x0),

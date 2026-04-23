@@ -15,7 +15,7 @@ namespace Render {
 
     // forward
     class RenderDeviceDIB;
-    class RenderTargetDIB;
+    class DeviceTargetDIB;
 
     // Device traits
     template<>
@@ -31,7 +31,7 @@ namespace Render {
 
     // alias - schovame pred svetem - pouze pro interni zjednoduseni
     namespace internal {
-        using RenderDeviceDIBBase = RenderDeviceBase<RenderDeviceDIB, RenderTargetDIB>;
+        using RenderDeviceDIBBase = RenderDeviceBase<RenderDeviceDIB, DeviceTargetDIB>;
     };
 
     class RenderDeviceDIB : public internal::RenderDeviceDIBBase

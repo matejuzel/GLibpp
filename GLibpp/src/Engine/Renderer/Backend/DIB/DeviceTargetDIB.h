@@ -6,16 +6,16 @@
 namespace Render {
 
     class RenderDeviceDIB; // forward
-    class RenderTargetDIB; // forward
+    class DeviceTargetDIB; // forward
 
     namespace internal {
-        using RenderTargetDIBBase = DeviceTargetBase<RenderDeviceDIB, RenderTargetDIB>;
+        using RenderTargetDIBBase = DeviceTargetBase<RenderDeviceDIB, DeviceTargetDIB>;
     };
 
-    class RenderTargetDIB : public internal::RenderTargetDIBBase
+    class DeviceTargetDIB : public internal::RenderTargetDIBBase
     {
     private:
-        using Self = RenderTargetDIB;
+        using Self = DeviceTargetDIB;
         using Base = internal::RenderTargetDIBBase;
 
     public:
@@ -24,9 +24,9 @@ namespace Render {
         HGDIOBJ oldBitmap = nullptr;
         uint32_t* framebuffer = nullptr;
 
-        RenderTargetDIB() = default;
+        DeviceTargetDIB() = default;
 
-        RenderTargetDIB(const RenderTargetDescriptor& descriptor)
+        DeviceTargetDIB(const RenderTargetDescriptor& descriptor)
             : Base(descriptor)
         {
 
@@ -83,7 +83,7 @@ namespace Render {
 
         }
 
-        ~RenderTargetDIB()
+        ~DeviceTargetDIB()
         {
 
             SelectObject(memDC, oldBitmap);

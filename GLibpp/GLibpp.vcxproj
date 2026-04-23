@@ -41,7 +41,7 @@
     <ClInclude Include="src\Engine\Renderer\Backend\Common\DeviceTargetBase.h" />
     <ClInclude Include="src\Engine\Renderer\Backend\DIB\RasterizatorDIB.h" />
     <ClInclude Include="src\Engine\Renderer\Backend\DIB\RenderDeviceDIB.h" />
-    <ClInclude Include="src\Engine\Renderer\Backend\DIB\RenderTargetDIB.h" />
+    <ClInclude Include="src\Engine\Renderer\Backend\DIB\DeviceTargetDIB.h" />
     <ClInclude Include="src\Engine\Renderer\Backend\RenderCommand\RenderCommand.h" />
     <ClInclude Include="src\Engine\Renderer\Backend\RenderCommand\RenderCommandData.h" />
     <ClInclude Include="src\Engine\Renderer\Backend\RenderCommand\RenderCommandList.h" />
