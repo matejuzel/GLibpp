@@ -6,13 +6,14 @@
 namespace Render {
 
     // trails - cpp koncept pro predavani informaci o typu (compile-time)
-// potreba, aby RenderDeviceBase mohl deklarovat VertexBuffer (a dalsi) jako sablonu a kazdy backend tyto typy musel poskytovat
+    // potreba, aby RenderDeviceBase mohl deklarovat VertexBuffer (a dalsi) jako sablonu a kazdy backend tyto typy musel poskytovat
     template<typename Device>
     struct DeviceTraits;
 
-    // pouzit CRTP — Curiously Recurring Template Pattern
-    // v podstate compile-time polymorfizmus
-    // RenderDeviceBase definuje rozhrani, ktere kazdy backend "DerivedDevice" musi implementovat
+    /** CLASS DeviceBase
+     * CRTP — Curiously Recurring Template Pattern (v podstate compile-time polymorfizmus)
+     * Base trida definuje rozhrani, ktere kazdy backend "DerivedDevice" musi implementovat
+     */
     template <typename DerivedDevice, typename DerivedTarget>
     class RenderDeviceBase
     {
