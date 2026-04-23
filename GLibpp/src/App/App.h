@@ -10,10 +10,10 @@
 
 
 #if defined(RENDER_BACKEND_DIB)
-#include "RenderDeviceDIB.h"
-using RenderDevice = Render::RenderDeviceDIB;
+#include "DeviceDIB.h"
+using RenderDevice = Render::DeviceDIB;
 #elif defined(RENDER_BACKEND_STENCIL)
-#include "RenderDeviceStencil.h"
+#include "DeviceStencil.h"
 using RenderDevice = RenderDeviceStencil;
 #else
 #error "Neni definovan backend!"

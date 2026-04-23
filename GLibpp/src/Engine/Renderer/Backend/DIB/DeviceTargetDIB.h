@@ -5,11 +5,11 @@
 
 namespace Render {
 
-    class RenderDeviceDIB; // forward
+    class DeviceDIB; // forward
     class DeviceTargetDIB; // forward
 
     namespace internal {
-        using RenderTargetDIBBase = DeviceTargetBase<RenderDeviceDIB, DeviceTargetDIB>;
+        using RenderTargetDIBBase = DeviceTargetBase<DeviceDIB, DeviceTargetDIB>;
     };
 
     class DeviceTargetDIB : public internal::RenderTargetDIBBase

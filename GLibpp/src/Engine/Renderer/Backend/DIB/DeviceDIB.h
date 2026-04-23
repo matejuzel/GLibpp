@@ -14,12 +14,12 @@ namespace Render {
     template<typename D, typename T> class DeviceBase;
 
     // forward
-    class RenderDeviceDIB;
+    class DeviceDIB;
     class DeviceTargetDIB;
 
     // Device traits
     template<>
-    struct DeviceTraits<RenderDeviceDIB>
+    struct DeviceTraits<DeviceDIB>
     {
         template<typename T>
         using GpuBuffer = std::vector<T>;
@@ -31,22 +31,22 @@ namespace Render {
 
     // alias - schovame pred svetem - pouze pro interni zjednoduseni
     namespace internal {
-        using RenderDeviceDIBBase = DeviceBase<RenderDeviceDIB, DeviceTargetDIB>;
+        using RenderDeviceDIBBase = DeviceBase<DeviceDIB, DeviceTargetDIB>;
     };
 
-    class RenderDeviceDIB : public internal::RenderDeviceDIBBase
+    class DeviceDIB : public internal::RenderDeviceDIBBase
     {
         template<typename D, typename T>
         friend class DeviceBase;   // Base má pøístup do private Derived ...Impl(), ktere nemaji byt videt zvenci
 
     private:
 
-        using Self = RenderDeviceDIB;
+        using Self = DeviceDIB;
         using Base = internal::RenderDeviceDIBBase;
 
     public:
 
-        RenderDeviceDIB(WindowWin32& window) : Base(window) {}
+        DeviceDIB(WindowWin32& window) : Base(window) {}
 
     private:
 

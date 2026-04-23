@@ -18,7 +18,7 @@
 #include "DeviceTargetBase.h"
 
 // Backend DIB
-#include "RenderDeviceDIB.h"
+#include "DeviceDIB.h"
 
 // Backend Stencil
 #include "RenderDeviceStencil.h"
