@@ -38,7 +38,7 @@
     <ClInclude Include="src\Engine\Geometry\MeshInstance.h" />
     <ClInclude Include="src\Engine\Renderer\Backend\Common\DeviceContext.h" />
     <ClInclude Include="src\Engine\Renderer\Backend\Common\RenderDeviceBase.h" />
-    <ClInclude Include="src\Engine\Renderer\Backend\Common\RenderTargetBase.h" />
+    <ClInclude Include="src\Engine\Renderer\Backend\Common\DeviceTargetBase.h" />
     <ClInclude Include="src\Engine\Renderer\Backend\DIB\RasterizatorDIB.h" />
     <ClInclude Include="src\Engine\Renderer\Backend\DIB\RenderDeviceDIB.h" />
     <ClInclude Include="src\Engine\Renderer\Backend\DIB\RenderTargetDIB.h" />

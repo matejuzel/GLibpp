@@ -2,7 +2,7 @@
 
 #include <cstdint>
 #include <algorithm>
-#include "RenderTargetBase.h"
+#include "DeviceTargetBase.h"
 #include "RenderTargetDIB.h"
 
 

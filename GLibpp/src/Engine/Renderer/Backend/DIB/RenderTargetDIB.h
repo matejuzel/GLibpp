@@ -1,6 +1,6 @@
 #pragma once
 
-#include "RenderTargetBase.h"
+#include "DeviceTargetBase.h"
 #include "RenderTargetDescriptor.h"
 
 namespace Render {
@@ -9,7 +9,7 @@ namespace Render {
     class RenderTargetDIB; // forward
 
     namespace internal {
-        using RenderTargetDIBBase = RenderTargetBase<RenderDeviceDIB, RenderTargetDIB>;
+        using RenderTargetDIBBase = DeviceTargetBase<RenderDeviceDIB, RenderTargetDIB>;
     };
 
     class RenderTargetDIB : public internal::RenderTargetDIBBase
