@@ -31,10 +31,10 @@ namespace Render {
 
     // alias - schovame pred svetem - pouze pro interni zjednoduseni
     namespace internal {
-        using RenderDeviceDIBBase = DeviceBase<DeviceDIB, DeviceTargetDIB>;
+        using DeviceDIBBase = DeviceBase<DeviceDIB, DeviceTargetDIB>;
     };
 
-    class DeviceDIB : public internal::RenderDeviceDIBBase
+    class DeviceDIB : public internal::DeviceDIBBase
     {
         template<typename D, typename T>
         friend class DeviceBase;   // Base má pøístup do private Derived ...Impl(), ktere nemaji byt videt zvenci
@@ -42,7 +42,7 @@ namespace Render {
     private:
 
         using Self = DeviceDIB;
-        using Base = internal::RenderDeviceDIBBase;
+        using Base = internal::DeviceDIBBase;
 
     public:
 
