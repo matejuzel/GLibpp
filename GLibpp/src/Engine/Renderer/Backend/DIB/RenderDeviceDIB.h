@@ -11,7 +11,7 @@
 namespace Render {
 
     // forward - kvuli pouziti friend
-    template<typename D, typename T> class RenderDeviceBase;
+    template<typename D, typename T> class DeviceBase;
 
     // forward
     class RenderDeviceDIB;
@@ -31,13 +31,13 @@ namespace Render {
 
     // alias - schovame pred svetem - pouze pro interni zjednoduseni
     namespace internal {
-        using RenderDeviceDIBBase = RenderDeviceBase<RenderDeviceDIB, DeviceTargetDIB>;
+        using RenderDeviceDIBBase = DeviceBase<RenderDeviceDIB, DeviceTargetDIB>;
     };
 
     class RenderDeviceDIB : public internal::RenderDeviceDIBBase
     {
         template<typename D, typename T>
-        friend class RenderDeviceBase;   // Base má pøístup do private Derived ...Impl(), ktere nemaji byt videt zvenci
+        friend class DeviceBase;   // Base má pøístup do private Derived ...Impl(), ktere nemaji byt videt zvenci
 
     private:
 

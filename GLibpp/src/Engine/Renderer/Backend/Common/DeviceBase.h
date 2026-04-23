@@ -6,7 +6,7 @@
 namespace Render {
 
     // trails - cpp koncept pro predavani informaci o typu (compile-time)
-    // potreba, aby RenderDeviceBase mohl deklarovat VertexBuffer (a dalsi) jako sablonu a kazdy backend tyto typy musel poskytovat
+    // potreba, aby DeviceBase mohl deklarovat VertexBuffer (a dalsi) jako sablonu a kazdy backend tyto typy musel poskytovat
     template<typename Device>
     struct DeviceTraits;
 
@@ -15,7 +15,7 @@ namespace Render {
      * Base trida definuje rozhrani, ktere kazdy backend "DerivedDevice" musi implementovat
      */
     template <typename DerivedDevice, typename DerivedTarget>
-    class RenderDeviceBase
+    class DeviceBase
     {
 
     protected:
@@ -33,8 +33,8 @@ namespace Render {
         using UVBuffer = typename DeviceTraits<DerivedDevice>::GpuBuffer2D;
         using IndexBuffer = typename DeviceTraits<DerivedDevice>::GpuIndexBuffer;
 
-        RenderDeviceBase(WindowWin32& window) : window(window) {}
-        ~RenderDeviceBase() = default;
+        DeviceBase(WindowWin32& window) : window(window) {}
+        ~DeviceBase() = default;
 
         void draw(const Context& ctx, DerivedTarget& target) noexcept
         {

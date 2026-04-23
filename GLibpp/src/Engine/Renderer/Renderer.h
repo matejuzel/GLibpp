@@ -14,7 +14,7 @@
 
 // Backend Common
 #include "DeviceContext.h"
-#include "RenderDeviceBase.h"
+#include "DeviceBase.h"
 #include "DeviceTargetBase.h"
 
 // Backend DIB

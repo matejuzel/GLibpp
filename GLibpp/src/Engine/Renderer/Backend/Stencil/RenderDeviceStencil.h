@@ -7,14 +7,14 @@ namespace Render {
 
 /*
 #include "RenderTargetStencil.h"
-#include "RenderDeviceBase.h"
+#include "DeviceBase.h"
 #include "RenderTargetDescriptor.h"
 #include "WindowWin32.h"
 
 class RenderDeviceStencil;
 
 namespace internal {
-    using RenderDeviceStencilBase = RenderDeviceBase<RenderDeviceStencil, RenderTargetStencil>;
+    using RenderDeviceStencilBase = DeviceBase<RenderDeviceStencil, RenderTargetStencil>;
 };
 
 

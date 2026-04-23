@@ -149,7 +149,7 @@
     <ClInclude Include="src\Engine\Renderer\Backend\Common\DeviceTargetBase.h">
       <Filter>Zdrojové soubory\Engine\Renderer\Backend\Common</Filter>
     </ClInclude>
-    <ClInclude Include="src\Engine\Renderer\Backend\Common\RenderDeviceBase.h">
+    <ClInclude Include="src\Engine\Renderer\Backend\Common\DeviceBase.h">
       <Filter>Zdrojové soubory\Engine\Renderer\Backend\Common</Filter>
     </ClInclude>
     <ClInclude Include="src\Engine\Renderer\Backend\DIB\DeviceTargetDIB.h">
