@@ -8,11 +8,11 @@
 namespace Render {
 	
     template<typename Device, typename Target>
-    class RenderContext {
+    class DeviceContext {
 
     public:
-        RenderContext() = default;
-        ~RenderContext() = default;
+        DeviceContext() = default;
+        ~DeviceContext() = default;
 
         //Target* target = nullptr;
         Viewport viewport = { 0,0,800,600 };

@@ -23,7 +23,7 @@ namespace Render {
 
     public:
 
-        using Context = RenderContext<DerivedDevice, DerivedTarget>;
+        using Context = DeviceContext<DerivedDevice, DerivedTarget>;
         using Target = DerivedTarget;
         using TargetHandle = typename SlotArray<DerivedTarget>::Handle;
 
