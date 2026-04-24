@@ -22,10 +22,10 @@ using RenderDevice = RenderDeviceStencil;
 class App {
 private:
 
-    using Renderer = Render::Renderer<RenderDevice>;
+    using RendererEngine = Render::Renderer<RenderDevice>;
 
     std::unique_ptr<WindowWin32> window;
-    std::unique_ptr<Renderer> renderer;
+    std::unique_ptr<RendererEngine> renderer;
 
     bool fullscreen = false;
 	bool running = true;
@@ -85,7 +85,7 @@ public:
 
         {
             // RENDERER
-            renderer = std::make_unique<Renderer>(*window);
+            renderer = std::make_unique<RendererEngine>(*window);
         }
 	}
 

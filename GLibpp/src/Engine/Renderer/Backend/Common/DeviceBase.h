@@ -32,6 +32,8 @@ namespace Render {
 
         StableRegistry<Target> targets;
 
+        using MeshHandle = uint32_t; // @todo
+
         // typy pro buffery
         using PositionBuffer = typename DeviceTraits<DerivedDevice>::GpuBuffer3D;
         using VectorBuffer = typename DeviceTraits<DerivedDevice>::GpuBuffer3D;
@@ -42,12 +44,19 @@ namespace Render {
         ~DeviceBase() = default;
 
         
-        void draw(const Context& ctx) noexcept 
+        void drawStaticTestMesh(const Context& ctx) noexcept
         {
             
             if (targets.isValid(ctx.framebufferHandle)) {
                 // vynutime kontrolu validnosti targetu uz tady v Base
-                static_cast<DerivedDevice*>(this)->drawImpl(ctx);
+                static_cast<DerivedDevice*>(this)->drawStaticTestMeshImpl(ctx);
+            }
+        }
+
+        void drawMeshEnqueue(const Context& ctx, MeshHandle meshHandle)
+        {
+            if (targets.isValid(ctx.framebufferHandle)) {
+                static_cast<DerivedDevice*>(this)->drawMeshEnqueueImpl(ctx);
             }
         }
 

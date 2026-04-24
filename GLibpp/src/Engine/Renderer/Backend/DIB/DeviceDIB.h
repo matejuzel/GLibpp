@@ -46,6 +46,17 @@ namespace Render {
 
     public:
 
+        /* problem s nenapovidanim IDE to nevyresilo
+        // --- explicitní pøepublikování aliasù z Base pro lepší viditelnost v IDE ---
+        using Context = typename Base::Context;
+        using Target = typename Base::Target;
+        using TargetHandle = typename Base::TargetHandle;
+        using TargetRegistry = typename Base::TargetRegistry;
+        static constexpr TargetHandle TARGET_INVALID = Base::TARGET_INVALID;
+        // ------------------------------------------------------------------------
+        */
+    public:
+
         DeviceDIB(WindowWin32& window) : Base(window) {}
 
     private:
@@ -56,7 +67,7 @@ namespace Render {
 
         VertexBuffer<Self> vertexBuffer;
 
-        void drawImpl(const Context& ctx) noexcept
+        void drawStaticTestMeshImpl(const Context& ctx) noexcept
         {
             
             Target& target = targets.get(ctx.framebufferHandle);
@@ -80,6 +91,8 @@ namespace Render {
                 0, 0, 1, 0,
                 0, 0, 0, 1
             );
+
+            model.rotateY((float)ctx.frameIndex / 100.0f);
 
             Mtx4 mvp = ctx.projection * ctx.view * model;
 
@@ -116,6 +129,11 @@ namespace Render {
                 vd.x, vd.y,
                 Color::Grayscale(0.5f).toRGBA()
             );
+        }
+
+        void drawMeshEnqueueImpl(const Context& ctx, MeshHandle meshHandle)
+        {
+            // @todo
         }
 
         void clearImpl(const Context& ctx) noexcept

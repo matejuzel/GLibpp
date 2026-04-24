@@ -92,13 +92,14 @@ namespace Render {
                 
                 ctx.frameIndex = frameIndex;
                 ctx.clearColor = Color::Grayscale(0.4f);
-                ctx.view = Mtx4::LookAt(Vec4(5 + ctx.frameIndex / 100.0f, 5.0f, 5.0f, 1.0f), Vec4(0, 0, 0, 1), Vec4(0, 1, 0, 0));
+                ctx.view = Mtx4::LookAt(Vec4(5.0f, 5.0f, 5.0f, 1.0f), Vec4(0, 0, 0, 1), Vec4(0, 1, 0, 0));
                 ctx.projection = Mtx4::Perspective(45.0f, aspect, 0.01f, 100.0f);
                 ctx.viewport = { 0, 0, width, height };
                 ctx.framebufferHandle = framebufferHandle;
 
                 device.clear(ctx);
-                device.draw(ctx);
+                device.drawStaticTestMesh(ctx);
+                // device.drawMeshEnqueue(ctx, Device::MeshHandle{ 1 }); @todo
             }
             
             device.present(framebufferHandle);
