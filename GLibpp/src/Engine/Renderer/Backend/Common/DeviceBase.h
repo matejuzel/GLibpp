@@ -25,7 +25,10 @@ namespace Render {
 
         using Context = DeviceContext<DerivedDevice, DerivedTarget>;
         using Target = DerivedTarget;
-        using TargetHandle = typename StableRegistry<DerivedTarget>::Handle;
+
+        using TargetRegistry = StableRegistry<DerivedTarget>;
+        using TargetHandle = typename TargetRegistry::Handle;
+        static constexpr TargetHandle TARGET_INVALID = TargetRegistry::INVALID;
 
         // typy pro buffery
         using PositionBuffer = typename DeviceTraits<DerivedDevice>::GpuBuffer3D;

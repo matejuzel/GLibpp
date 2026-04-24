@@ -20,6 +20,11 @@ namespace Render {
         Mtx4 projection = Mtx4::Identity();
         Color clearColor = { 0,0,0,255 };
         uint32_t frameIndex = 0;
+
+
+        typename Device::TargetHandle framebufferHandle = Device::TARGET_INVALID;
+        typename Device::TargetHandle depthbufferHandle = Device::TARGET_INVALID;
+
         //typename Device::MeshHandle mesh = { 0 };
         //typename Device::MaterialHandle material = { 0 };
     };
