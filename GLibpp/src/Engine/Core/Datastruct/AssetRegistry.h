@@ -4,13 +4,13 @@
 #include <unordered_map>
 #include <utility>
 #include <limits>
-#include "SlotArray.h"
+#include "StableRegistry.h"
 
 template<typename T>
 class AssetRegistry
 {
 public:
-    using Handle = typename SlotArray<T>::Handle;
+    using Handle = typename StableRegistry<T>::Handle;
 
     static constexpr Handle invalidHandle{ std::numeric_limits<size_t>::max(), 0 };
 
@@ -99,7 +99,7 @@ public:
     }
 
 private:
-    SlotArray<T> slots;
+    StableRegistry<T> slots;
     std::unordered_map<std::string, Handle> name_to_handle;
     size_t counter = 0;
 };

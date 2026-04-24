@@ -1,7 +1,7 @@
 #pragma once
 
 #include "Mesh.h"
-#include "SlotArray.h"
+#include "StableRegistry.h"
 #include "AssetRegistry.h"
 #include "VertexBuffer.h"
 
@@ -26,7 +26,7 @@ namespace Render {
 
 
         // properities
-        SlotArray<typename Device::Target> targets;
+        StableRegistry<typename Device::Target> targets;
 
         MeshRegistry meshRegistry;
 

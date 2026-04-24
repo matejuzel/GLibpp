@@ -1,6 +1,6 @@
 #pragma once
 
-#include "SlotArray.h"
+#include "StableRegistry.h"
 #include "Mesh.h"
 
 namespace Render {
@@ -25,7 +25,7 @@ namespace Render {
 
         using Context = DeviceContext<DerivedDevice, DerivedTarget>;
         using Target = DerivedTarget;
-        using TargetHandle = typename SlotArray<DerivedTarget>::Handle;
+        using TargetHandle = typename StableRegistry<DerivedTarget>::Handle;
 
         // typy pro buffery
         using PositionBuffer = typename DeviceTraits<DerivedDevice>::GpuBuffer3D;

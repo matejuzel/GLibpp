@@ -6,7 +6,7 @@
 #include <cassert>
 #include <cstdint>
 template<typename T>
-class SlotArray {
+class StableRegistry {
 public:
 
     struct Handle {

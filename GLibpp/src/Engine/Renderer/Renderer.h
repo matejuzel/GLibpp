@@ -28,7 +28,7 @@
 
 #include "Mesh.h"
 
-#include "SlotArray.h"
+#include "StableRegistry.h"
 #include "AssetRegistry.h"
 
 namespace Render {
