@@ -43,10 +43,10 @@ namespace Render {
         using Context = Device::Context;
         using ResourceManager = RenderResourceManager<Device>;
 
-        using TargetHandle = ResourceManager::TargetHandle;
+        using TargetHandle = Device::TargetHandle;
+        static constexpr TargetHandle TARGET_INVALID;
 
         ResourceManager resources;
-
 
         TargetHandle framebufferHandle;
         TargetHandle depthbufferHandle;
@@ -55,12 +55,12 @@ namespace Render {
         Renderer(WindowWin32& window)
             : device(std::make_unique<Device>(window))
             , framebufferHandle(
-                resources.targets.add(
+                device->targets.add(
                     RenderTargetDescriptor::FramebufferRGBA32bit(window.getClientWidth(), window.getClientHeight())
                 )
             )
             , depthbufferHandle(
-                resources.targets.add(
+                device->targets.add(
                     RenderTargetDescriptor::Depthbuffer24bit(window.getClientWidth(), window.getClientHeight())
                 )
             )
@@ -79,52 +79,35 @@ namespace Render {
 
                 Mesh* msh = resources.meshRegistry.get(MeshCubeHandler);
 
-
                 device->registerMesh(*msh);
-
             }
-
-            auto& framebuffer = resources.targets.get(framebufferHandle);
-
+            
+            auto& framebuffer = device->targets.get(framebufferHandle);
+            
             {
-
                 uint32_t width = framebuffer.descriptor.width;
                 uint32_t height = framebuffer.descriptor.height;
                 float aspect = static_cast<float>(width) / static_cast<float>(height);
-
                 auto ctx = device->createContext();
+                
                 ctx.frameIndex = frameIndex;
                 ctx.clearColor = Color::Grayscale(0.4f);
-                ctx.view = Mtx4::LookAt(
-                    Vec4(5 + ctx.frameIndex / 100.0f, 5.0f, 5.0f, 1.0f),
-                    Vec4(0, 0, 0, 1),
-                    Vec4(0, 1, 0, 0)
-                );
-                ctx.projection = Mtx4::Perspective(
-                    45.0f,
-                    aspect,
-                    0.01f,
-                    100.0f
-                );
-                ctx.viewport = {
-                    0,0,
-                    width,height
-                };
+                ctx.view = Mtx4::LookAt(Vec4(5 + ctx.frameIndex / 100.0f, 5.0f, 5.0f, 1.0f), Vec4(0, 0, 0, 1), Vec4(0, 1, 0, 0));
+                ctx.projection = Mtx4::Perspective(45.0f, aspect, 0.01f, 100.0f);
+                ctx.viewport = { 0, 0, width, height };
+                ctx.framebufferHandle = framebufferHandle;
 
-                device->clear(ctx, framebuffer);
-                device->draw(ctx, framebuffer);
+                device->clear(ctx);
+                device->draw(ctx);
             }
 
-            device->present(framebuffer);
-
-            //device-> // tady mi IDE nenapovida spravne...
-
+            device->present(framebufferHandle);
         }
 
         void resize(uint32_t width, uint32_t height)
         {
-            resources.targets.reset(framebufferHandle, RenderTargetDescriptor::FramebufferRGBA32bit(width, height));
-            resources.targets.reset(depthbufferHandle, RenderTargetDescriptor::Depthbuffer24bit(width, height));
+            device->targets.reset(framebufferHandle, RenderTargetDescriptor::FramebufferRGBA32bit(width, height));
+            device->targets.reset(depthbufferHandle, RenderTargetDescriptor::Depthbuffer24bit(width, height));
         }
     };
 

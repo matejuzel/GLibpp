@@ -30,6 +30,8 @@ namespace Render {
         using TargetHandle = typename TargetRegistry::Handle;
         static constexpr TargetHandle TARGET_INVALID = TargetRegistry::INVALID;
 
+        StableRegistry<Target> targets;
+
         // typy pro buffery
         using PositionBuffer = typename DeviceTraits<DerivedDevice>::GpuBuffer3D;
         using VectorBuffer = typename DeviceTraits<DerivedDevice>::GpuBuffer3D;
@@ -39,19 +41,28 @@ namespace Render {
         DeviceBase(WindowWin32& window) : window(window) {}
         ~DeviceBase() = default;
 
-        void draw(const Context& ctx, DerivedTarget& target) noexcept
+        
+        void draw(const Context& ctx) noexcept 
         {
-            static_cast<DerivedDevice*>(this)->drawImpl(ctx, target);
+            
+            if (targets.isValid(ctx.framebufferHandle)) {
+                // vynutime kontrolu validnosti targetu uz tady v Base
+                static_cast<DerivedDevice*>(this)->drawImpl(ctx);
+            }
         }
 
-        void clear(const Context& ctx, DerivedTarget& target) noexcept
+        void clear(const Context& ctx) noexcept
         {
-            static_cast<DerivedDevice*>(this)->clearImpl(ctx, target);
+            if (targets.isValid(ctx.framebufferHandle)) {
+                static_cast<DerivedDevice*>(this)->clearImpl(ctx);
+            }
         }
 
-        void present(DerivedTarget& target) noexcept
+        void present(TargetHandle targetHandle) noexcept
         {
-            static_cast<DerivedDevice*>(this)->presentImpl(target);
+            if (targets.isValid(targetHandle)) {
+                static_cast<DerivedDevice*>(this)->presentImpl(targetHandle);
+            }
         }
 
         void registerMesh(const Mesh& mesh) noexcept
@@ -66,6 +77,16 @@ namespace Render {
 
     };
 
+    /*
+    template <typename DerivedDevice, typename DerivedTarget>
+    using TargetRegistry = StableRegistry<DerivedTarget>;
+
+    template <typename DerivedDevice, typename DerivedTarget>
+    using TargetHandle = typename DeviceBase<DerivedDevice, DerivedTarget>::TargetHandle;
+
+    template <typename DerivedDevice, typename DerivedTarget>
+    static constexpr TargetHandle TARGET_INVALID = TargetRegistry::INVALID;
+    */
 }
 
 

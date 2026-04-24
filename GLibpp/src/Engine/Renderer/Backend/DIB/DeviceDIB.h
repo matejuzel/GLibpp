@@ -56,8 +56,12 @@ namespace Render {
 
         VertexBuffer<Self> vertexBuffer;
 
-        void drawImpl(const Context& ctx, Target& target) noexcept
+        void drawImpl(const Context& ctx) noexcept
         {
+            
+            Target& target = targets.get(ctx.framebufferHandle);
+
+
             int verts[4][2] = {
                 {-1,-1},
                 { 1,-1},
@@ -114,16 +118,18 @@ namespace Render {
             );
         }
 
-        void clearImpl(const Context& ctx, Target& target) noexcept
+        void clearImpl(const Context& ctx) noexcept
         {
+            Target& target = targets.get(ctx.framebufferHandle);
             uint32_t color = ctx.clearColor.toRGBA();
             size_t size = target.descriptor.width * target.descriptor.height;
             std::fill_n(target.framebuffer, size, color);
-            // dalo by se pouzit SSE (SIMD) pro rychlejší vyplnìní, ale pro jednoduchost a pøehlednost teï použijeme std::fill_n
+            // dalo by se pouzit SSE (SIMD) pro rychlejší vyplnìní, ale pro jednoduchost a pøehlednost teï použijeme std::fill_n   
         }
 
-        void presentImpl(Target& target) noexcept
+        void presentImpl(TargetHandle targetHandle) noexcept
         {
+            Target& target = targets.get(targetHandle);
             HDC targetDC = window.getHDC();
             HDC sourceDC = target.getDC();
             uint32_t width = target.descriptor.width;

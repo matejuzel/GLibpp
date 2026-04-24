@@ -20,13 +20,13 @@ namespace Render {
         using MeshHandle = typename MeshRegistry::Handle;
 
         // types
-        using TargetHandle = typename Device::TargetHandle;
+        //using TargetHandle = typename Device::TargetHandle;
         using MeshInstanceHandle = uint32_t;
         using TextureHandle = uint32_t;
 
 
         // properities
-        StableRegistry<typename Device::Target> targets;
+        
 
         MeshRegistry meshRegistry;
 

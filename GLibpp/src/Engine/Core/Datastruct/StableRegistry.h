@@ -17,10 +17,9 @@ public:
         {
             return index == other.index && generation == other.generation;
         }
-
     };
 
-    static constexpr Handle INVALID{std::numeric_limits<uint32_t>::max(), 0};
+    static constexpr Handle INVALID{ std::numeric_limits<uint32_t>::max(), 0 };
 
     template<typename... Args>
     Handle add(Args&&... args) {
