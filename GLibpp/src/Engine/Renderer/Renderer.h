@@ -39,17 +39,14 @@ namespace Render {
 
         std::unique_ptr<Device> device;
 
-
-        using Context = Device::Context;
         using ResourceManager = RenderResourceManager<Device>;
-
-        using TargetHandle = Device::TargetHandle;
-        static constexpr TargetHandle TARGET_INVALID;
+        typename Device::TargetHandle framebufferHandle;
+        typename Device::TargetHandle depthbufferHandle;
 
         ResourceManager resources;
 
-        TargetHandle framebufferHandle;
-        TargetHandle depthbufferHandle;
+        //using Context = typename Device::Context;
+        //static constexpr auto TARGET_INVALID = Device::TARGET_INVALID; // takhle mohu pouzit TARGET_INVALID - pokud bude potreba
 
     public:
         Renderer(WindowWin32& window)
@@ -82,6 +79,7 @@ namespace Render {
                 device->registerMesh(*msh);
             }
             
+
             auto& framebuffer = device->targets.get(framebufferHandle);
             
             {
