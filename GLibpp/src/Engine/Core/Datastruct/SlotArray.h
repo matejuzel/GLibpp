@@ -1,6 +1,10 @@
 ﻿#pragma once
 
+#include <vector>
+#include <memory>
+#include <limits>
 #include <cassert>
+#include <cstdint>
 template<typename T>
 class SlotArray {
 public:
@@ -8,7 +12,15 @@ public:
     struct Handle {
         size_t index;
         uint32_t generation;
+
+        bool operator==(const Handle& other) const 
+        {
+            return index == other.index && generation == other.generation;
+        }
+
     };
+
+    static constexpr Handle INVALID{std::numeric_limits<uint32_t>::max(), 0};
 
     template<typename... Args>
     Handle add(Args&&... args) {
@@ -37,9 +49,9 @@ public:
     }
 
     bool isValid(Handle h) const {
-        return h.index < items.size() &&
-            items[h.index] != nullptr &&
-            generations[h.index] == h.generation;
+        if (h == INVALID) return false;
+        if (h.index >= items.size()) return false;
+        return h.index < items.size() && items[h.index] != nullptr && generations[h.index] == h.generation;
     }
 
     T& get(Handle h) {
