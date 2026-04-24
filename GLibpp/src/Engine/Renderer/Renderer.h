@@ -21,7 +21,7 @@
 #include "DeviceDIB.h"
 
 // Backend Stencil
-#include "RenderDeviceStencil.h"
+//#include "RenderDeviceStencil.h"
 
 
 #include "RenderResourceManager.h"
@@ -37,7 +37,8 @@ namespace Render {
     class Renderer {
     private:
 
-        std::unique_ptr<Device> device;
+        //std::unique_ptr<Device> device;
+        Device device;
 
         using ResourceManager = RenderResourceManager<Device>;
         typename Device::TargetHandle framebufferHandle;
@@ -50,14 +51,15 @@ namespace Render {
 
     public:
         Renderer(WindowWin32& window)
-            : device(std::make_unique<Device>(window))
+            //: device(std::make_unique<Device>(window))
+            : device(window)
             , framebufferHandle(
-                device->targets.add(
+                device.targets.add(
                     RenderTargetDescriptor::FramebufferRGBA32bit(window.getClientWidth(), window.getClientHeight())
                 )
             )
             , depthbufferHandle(
-                device->targets.add(
+                device.targets.add(
                     RenderTargetDescriptor::Depthbuffer24bit(window.getClientWidth(), window.getClientHeight())
                 )
             )
@@ -76,17 +78,17 @@ namespace Render {
 
                 Mesh* msh = resources.meshRegistry.get(MeshCubeHandler);
 
-                device->registerMesh(*msh);
+                device.registerMesh(*msh);
             }
             
 
-            auto& framebuffer = device->targets.get(framebufferHandle);
+            auto& framebuffer = device.targets.get(framebufferHandle);
             
             {
                 uint32_t width = framebuffer.descriptor.width;
                 uint32_t height = framebuffer.descriptor.height;
                 float aspect = static_cast<float>(width) / static_cast<float>(height);
-                auto ctx = device->createContext();
+                auto ctx = device.createContext();
                 
                 ctx.frameIndex = frameIndex;
                 ctx.clearColor = Color::Grayscale(0.4f);
@@ -95,17 +97,18 @@ namespace Render {
                 ctx.viewport = { 0, 0, width, height };
                 ctx.framebufferHandle = framebufferHandle;
 
-                device->clear(ctx);
-                device->draw(ctx);
+                device.clear(ctx);
+                device.draw(ctx);
             }
-
-            device->present(framebufferHandle);
+            
+            device.present(framebufferHandle);
         }
 
         void resize(uint32_t width, uint32_t height)
         {
-            device->targets.reset(framebufferHandle, RenderTargetDescriptor::FramebufferRGBA32bit(width, height));
-            device->targets.reset(depthbufferHandle, RenderTargetDescriptor::Depthbuffer24bit(width, height));
+            
+            device.targets.reset(framebufferHandle, RenderTargetDescriptor::FramebufferRGBA32bit(width, height));
+            device.targets.reset(depthbufferHandle, RenderTargetDescriptor::Depthbuffer24bit(width, height));
         }
     };
 
