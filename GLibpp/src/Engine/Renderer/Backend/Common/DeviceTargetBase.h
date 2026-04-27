@@ -8,7 +8,7 @@ namespace Render {
     class DeviceTargetBase
     {
     public:
-
+        
         RenderTargetDescriptor descriptor;
 
         DeviceTargetBase() = default;

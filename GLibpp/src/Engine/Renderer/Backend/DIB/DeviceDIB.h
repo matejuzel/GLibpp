@@ -10,6 +10,17 @@
 
 namespace Render {
 
+
+    template<typename Device, typename Target>
+    struct RegistryDIB
+    {
+        VertexBuffer<Device> vertexBuffer;
+        std::vector<DeviceTargetBase<Device, Target>> textures;
+        // ..
+    };
+
+
+
     // forward - kvuli pouziti friend
     template<typename D, typename T> class DeviceBase;
 
@@ -65,7 +76,10 @@ namespace Render {
         using GpuBuffer2D = DeviceTraits<Self>::GpuBuffer2D;
         using GpuIndexBuffer = DeviceTraits<Self>::GpuIndexBuffer;
 
-        VertexBuffer<Self> vertexBuffer;
+
+
+        RegistryDIB<Self, Target> registry;
+
 
         void drawStaticTestMeshImpl(const Context& ctx) noexcept
         {
@@ -158,12 +172,12 @@ namespace Render {
         void registerMeshImpl(const Mesh& mesh) noexcept
         {
 
-            vertexBuffer.positions.push_back(3.14f);
-            vertexBuffer.positions.push_back(4.0f);
-            vertexBuffer.positions.push_back(54.2f);
+            registry.vertexBuffer.positions.push_back(3.14f);
+            registry.vertexBuffer.positions.push_back(4.0f);
+            registry.vertexBuffer.positions.push_back(54.2f);
 
             std::cout << "RegisterMesh(@todo)" << std::endl;
-            for (auto v : vertexBuffer.positions) {
+            for (auto v : registry.vertexBuffer.positions) {
 
                 std::cout << v << std::endl;
             }
