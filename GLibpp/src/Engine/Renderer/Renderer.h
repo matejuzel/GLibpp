@@ -69,7 +69,7 @@ namespace Render {
                 ctx.projection = Mtx4::Perspective(camera.fovRad, viewport.computeAspectRatio(), camera.nearZ, camera.farZ);
                 ctx.viewport = viewport;
                 ctx.framebufferHandle = resources.framebufferHandle;
-
+                
                 device.clear(ctx);
                 device.drawStaticTestMesh(ctx);
             }

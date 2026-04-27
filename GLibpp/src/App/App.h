@@ -26,7 +26,9 @@ private:
     using RendererEngine = Render::Renderer<RenderDevice>;
 
     std::unique_ptr<WindowWin32> window;
-    std::unique_ptr<RendererEngine> renderer;
+
+	//std::unique_ptr<RendererEngine> renderer; // obecny renderer, ktery pouziva RenderDevice (DIB, Stencil, ...), ktery se zvoli definici makra RENDER_BACKEND_XXX
+    std::unique_ptr<Render::Renderer<Render::DeviceDIB>> renderer; // pro vyvoj pouzijeme takhle explicitne, kvuli napovidani v IDE...
 
     bool fullscreen = false;
 	bool running = true;
