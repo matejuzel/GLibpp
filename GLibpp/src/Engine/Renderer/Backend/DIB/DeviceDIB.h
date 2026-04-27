@@ -10,7 +10,6 @@
 
 namespace Render {
 
-
     template<typename Device, typename Target>
     struct RegistryDIB
     {

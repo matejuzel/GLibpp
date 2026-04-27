@@ -23,7 +23,7 @@ namespace Render {
 
     public:
 
-        using Context = DeviceContext<DerivedDevice, DerivedTarget>;
+        using Context = DeviceContext<DerivedDevice>;
         using Target = DerivedTarget;
 
         using TargetRegistry = StableRegistry<DerivedTarget>;
