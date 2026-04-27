@@ -46,6 +46,11 @@ namespace Render {
 
         ResourceManager resources;
 
+        float cameraAspect;
+		uint32_t cameraFov;
+		uint32_t width;
+		uint32_t height;
+
         //using Context = typename Device::Context;
         //static constexpr auto TARGET_INVALID = Device::TARGET_INVALID; // takhle mohu pouzit TARGET_INVALID - pokud bude potreba
 
@@ -64,6 +69,11 @@ namespace Render {
                 )
             )
         {
+			width = window.getClientWidth();
+			height = window.getClientHeight();
+            cameraAspect = static_cast<float>(width) / static_cast<float>(height);
+            cameraFov = 45;
+
             std::cout << "frame buffer: " << framebufferHandle << std::endl;
             std::cout << "depth buffer: " << depthbufferHandle << std::endl;
         }
@@ -84,18 +94,14 @@ namespace Render {
             }
             
 
-			auto& framebuffer = device.targetGet(framebufferHandle);
             
             {
-                uint32_t width = framebuffer.descriptor.width;
-                uint32_t height = framebuffer.descriptor.height;
-                float aspect = static_cast<float>(width) / static_cast<float>(height);
                 auto ctx = device.createContext();
                 
                 ctx.frameIndex = frameIndex;
                 ctx.clearColor = Color::Grayscale(0.4f);
                 ctx.view = Mtx4::LookAt(Vec4(5.0f, 5.0f, 5.0f, 1.0f), Vec4(0, 0, 0, 1), Vec4(0, 1, 0, 0));
-                ctx.projection = Mtx4::Perspective(45.0f, aspect, 0.01f, 100.0f);
+                ctx.projection = Mtx4::Perspective(cameraFov, cameraAspect, 0.01f, 100.0f);
                 ctx.viewport = { 0, 0, width, height };
                 ctx.framebufferHandle = framebufferHandle;
 
@@ -113,6 +119,10 @@ namespace Render {
         {   
 			framebufferHandle = device.targetResize(framebufferHandle, width, height);
             depthbufferHandle = device.targetResize(depthbufferHandle, width, height);
+            
+			this->width = width;
+			this->height = height;
+            cameraAspect = static_cast<float>(width) / static_cast<float>(height);
         }
     };
 
