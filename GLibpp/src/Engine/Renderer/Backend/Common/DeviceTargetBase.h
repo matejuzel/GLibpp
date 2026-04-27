@@ -4,7 +4,7 @@
 
 namespace Render {
 
-    template<typename Device, typename DerivedTarget>
+    template<typename Device>
     class DeviceTargetBase
     {
     public:

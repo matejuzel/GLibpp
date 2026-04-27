@@ -9,7 +9,7 @@ namespace Render {
     class DeviceTargetDIB; // forward
 
     namespace internal {
-        using RenderTargetDIBBase = DeviceTargetBase<DeviceDIB, DeviceTargetDIB>;
+        using RenderTargetDIBBase = DeviceTargetBase<DeviceDIB>;
     };
 
     class DeviceTargetDIB : public internal::RenderTargetDIBBase

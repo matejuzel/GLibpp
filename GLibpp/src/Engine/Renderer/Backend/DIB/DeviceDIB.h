@@ -2,6 +2,7 @@
 
 #include "RasterizatorDIB.h"
 #include "Color.h"
+#include "DeviceBase.h"
 #include "VertexBuffer.h"
 #include "WindowWin32.h"
 #include "Win32Dc.h"
@@ -10,14 +11,17 @@
 
 namespace Render {
 
-    template<typename Device, typename Target>
+    
+    template<typename Device>
     struct RegistryDIB
     {
         VertexBuffer<Device> vertexBuffer;
-        std::vector<DeviceTargetBase<Device, Target>> textures;
+
+        typename Device::TargetRegistry targets;
+
+        //StableRegistry<DeviceTargetBase<Device>> targets;
         // ..
     };
-
 
 
     // forward - kvuli pouziti friend
@@ -54,6 +58,12 @@ namespace Render {
         using Self = DeviceDIB;
         using Base = internal::DeviceDIBBase;
 
+        RegistryDIB<Self> registry;
+
+        
+
+        
+
     public:
 
         /* problem s nenapovidanim IDE to nevyresilo
@@ -76,15 +86,34 @@ namespace Render {
         using GpuIndexBuffer = DeviceTraits<Self>::GpuIndexBuffer;
 
 
+        TargetHandle targetCreateImpl(const RenderTargetDescriptor& descriptor) noexcept 
+        {
+            return registry.targets.add(descriptor);
+        }
 
-        RegistryDIB<Self, Target> registry;
+        TargetHandle targetResizeImpl(TargetHandle target_h, uint32_t width, uint32_t height) noexcept
+        {
+			if (!registry.targets.isValid(target_h)) return TARGET_INVALID;
+            
+            auto descriptor = registry.targets.get(target_h).descriptor;
+            descriptor.width = width;
+            descriptor.height = height;
+            registry.targets.reset(target_h, descriptor);
+            return target_h;
+		}
 
+        Target& targetGetImpl(TargetHandle targetHandle)
+        {
+            if (!registry.targets.isValid(targetHandle)) throw std::runtime_error("Invalid TargetHandle: " + std::to_string(targetHandle.index) + ", " + std::to_string(targetHandle.generation));
+            return registry.targets.get(targetHandle);
+		}
 
         void drawStaticTestMeshImpl(const Context& ctx) noexcept
         {
             
-            Target& target = targets.get(ctx.framebufferHandle);
+            if (!registry.targets.isValid(ctx.framebufferHandle)) return;
 
+            Target& target = registry.targets.get(ctx.framebufferHandle);
 
             int verts[4][2] = {
                 {-1,-1},
@@ -151,7 +180,9 @@ namespace Render {
 
         void clearImpl(const Context& ctx) noexcept
         {
-            Target& target = targets.get(ctx.framebufferHandle);
+            if (!registry.targets.isValid(ctx.framebufferHandle)) return;
+
+            Target& target = registry.targets.get(ctx.framebufferHandle);
             uint32_t color = ctx.clearColor.toRGBA();
             size_t size = target.descriptor.width * target.descriptor.height;
             std::fill_n(target.framebuffer, size, color);
@@ -160,7 +191,9 @@ namespace Render {
 
         void presentImpl(TargetHandle targetHandle) noexcept
         {
-            Target& target = targets.get(targetHandle);
+            if (!registry.targets.isValid(targetHandle)) return;
+
+            Target& target = registry.targets.get(targetHandle);
             HDC targetDC = window.getHDC();
             HDC sourceDC = target.getDC();
             uint32_t width = target.descriptor.width;
@@ -170,16 +203,18 @@ namespace Render {
 
         void registerMeshImpl(const Mesh& mesh) noexcept
         {
+            
+            //registry.vertexBuffer.positions.push_back(3.14f);
+            //registry.vertexBuffer.positions.push_back(4.0f);
+            //registry.vertexBuffer.positions.push_back(54.2f);
 
-            registry.vertexBuffer.positions.push_back(3.14f);
-            registry.vertexBuffer.positions.push_back(4.0f);
-            registry.vertexBuffer.positions.push_back(54.2f);
-
+            /*
             std::cout << "RegisterMesh(@todo)" << std::endl;
             for (auto v : registry.vertexBuffer.positions) {
 
                 std::cout << v << std::endl;
             }
+            */
             /*
 
 

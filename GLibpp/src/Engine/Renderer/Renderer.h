@@ -54,16 +54,18 @@ namespace Render {
             //: device(std::make_unique<Device>(window))
             : device(window)
             , framebufferHandle(
-                device.targets.add(
+				device.targetCreate(
                     RenderTargetDescriptor::FramebufferRGBA32bit(window.getClientWidth(), window.getClientHeight())
                 )
             )
             , depthbufferHandle(
-                device.targets.add(
+                device.targetCreate(
                     RenderTargetDescriptor::Depthbuffer24bit(window.getClientWidth(), window.getClientHeight())
                 )
             )
         {
+            std::cout << "frame buffer: " << framebufferHandle << std::endl;
+            std::cout << "depth buffer: " << depthbufferHandle << std::endl;
         }
 
         void renderFrame(uint32_t frameIndex)
@@ -82,7 +84,7 @@ namespace Render {
             }
             
 
-            auto& framebuffer = device.targets.get(framebufferHandle);
+			auto& framebuffer = device.targetGet(framebufferHandle);
             
             {
                 uint32_t width = framebuffer.descriptor.width;
@@ -99,6 +101,8 @@ namespace Render {
 
                 device.clear(ctx);
                 device.drawStaticTestMesh(ctx);
+
+                
                 // device.drawMeshEnqueue(ctx, Device::MeshHandle{ 1 }); @todo
             }
             
@@ -106,10 +110,9 @@ namespace Render {
         }
 
         void resize(uint32_t width, uint32_t height)
-        {
-            
-            device.targets.reset(framebufferHandle, RenderTargetDescriptor::FramebufferRGBA32bit(width, height));
-            device.targets.reset(depthbufferHandle, RenderTargetDescriptor::Depthbuffer24bit(width, height));
+        {   
+			framebufferHandle = device.targetResize(framebufferHandle, width, height);
+            depthbufferHandle = device.targetResize(depthbufferHandle, width, height);
         }
     };
 

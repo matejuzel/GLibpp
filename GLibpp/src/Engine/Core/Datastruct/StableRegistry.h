@@ -5,6 +5,9 @@
 #include <limits>
 #include <cassert>
 #include <cstdint>
+#include <iostream>
+#include <string>
+
 template<typename T>
 class StableRegistry {
 public:
@@ -13,13 +16,23 @@ public:
         size_t index;
         uint32_t generation;
 
-        bool operator==(const Handle& other) const 
+        bool operator==(const Handle& other) const
         {
             return index == other.index && generation == other.generation;
+        }
+
+        friend std::ostream& operator<<(std::ostream& os, const Handle& h) {
+            return os << "Handle(index=" << h.index << ", generation=" << h.generation << ")";
         }
     };
 
     static constexpr Handle INVALID{ std::numeric_limits<uint32_t>::max(), 0 };
+
+
+    StableRegistry() = default;
+
+    StableRegistry(const StableRegistry&) = delete;
+    StableRegistry& operator=(const StableRegistry&) = delete;
 
     template<typename... Args>
     Handle add(Args&&... args) {
@@ -75,10 +88,11 @@ public:
 
         // generace se NEMĚNÍ → handle zůstává validní
     }
-
+    
 
 private:
     std::vector<std::unique_ptr<T>> items;
     std::vector<uint32_t> generations;
     std::vector<size_t> freeList;
 };
+

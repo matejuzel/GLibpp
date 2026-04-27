@@ -1,5 +1,6 @@
 #pragma once
 
+
 #include "StableRegistry.h"
 #include "Mesh.h"
 
@@ -26,11 +27,10 @@ namespace Render {
         using Context = DeviceContext<DerivedDevice>;
         using Target = DerivedTarget;
 
-        using TargetRegistry = StableRegistry<DerivedTarget>;
+        using TargetRegistry = StableRegistry<Target>;
         using TargetHandle = typename TargetRegistry::Handle;
         static constexpr TargetHandle TARGET_INVALID = TargetRegistry::INVALID;
 
-        StableRegistry<Target> targets;
 
         using MeshHandle = uint32_t; // @todo
 
@@ -43,35 +43,40 @@ namespace Render {
         DeviceBase(WindowWin32& window) : window(window) {}
         ~DeviceBase() = default;
 
+
+        TargetHandle targetCreate(const RenderTargetDescriptor& descriptor) noexcept
+        {
+            return static_cast<DerivedDevice*>(this)->targetCreateImpl(descriptor);
+		}
+
+        TargetHandle targetResize(TargetHandle target_h, uint32_t width, uint32_t height) noexcept
+        {
+            return static_cast<DerivedDevice*>(this)->targetResizeImpl(target_h, width, height);
+        }
+
+        Target& targetGet(TargetHandle targetHandle)
+        {
+            return static_cast<DerivedDevice*>(this)->targetGetImpl(targetHandle);
+		}
         
         void drawStaticTestMesh(const Context& ctx) noexcept
         {
-            
-            if (targets.isValid(ctx.framebufferHandle)) {
-                // vynutime kontrolu validnosti targetu uz tady v Base
-                static_cast<DerivedDevice*>(this)->drawStaticTestMeshImpl(ctx);
-            }
+            static_cast<DerivedDevice*>(this)->drawStaticTestMeshImpl(ctx);
         }
 
         void drawMeshEnqueue(const Context& ctx, MeshHandle meshHandle)
         {
-            if (targets.isValid(ctx.framebufferHandle)) {
-                static_cast<DerivedDevice*>(this)->drawMeshEnqueueImpl(ctx);
-            }
+            static_cast<DerivedDevice*>(this)->drawMeshEnqueueImpl(ctx);
         }
 
         void clear(const Context& ctx) noexcept
         {
-            if (targets.isValid(ctx.framebufferHandle)) {
-                static_cast<DerivedDevice*>(this)->clearImpl(ctx);
-            }
+            static_cast<DerivedDevice*>(this)->clearImpl(ctx);
         }
 
         void present(TargetHandle targetHandle) noexcept
         {
-            if (targets.isValid(targetHandle)) {
-                static_cast<DerivedDevice*>(this)->presentImpl(targetHandle);
-            }
+            static_cast<DerivedDevice*>(this)->presentImpl(targetHandle);
         }
 
         void registerMesh(const Mesh& mesh) noexcept
@@ -86,16 +91,7 @@ namespace Render {
 
     };
 
-    /*
-    template <typename DerivedDevice, typename DerivedTarget>
-    using TargetRegistry = StableRegistry<DerivedTarget>;
 
-    template <typename DerivedDevice, typename DerivedTarget>
-    using TargetHandle = typename DeviceBase<DerivedDevice, DerivedTarget>::TargetHandle;
-
-    template <typename DerivedDevice, typename DerivedTarget>
-    static constexpr TargetHandle TARGET_INVALID = TargetRegistry::INVALID;
-    */
 }
 
 
