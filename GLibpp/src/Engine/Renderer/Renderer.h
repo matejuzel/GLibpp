@@ -56,7 +56,6 @@ namespace Render {
 
     public:
         Renderer(WindowWin32& window)
-            //: device(std::make_unique<Device>(window))
             : device(window)
             , framebufferHandle(
 				device.targetCreate(
@@ -69,10 +68,7 @@ namespace Render {
                 )
             )
         {
-			width = window.getClientWidth();
-			height = window.getClientHeight();
-            cameraAspect = static_cast<float>(width) / static_cast<float>(height);
-            cameraFov = 45;
+			resize(window.getClientWidth(), window.getClientHeight());
 
             std::cout << "frame buffer: " << framebufferHandle << std::endl;
             std::cout << "depth buffer: " << depthbufferHandle << std::endl;
@@ -119,9 +115,10 @@ namespace Render {
         {   
 			framebufferHandle = device.targetResize(framebufferHandle, width, height);
             depthbufferHandle = device.targetResize(depthbufferHandle, width, height);
-            
+
 			this->width = width;
 			this->height = height;
+            cameraFov = 45;
             cameraAspect = static_cast<float>(width) / static_cast<float>(height);
         }
     };
