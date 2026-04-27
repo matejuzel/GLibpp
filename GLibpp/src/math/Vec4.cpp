@@ -40,7 +40,7 @@ Vec4 Vec4::normalize(const Vec4& v) {
     return Vec4(v.x / len, v.y / len, v.z / len, v.w / len);
 }
 
-float Vec4::dot(const Vec4& v)
+float Vec4::dot(const Vec4& v) const
 {   
     return Vec4::dot(*this, v);
 }

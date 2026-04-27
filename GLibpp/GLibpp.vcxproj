@@ -33,6 +33,7 @@
     <ClInclude Include="src\Engine\Core\Datastruct\DoubleBuffer.h" />
     <ClInclude Include="src\Engine\Core\Datastruct\StableRegistry.h" />
     <ClInclude Include="src\Engine\Core\handles.h" />
+    <ClInclude Include="src\Engine\Geometry\Camera.h" />
     <ClInclude Include="src\Engine\Geometry\Material.h" />
     <ClInclude Include="src\Engine\Geometry\Mesh.h" />
     <ClInclude Include="src\Engine\Geometry\MeshInstance.h" />
@@ -51,7 +52,7 @@
     <ClInclude Include="src\Engine\Renderer\Backend\Stencil\RenderTargetStencil.h" />
     <ClInclude Include="src\Engine\Renderer\Color.h" />
     <ClInclude Include="src\Engine\Renderer\Renderer.h" />
-    <ClInclude Include="src\Engine\Renderer\RenderResourceManager.h" />
+    <ClInclude Include="src\Engine\Renderer\ResourceManager.h" />
     <ClInclude Include="src\Engine\Renderer\RenderState.h" />
     <ClInclude Include="src\Engine\Renderer\RenderTargetDescriptor.h" />
     <ClInclude Include="src\Engine\Renderer\TextureFormat.h" />

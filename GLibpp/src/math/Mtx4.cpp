@@ -487,8 +487,8 @@
         );
     }
 
-    Mtx4 Mtx4::Perspective(float fov, float aspect, float nearZ, float farZ) {
-        float f = 1.0f / tan(fov * 0.5f);
+    Mtx4 Mtx4::Perspective(float fovRad, float aspect, float nearZ, float farZ) {
+        float f = 1.0f / tan(fovRad * 0.5f);
         return Mtx4(
             f / aspect, 0, 0, 0,
             0, f, 0, 0,

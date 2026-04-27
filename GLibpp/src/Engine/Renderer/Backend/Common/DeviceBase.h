@@ -43,6 +43,7 @@ namespace Render {
         DeviceBase(WindowWin32& window) : window(window) {}
         ~DeviceBase() = default;
 
+		WindowWin32& getWindow() const noexcept { return window; }
 
         TargetHandle targetCreate(const RenderTargetDescriptor& descriptor) noexcept
         {

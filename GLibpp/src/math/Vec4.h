@@ -23,7 +23,7 @@ public:
     static Vec4 cross(const Vec4& a, const Vec4& b);
     static Vec4 normalize(const Vec4& v);
 
-    float dot(const Vec4& v);
+    float dot(const Vec4& v) const;
     Vec4& cross(const Vec4& v);
 
     Vec4 operator+(const Vec4& o) const;

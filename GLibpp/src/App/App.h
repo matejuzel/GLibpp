@@ -5,6 +5,7 @@
 #include "Renderer.h"
 #include "RenderCommandList.h"
 #include "Mtx4.h"
+#include "Camera.h"
 
 #define RENDER_BACKEND_DIB
 
@@ -29,6 +30,9 @@ private:
 
     bool fullscreen = false;
 	bool running = true;
+
+    Camera camera = Camera::Demo(45);
+
 
     bool checkWindowInitialized() const {
         if (window.get() == nullptr) {
@@ -103,7 +107,7 @@ public:
         uint32_t frameIndex = 0;
         while (running) {
             window->pollEvents();
-            renderer->renderFrame(frameIndex++);
+            renderer->renderFrame(camera, frameIndex++);
         }
 	}
 

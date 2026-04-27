@@ -23,8 +23,6 @@ namespace Render {
         typename Device::TargetHandle framebufferHandle = Device::TARGET_INVALID;
         typename Device::TargetHandle depthbufferHandle = Device::TARGET_INVALID;
 
-        //typename Device::MeshHandle mesh = { 0 };
-        //typename Device::MaterialHandle material = { 0 };
     };
 
 }

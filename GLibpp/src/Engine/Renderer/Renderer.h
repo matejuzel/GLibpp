@@ -12,6 +12,7 @@
 #include "Vec4.h"
 #include "Mtx4.h"
 
+#include "Camera.h"
 // Backend Common
 #include "DeviceContext.h"
 #include "DeviceBase.h"
@@ -24,12 +25,13 @@
 //#include "RenderDeviceStencil.h"
 
 
-#include "RenderResourceManager.h"
+#include "ResourceManager.h"
 
 #include "Mesh.h"
 
 #include "StableRegistry.h"
 #include "AssetRegistry.h"
+
 
 namespace Render {
 
@@ -37,89 +39,50 @@ namespace Render {
     class Renderer {
     private:
 
-        //std::unique_ptr<Device> device;
+        using ResourceManager = ResourceManager<Device>;
+
         Device device;
-
-        using ResourceManager = RenderResourceManager<Device>;
-        typename Device::TargetHandle framebufferHandle;
-        typename Device::TargetHandle depthbufferHandle;
-
         ResourceManager resources;
-
-        float cameraAspect;
-		uint32_t cameraFov;
-		uint32_t width;
-		uint32_t height;
-
-        //using Context = typename Device::Context;
-        //static constexpr auto TARGET_INVALID = Device::TARGET_INVALID; // takhle mohu pouzit TARGET_INVALID - pokud bude potreba
+        
+        Viewport viewport;
 
     public:
         Renderer(WindowWin32& window)
             : device(window)
-            , framebufferHandle(
-				device.targetCreate(
-                    RenderTargetDescriptor::FramebufferRGBA32bit(window.getClientWidth(), window.getClientHeight())
-                )
-            )
-            , depthbufferHandle(
-                device.targetCreate(
-                    RenderTargetDescriptor::Depthbuffer24bit(window.getClientWidth(), window.getClientHeight())
-                )
-            )
+			, resources(device)
+			, viewport{ 0, 0, window.getClientWidth(), window.getClientHeight() }
         {
 			resize(window.getClientWidth(), window.getClientHeight());
 
-            std::cout << "frame buffer: " << framebufferHandle << std::endl;
-            std::cout << "depth buffer: " << depthbufferHandle << std::endl;
+            std::cout << "frame buffer: " << resources.framebufferHandle << std::endl;
+            std::cout << "depth buffer: " << resources.depthbufferHandle << std::endl;
         }
 
-        void renderFrame(uint32_t frameIndex)
-        {
-            if (0)
-            {
-                // zatim pouze pro testovani - pak to tu nebude
-                using MeshHandle = RenderResourceManager<Device>::MeshHandle;
-
-                MeshHandle MeshCubeHandler = resources.meshRegistry.add(Mesh::Cube(1.0f));
-                MeshHandle MeshNetHandler = resources.meshRegistry.add(Mesh::Net(20));
-
-                Mesh* msh = resources.meshRegistry.get(MeshCubeHandler);
-
-                device.registerMesh(*msh);
-            }
-            
-
-            
+        void renderFrame(const Camera& camera, uint32_t frameIndex)
+        {   
             {
                 auto ctx = device.createContext();
                 
                 ctx.frameIndex = frameIndex;
                 ctx.clearColor = Color::Grayscale(0.4f);
-                ctx.view = Mtx4::LookAt(Vec4(5.0f, 5.0f, 5.0f, 1.0f), Vec4(0, 0, 0, 1), Vec4(0, 1, 0, 0));
-                ctx.projection = Mtx4::Perspective(cameraFov, cameraAspect, 0.01f, 100.0f);
-                ctx.viewport = { 0, 0, width, height };
-                ctx.framebufferHandle = framebufferHandle;
+                ctx.view = camera.calculateView();
+                ctx.projection = Mtx4::Perspective(camera.fovRad, viewport.computeAspectRatio(), camera.nearZ, camera.farZ);
+                ctx.viewport = viewport;
+                ctx.framebufferHandle = resources.framebufferHandle;
 
                 device.clear(ctx);
                 device.drawStaticTestMesh(ctx);
-
-                
-                // device.drawMeshEnqueue(ctx, Device::MeshHandle{ 1 }); @todo
             }
             
-            device.present(framebufferHandle);
+            device.present(resources.framebufferHandle);
         }
 
         void resize(uint32_t width, uint32_t height)
         {   
-			framebufferHandle = device.targetResize(framebufferHandle, width, height);
-            depthbufferHandle = device.targetResize(depthbufferHandle, width, height);
+			resources.framebufferHandle = device.targetResize(resources.framebufferHandle, width, height);
+            resources.depthbufferHandle = device.targetResize(resources.depthbufferHandle, width, height);
 
-			this->width = width;
-			this->height = height;
-            cameraFov = 45;
-            cameraAspect = static_cast<float>(width) / static_cast<float>(height);
+			viewport.resize(width, height);
         }
     };
 
