@@ -137,9 +137,6 @@
     <ClInclude Include="src\Engine\Core\handles.h">
       <Filter>Zdrojové soubory\Engine\Core</Filter>
     </ClInclude>
-    <ClInclude Include="src\Engine\Renderer\RenderResourceManager.h">
-      <Filter>Zdrojové soubory\Engine\Renderer</Filter>
-    </ClInclude>
     <ClInclude Include="src\Engine\Core\Datastruct\DoubleBuffer.h">
       <Filter>Zdrojové soubory\Engine\Core\Datastruct</Filter>
     </ClInclude>
@@ -167,9 +164,6 @@
     <ClInclude Include="src\Engine\Renderer\Backend\Stencil\RenderDeviceStencil.h">
       <Filter>Zdrojové soubory\Engine\Renderer\Backend\Stencil</Filter>
     </ClInclude>
-    <ClInclude Include="src\Engine\Core\Datastruct\SlotArray.h">
-      <Filter>Zdrojové soubory\Engine\Core\Datastruct</Filter>
-    </ClInclude>
     <ClInclude Include="src\Engine\Geometry\Material.h">
       <Filter>Zdrojové soubory\Engine\Geometry</Filter>
     </ClInclude>
@@ -187,6 +181,18 @@
     </ClInclude>
     <ClInclude Include="src\Platform\Win32\Win32DC.h">
       <Filter>Zdrojové soubory\Platform\Win32</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Engine\Core\Datastruct\StableRegistry.h">
+      <Filter>Hlavičkové soubory</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Engine\Geometry\Camera.h">
+      <Filter>Hlavičkové soubory</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Engine\Renderer\ResourceManager.h">
+      <Filter>Hlavičkové soubory</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Engine\Core\RunState.h">
+      <Filter>Zdrojové soubory\Engine\Core</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

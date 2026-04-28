@@ -6,6 +6,7 @@
 #include "RenderCommandList.h"
 #include "Mtx4.h"
 #include "Camera.h"
+#include "RunState.h"
 #include <atomic>
 #include <thread>
 
@@ -32,11 +33,10 @@ private:
 	//std::unique_ptr<RendererEngine> renderer; // obecny renderer, ktery pouziva RenderDevice (DIB, Stencil, ...), ktery se zvoli definici makra RENDER_BACKEND_XXX
     std::unique_ptr<Render::Renderer<Render::DeviceDIB>> renderer; // pro vyvoj pouzijeme takhle explicitne, kvuli napovidani v IDE...
 
-    bool fullscreen = false;
-    std::atomic<bool> running = { true };
-
     Camera camera = Camera::Demo(45);
 
+    bool fullscreen = false;
+    RunState running;
 
     bool checkWindowInitialized() const {
         if (window.get() == nullptr) {
@@ -73,7 +73,7 @@ public:
             }
 
             window->setOnCloseCallback([this]() {
-                stop();
+                running.stop();
             });
 
             window->setKeyCallback([this](KeyMap key, bool pressed) {
@@ -100,7 +100,7 @@ public:
     void onKeyCallback(KeyMap key, bool pressed) 
     {
         if (key == KeyMap::KEY_ESC && pressed) {
-            stop();
+            running.stop();
         }
 
 		std::cout << "Key event: " << (pressed ? "Pressed" : "Released") << " " << static_cast<int>(key) << std::endl;
@@ -108,13 +108,13 @@ public:
 
     void run()
     {
-		running.store(true, std::memory_order_relaxed);
+        running.start();
         
         std::thread renderThread([this]() {
             renderer->runLoop(camera);
         });
 
-        while (isRunning())
+        while (running.isRunning())
         {
             window->pollEvents();
         }
@@ -126,16 +126,6 @@ public:
             renderThread.join();
         }
 	}
-
-    void stop()
-    {
-        running.store(false, std::memory_order_relaxed);
-    }
-
-    bool isRunning() const
-    {
-        return running.load(std::memory_order_relaxed);
-    }
 
 
 
