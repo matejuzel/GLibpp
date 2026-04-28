@@ -15,6 +15,8 @@ namespace Render {
 		void resize(uint32_t newWidth, uint32_t newHeight) {
 			width = newWidth;
 			height = newHeight;
+
+			if (height == 0) {height = 1;}
 		}
 	};
 }

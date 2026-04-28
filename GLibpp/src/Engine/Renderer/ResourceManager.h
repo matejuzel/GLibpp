@@ -4,6 +4,7 @@
 #include "StableRegistry.h"
 #include "AssetRegistry.h"
 #include "VertexBuffer.h"
+#include "MeshInstance.h"
 
 
 #include <vector>
@@ -14,7 +15,10 @@ namespace Render {
     template <typename Device>
     struct ResourceManager {
 
-		ResourceManager( Device& device )
+		using TargetHandle = typename Device::TargetHandle;
+		using MeshInstanceHandle = typename uint32_t; // @todo
+
+		ResourceManager(Device& device)
 			: device(device)
 		{
 
@@ -22,17 +26,26 @@ namespace Render {
 			auto width = window.getClientWidth();
 			auto height = window.getClientHeight();
 
-			framebufferHandle = device.targetCreate(RenderTargetDescriptor::FramebufferRGBA32bit(width, height));
-			depthbufferHandle = device.targetCreate(RenderTargetDescriptor::Depthbuffer24bit(width, height));
+			framebufferHandle = targetCreate(RenderTargetDescriptor::FramebufferRGBA32bit(width, height));
+			depthbufferHandle = targetCreate(RenderTargetDescriptor::Depthbuffer24bit(width, height));
+		}
+
+		TargetHandle targetCreate(RenderTargetDescriptor descriptor)
+		{
+			return device.targetCreate(descriptor);
+		}
+
+		MeshInstanceHandle meshRegister(const MeshInstance& mesh)
+		{
+			// @todo
+			return 0;
 		}
 
 
 		Device& device;
 
-		typename Device::TargetHandle framebufferHandle;
-		typename Device::TargetHandle depthbufferHandle;
-
-
+		TargetHandle framebufferHandle;
+		TargetHandle depthbufferHandle;
 
     };
 

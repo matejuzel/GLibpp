@@ -7,6 +7,7 @@
 #include "Mtx4.h"
 #include "Camera.h"
 #include "RunState.h"
+#include "RenderTargetDescriptor.h"
 #include <atomic>
 #include <thread>
 
@@ -108,6 +109,16 @@ public:
 
     void run()
     {
+
+        auto& rm = renderer->getResourceManager();
+
+        auto texHandle = rm.targetCreate(Render::RenderTargetDescriptor::FramebufferRGBA32bit(window->getClientWidth(), window->getClientHeight()));
+		auto meshInstHandle = rm.meshRegister(MeshInstance());
+
+
+        
+
+
         running.start();
         
         std::thread renderThread([this]() {
@@ -125,6 +136,8 @@ public:
         {
             renderThread.join();
         }
+
+
 	}
 
 

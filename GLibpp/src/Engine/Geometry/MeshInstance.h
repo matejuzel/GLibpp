@@ -2,8 +2,8 @@
 
 #include <vector>
 #include <cstdint>
-#include "math/Mtx4.h"
-#include "geometry/Mesh.h"
+#include "Mtx4.h"
+#include "Mesh.h"
 
 struct MeshInstanceHandle {
     uint32_t index;
@@ -11,6 +11,10 @@ struct MeshInstanceHandle {
 };
 
 static constexpr MeshInstanceHandle INVALID_MESH_INSTANCE = { UINT32_MAX, UINT32_MAX };
+
+class MeshInstance {
+
+};
 
 /*
 class MeshInstance {

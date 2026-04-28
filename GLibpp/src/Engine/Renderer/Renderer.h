@@ -33,6 +33,9 @@
 #include "AssetRegistry.h"
 
 #include "RunState.h"
+#include "HighResTimer.h"
+#include "FixedTimestep.h"
+#include "Fps.h"
 
 
 namespace Render {
@@ -63,18 +66,24 @@ namespace Render {
 
     template <typename Device>
     class Renderer {
+
     private:
 
         using ResourceManager = ResourceManager<Device>;
 
         Device device;
-        ResourceManager resources;
+        
         Viewport viewport;
         
         RunState running;
         ResizeRequest resizeRequest;
 
+        ResourceManager resources;
+
     public:
+
+		ResourceManager& getResourceManager() { return resources; }
+
         Renderer(WindowWin32& window)
             : device(window)
 			, resources(device)
@@ -110,9 +119,16 @@ namespace Render {
 		    
             running.start();
 
+            Fps fps(1.0f);
+            
+            FixedTimestep step(1.0f);
+            HighResTimer timer;
+
 			uint32_t frameIndex = 0;
             while (running.isRunning())
             {
+
+				renderFrame(camera, frameIndex++);
 
                 {
                     // Zpracování požadavku na zmìnu velikosti
@@ -123,7 +139,18 @@ namespace Render {
                     }
                 }
 
-				renderFrame(camera, frameIndex++);
+                {
+                    double frameTime = timer.tick();
+                    if (frameTime > 0.25) frameTime = 0.25;
+
+                    for (int i = 0; i < step.consume(frameTime); i++)
+                    {
+                        std::string info = std::format("Frame: {}, dt: {:.4f}s, FPS: {}", frameIndex, frameTime, fps.getFps());
+                        device.getWindow().setTitle(info);
+                    }
+
+                    fps.tick();
+                }
             }
         }
 
@@ -142,12 +169,11 @@ namespace Render {
         // Metoda resize(w, h) nesmi byt volana z jineho threadu
         void resize(uint32_t width, uint32_t height) 
         {
+            if (width == 0 || height == 0) return;
             resources.framebufferHandle = device.targetResize(resources.framebufferHandle, width, height);
             resources.depthbufferHandle = device.targetResize(resources.depthbufferHandle, width, height);
             viewport.resize(width, height);
         }
-
     };
-
 
 }

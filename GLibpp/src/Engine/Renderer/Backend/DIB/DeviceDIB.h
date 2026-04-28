@@ -94,6 +94,7 @@ namespace Render {
         TargetHandle targetResizeImpl(TargetHandle target_h, uint32_t width, uint32_t height) noexcept
         {
 			if (!registry.targets.isValid(target_h)) return TARGET_INVALID;
+			if (width == 0 || height == 0) return TARGET_INVALID;
             
             auto descriptor = registry.targets.get(target_h).descriptor;
             descriptor.width = width;
