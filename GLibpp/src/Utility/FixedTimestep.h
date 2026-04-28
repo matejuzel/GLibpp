@@ -23,6 +23,17 @@ public:
         return steps;
     }
 
+    void consume(double frameTime, const std::function<void(double)>& stepCallback)
+    {
+        accumulator += frameTime;
+
+        while (accumulator >= dt)
+        {
+            accumulator -= dt;
+            stepCallback(dt);
+        }
+	}
+
     bool consumeAll(double frameTime)
     {
         // Nejdøíve pøièteme uplynulý èas od posledního snímku

@@ -142,7 +142,7 @@ namespace Render {
                     double frameTime = timer.tick();
                     if (frameTime > 0.25) frameTime = 0.25;
 
-                    if (step.consumeAll(frameTime) > 0)
+                    if (step.consumeAll(frameTime))
                     {
                         device.getWindow().setTitle(std::format("Frame: {}, dt: {:.4f}s, FPS: {}", frameIndex, frameTime, fps.getFps()));
                     }

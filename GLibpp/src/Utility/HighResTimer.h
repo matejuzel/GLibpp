@@ -16,13 +16,16 @@ public:
     }
 
     // vrátí èas od posledního volání v sekundách
-    double tick()
+    double tick(double limit = 1.0)
     {
         LARGE_INTEGER now;
         QueryPerformanceCounter(&now);
 
         double dt = double(now.QuadPart - prev.QuadPart) / double(freq.QuadPart);
         prev = now;
+
+        if (dt > limit) return limit;
+
         return dt;
     }
 

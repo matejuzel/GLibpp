@@ -11,6 +11,9 @@
 #include <atomic>
 #include <thread>
 
+#include "FixedTimestep.h"
+#include "HighResTimer.h"
+
 #define RENDER_BACKEND_DIB
 
 
@@ -107,17 +110,22 @@ public:
 		std::cout << "Key event: " << (pressed ? "Pressed" : "Released") << " " << static_cast<int>(key) << std::endl;
 	}
 
+    void updateLogic(double dt)
+    {
+		std::cout << "Updating logic with dt = " << dt << " seconds" << std::endl;
+    }
+
     void run()
     {
 
-        auto& rm = renderer->getResourceManager();
-
-        auto texHandle = rm.targetCreate(Render::RenderTargetDescriptor::FramebufferRGBA32bit(window->getClientWidth(), window->getClientHeight()));
-		auto meshInstHandle = rm.meshRegister(MeshInstance());
-
-
+        {
+            auto& rm = renderer->getResourceManager();
+            auto texHandle = rm.targetCreate(Render::RenderTargetDescriptor::FramebufferRGBA32bit(window->getClientWidth(), window->getClientHeight()));
+            auto meshInstHandle = rm.meshRegister(MeshInstance());
+        }
         
-
+		HighResTimer timer;
+		FixedTimestep logicStep(1.0f);
 
         running.start();
         
@@ -128,9 +136,13 @@ public:
         while (running.isRunning())
         {
             window->pollEvents();
+
+            logicStep.consume(timer.tick(0.25), [this](double dt) {
+                updateLogic(dt);
+            });
         }
 
-        renderer.get()->stop();
+        renderer->stop();
 
         if (renderThread.joinable())
         {
