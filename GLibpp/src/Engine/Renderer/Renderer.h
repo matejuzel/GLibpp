@@ -120,7 +120,6 @@ namespace Render {
             running.start();
 
             Fps fps(1.0f);
-            
             FixedTimestep step(1.0f);
             HighResTimer timer;
 
@@ -143,12 +142,10 @@ namespace Render {
                     double frameTime = timer.tick();
                     if (frameTime > 0.25) frameTime = 0.25;
 
-                    for (int i = 0; i < step.consume(frameTime); i++)
+                    if (step.consumeAll(frameTime) > 0)
                     {
-                        std::string info = std::format("Frame: {}, dt: {:.4f}s, FPS: {}", frameIndex, frameTime, fps.getFps());
-                        device.getWindow().setTitle(info);
+                        device.getWindow().setTitle(std::format("Frame: {}, dt: {:.4f}s, FPS: {}", frameIndex, frameTime, fps.getFps()));
                     }
-
                     fps.tick();
                 }
             }
