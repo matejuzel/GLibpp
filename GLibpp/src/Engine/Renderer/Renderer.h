@@ -36,7 +36,36 @@
 namespace Render {
 
 
+
+    class RunState {
+        std::atomic<bool> m_running{ false };
+
+    public:
+        // Explicitnì zakážeme kopírování, protože std::atomic není kopírovatelný
+        RunState() = default;
+        RunState(const RunState&) = delete;
+        RunState& operator=(const RunState&) = delete;
+
+        void start() noexcept {
+            m_running.store(true, std::memory_order_relaxed);
+        }
+
+        void stop() noexcept {
+            m_running.store(false, std::memory_order_relaxed);
+        }
+
+        operator bool() const noexcept {
+            return m_running.load(std::memory_order_relaxed);
+        }
+
+        bool isRunning() const noexcept {
+            return m_running.load(std::memory_order_relaxed);
+        }
+    };
+
+
     struct ResizeRequest {
+
         std::atomic<bool> active = { false };
         uint32_t width = 0;
         uint32_t height = 0;
@@ -67,10 +96,9 @@ namespace Render {
 
         Device device;
         ResourceManager resources;
-        
         Viewport viewport;
-
-		std::atomic<bool> running;
+        
+        RunState running;
         ResizeRequest resizeRequest;
 
     public:
@@ -106,14 +134,15 @@ namespace Render {
 
         void runLoop(const Camera& camera)
         {
-			start();
+		    
+            running.start();
+
 			uint32_t frameIndex = 0;
-            while (isRunning())
+            while (running.isRunning())
             {
 
                 {
                     // Zpracování požadavku na zmìnu velikosti
-                    // takhle je to thread safe. Metoda resize() nesmi byt volana z jineho threadu
                     uint32_t w, h;
                     if (resizeRequest.consume(w, h))
                     {
@@ -125,24 +154,10 @@ namespace Render {
             }
         }
 
-        bool isRunning() const noexcept
-        {
-            return running.load(std::memory_order_relaxed);
-		}
-
-    private:
-        void start()
-        {
-			running.store(true, std::memory_order_relaxed);
-        }
-
-
-    public:
         void stop()
 		{
-			running.store(false, std::memory_order_relaxed);
+			running.stop();
 		}
-
   
         void resizeRequestSet(uint32_t width, uint32_t height)
         {   
@@ -151,6 +166,7 @@ namespace Render {
 
     private:
 
+        // Metoda resize(w, h) nesmi byt volana z jineho threadu
         void resize(uint32_t width, uint32_t height) 
         {
             resources.framebufferHandle = device.targetResize(resources.framebufferHandle, width, height);
