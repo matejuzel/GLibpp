@@ -13,6 +13,7 @@
 
 #include "FixedTimestep.h"
 #include "HighResTimer.h"
+#include "TimeManager.h"
 
 #define RENDER_BACKEND_DIB
 
@@ -117,15 +118,13 @@ public:
 
     void run()
     {
-
         {
             auto& rm = renderer->getResourceManager();
             auto texHandle = rm.targetCreate(Render::RenderTargetDescriptor::FramebufferRGBA32bit(window->getClientWidth(), window->getClientHeight()));
             auto meshInstHandle = rm.meshRegister(MeshInstance());
         }
-        
-		HighResTimer timer;
-		FixedTimestep logicStep(1.0f);
+
+        TimeManager timer(10.0f);
 
         running.start();
         
@@ -137,9 +136,17 @@ public:
         {
             window->pollEvents();
 
-            logicStep.consume(timer.tick(0.25), [this](double dt) {
+            timer.tickAndDispatchAction([&](double dt) {
                 updateLogic(dt);
-            });
+				std::cout << "FPS: " << timer.getFps() << std::endl;
+			});
+
+            // Výpočet: kolik sekund zbývá, než akumulátor dosáhne m_fixedDelta?
+            double timeToWait = timer.getFixedDelta() - timer.getAccumulator();
+
+            if (timeToWait > 0.001) { // Spíme jen, pokud je na to čas (víc než 1ms)
+                std::this_thread::sleep_for(std::chrono::milliseconds(static_cast<long long>(timeToWait * 1000)));
+            }
         }
 
         renderer->stop();
@@ -148,7 +155,6 @@ public:
         {
             renderThread.join();
         }
-
 
 	}
 

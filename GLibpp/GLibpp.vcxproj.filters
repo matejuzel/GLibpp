@@ -203,5 +203,8 @@
     <ClInclude Include="src\Utility\HighResTimer.h">
       <Filter>Zdrojové soubory\Utility</Filter>
     </ClInclude>
+    <ClInclude Include="src\Utility\TimeManager.h">
+      <Filter>Zdrojové soubory\Utility</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>
