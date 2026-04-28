@@ -194,5 +194,14 @@
     <ClInclude Include="src\Engine\Core\RunState.h">
       <Filter>Zdrojové soubory\Engine\Core</Filter>
     </ClInclude>
+    <ClInclude Include="src\Utility\FixedTimestep.h">
+      <Filter>Zdrojové soubory\Utility</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Utility\Fps.h">
+      <Filter>Zdrojové soubory\Utility</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Utility\HighResTimer.h">
+      <Filter>Zdrojové soubory\Utility</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>
