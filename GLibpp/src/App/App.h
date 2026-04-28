@@ -6,6 +6,8 @@
 #include "RenderCommandList.h"
 #include "Mtx4.h"
 #include "Camera.h"
+#include <atomic>
+#include <thread>
 
 #define RENDER_BACKEND_DIB
 
@@ -31,7 +33,7 @@ private:
     std::unique_ptr<Render::Renderer<Render::DeviceDIB>> renderer; // pro vyvoj pouzijeme takhle explicitne, kvuli napovidani v IDE...
 
     bool fullscreen = false;
-	bool running = true;
+    std::atomic<bool> running = { true };
 
     Camera camera = Camera::Demo(45);
 
@@ -71,7 +73,7 @@ public:
             }
 
             window->setOnCloseCallback([this]() {
-                running = false;
+                stop();
             });
 
             window->setKeyCallback([this](KeyMap key, bool pressed) {
@@ -81,7 +83,7 @@ public:
             window->setOnResizeCallback([this](uint32_t width, uint32_t height) {
                 if (renderer)
                 {
-                    renderer->resize(width, height);
+                    renderer->resizeRequestSet(width, height);
                     std::cout << "resized: " << width << " ; " << height << std::endl;
                 }
             });
@@ -98,7 +100,7 @@ public:
     void onKeyCallback(KeyMap key, bool pressed) 
     {
         if (key == KeyMap::KEY_ESC && pressed) {
-            running = false;
+            stop();
         }
 
 		std::cout << "Key event: " << (pressed ? "Pressed" : "Released") << " " << static_cast<int>(key) << std::endl;
@@ -106,17 +108,42 @@ public:
 
     void run()
     {
-        uint32_t frameIndex = 0;
-        while (running) {
+		running.store(true, std::memory_order_relaxed);
+        
+        std::thread renderThread([this]() {
+            renderer->runLoop(camera);
+        });
+
+        while (isRunning())
+        {
             window->pollEvents();
-            renderer->renderFrame(camera, frameIndex++);
+        }
+
+        renderer.get()->stop();
+
+        if (renderThread.joinable())
+        {
+            renderThread.join();
         }
 	}
 
+    void stop()
+    {
+        running.store(false, std::memory_order_relaxed);
+    }
+
+    bool isRunning() const
+    {
+        return running.load(std::memory_order_relaxed);
+    }
+
+
+
+    /*
     void render()
     {
         // create render target using descriptor helper
-        /*
+        
         renderer->runLoop(
             RenderCommandList::Create()
             .clear({ 232,232,232,255 })
@@ -139,6 +166,6 @@ public:
             .setMatrixView(Mtx4::Identity())
             .bindMesh(MeshHandle{ 2 }, MaterialHandle{ 2 })
             .draw()
-        );*/
-    }
+        );
+    }*/
 };
