@@ -175,6 +175,44 @@ public:
         }
     }
 
+    double getMinFrameTime() const {
+        if (m_frameTimestamps.size() < 2) return 0.0;
+        double minDelta = std::numeric_limits<double>::max();
+        for (size_t i = 1; i < m_frameTimestamps.size(); ++i) {
+            double delta = m_frameTimestamps[i] - m_frameTimestamps[i - 1];
+            if (delta < minDelta) {
+                minDelta = delta;
+            }
+        }
+        // Pøevod na FPS (pokud je minDelta 0, vrátíme 0, abychom se vyhnuli dìlení nulou)
+        return minDelta;
+	}
+
+    double getMinFrameTimeFps() const {
+        double minFrameTime = getMinFrameTime();
+        return (minFrameTime > 0) ? 1.0 / minFrameTime : 0.0;
+	}
+
+    double getMaxFrameTime() const {
+        if (m_frameTimestamps.size() < 2) return 0.0;
+
+        double maxDelta = 0.0;
+        for (size_t i = 1; i < m_frameTimestamps.size(); ++i) {
+            double delta = m_frameTimestamps[i] - m_frameTimestamps[i - 1];
+            if (delta > maxDelta) {
+                maxDelta = delta;
+            }
+        }
+
+        // Pøevod na FPS (pokud je maxDelta 0, vrátíme 0, abychom se vyhnuli dìlení nulou)
+        return maxDelta;
+    }
+
+    double getMaxFrameTimeFps() const {
+        double maxFrameTime = getMaxFrameTime();
+        return (maxFrameTime > 0) ? 1.0 / maxFrameTime : 0.0;
+    }
+
 private:
 
     // Pomocná metoda pro aktualizaci vnitøního èasu bez ovlivnìní FPS historie

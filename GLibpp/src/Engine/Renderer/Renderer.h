@@ -205,11 +205,13 @@ namespace Render {
                 {
                     timerOneSecond.tickAndDispatchAction([&](double dt) {
                         device.getWindow().setTitle(std::format(
-                            "Frame: {}, fps: {:.4f}, fps: {:.4f}, fps: {:.4f}",
-                            frameIndex,
+                            "FPS: {:.0f} ||| 1% Low: {:.0f} ||| 0.1% Low: {:.0f} ||| Min/Max: {:.0f}/{:.0f} [Frame: {}]",
                             timer.getFps(),
                             timer.getLow1Percent(),
-                            timer.getLowPoint1Percent()
+                            timer.getLowPoint1Percent(),
+                            timer.getMaxFrameTimeFps(),
+                            timer.getMinFrameTimeFps(),
+                            frameIndex
                         ));
                      });
 
