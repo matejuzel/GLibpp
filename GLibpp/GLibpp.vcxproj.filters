@@ -200,5 +200,8 @@
     <ClInclude Include="src\App\Scene.h">
       <Filter>Zdrojové soubory\App</Filter>
     </ClInclude>
+    <ClInclude Include="src\Engine\Core\Input\Input.h">
+      <Filter>Zdrojové soubory\Engine\Core\Input</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

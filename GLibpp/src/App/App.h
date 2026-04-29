@@ -11,6 +11,7 @@
 #include <atomic>
 #include <thread>
 #include "TimeManager.h"
+#include "Input.h"
 
 #define RENDER_BACKEND_DIB
 
@@ -39,6 +40,8 @@ private:
 
     bool fullscreen = false;
     RunState running;
+
+    GLibpp::Input input;
 
     float logicHz = 30.0f;
 
@@ -112,32 +115,49 @@ public:
 
     void onKeyCallback(KeyMap key, bool pressed) 
     {
+
+        input.keyboard.setKeyState(static_cast<unsigned char>(key), pressed);
+
         if (key == KeyMap::KEY_ESC && pressed) {
             running.stop();
         }
-
-		if (key == KeyMap::KEY_ENTER) scene.rotationSpeed += 0.1f;
-		if (key == KeyMap::KEY_UP) scene.cameraSpeed -= 0.1f;
-        if (key == KeyMap::KEY_DOWN) scene.cameraSpeed += 0.1f;
-        if (key == KeyMap::KEY_LEFT) scene.cameraRotationSpeed -= 0.1f;
-        if (key == KeyMap::KEY_RIGHT) scene.cameraRotationSpeed += 0.1f;
-		std::cout << "Key event: " << (pressed ? "Pressed" : "Released") << " " << static_cast<int>(key) << std::endl;
 	}
 
-    void updateLogic(double dt)
+    void updateLogic(double dtExtra)
     {
+		float dt = std::clamp(static_cast<float>(dtExtra), 0.0f, 1.0f);
+
 		//std::cout << "Updating logic with dt = " << dt << " seconds" << std::endl;
 
         //scene.camera.position.x += 10.0f * static_cast<float>(dt);
         //scene.camera.position.y += 10*sinf(0.1f * static_cast<float>(dt));
 
 
-		scene.modelMatrix.rotateY(scene.rotationSpeed * static_cast<float>(dt)); 
-		scene.camera.position.z += scene.cameraSpeed * static_cast<float>(dt);
 
-		renderer->updateScene(scene);
+        
+        if (input.keyboard.isDown(KeyMap::KEY_ENTER)) {
+			scene.modelMatrix.rotateY(1.0f * dt);
+        }
 
+        if (input.keyboard.isDown(KeyMap::KEY_UP)) {
+            scene.camera.move(Vec4(0.0f, 0.0f, -1.0f, 0.0f) * dt);
+        }
 
+        if (input.keyboard.isDown(KeyMap::KEY_DOWN)) {
+            scene.camera.move(Vec4(0.0f, 0.0f, 1.0f, 0.0f) * dt);
+        }
+
+        if (input.keyboard.isDown(KeyMap::KEY_LEFT)) {
+            scene.camera.rotate(-1.0f * dt, 0.0f);
+        }
+
+        if (input.keyboard.isDown(KeyMap::KEY_RIGHT)) {
+            scene.camera.rotate(1.0f * dt, 0.0f);
+        }
+        
+
+		scene.modelMatrix.rotateY(scene.rotationSpeed * dt); 
+		scene.camera.position.z += scene.cameraSpeed * dt;
 
     }
 
@@ -149,39 +169,45 @@ public:
             auto meshInstHandle = rm.meshRegister(MeshInstance());
         }
 
-        
+
 
         TimeManager timer(logicHz);
 
+        //TimeManager timerOneSecond(1.0); // pro výpočet FPS každou sekundu
+
         running.start();
-        
+
         std::thread renderThread([this]() {
-
-			renderer->updateScene(scene);
-
+            renderer->updateScene(scene); // to tu asi ani byt nemusi
             renderer->runLoop();
-        });
+            });
 
         while (running.isRunning())
         {
             window->pollEvents();
 
             timer.tickAndDispatchAction([&](double dt) {
+                input.keyboard.update();
                 updateLogic(dt);
-				//std::cout << "FPS: " << timer.getFps() << std::endl;
-			});
+                renderer->updateScene(scene);
+                });
 
-            // Výpočet: kolik sekund zbývá, než akumulátor dosáhne m_fixedDelta?
-            //double timeToWait = timer.getFixedDelta() - timer.getAccumulator();
 
             /*
-            if (timeToWait > 0.001) { // Spíme jen, pokud je na to čas (víc než 1ms)
-                std::this_thread::sleep_for(std::chrono::milliseconds(static_cast<long long>(timeToWait * 1000)));
+            if (false) {
+                timerOneSecond.tickAndDispatchAction([&](double dt) {
+                    double fps = timer.getFps();
+                    double low1 = timer.getLow1Percent();
+                    double low01 = timer.getLowPoint1Percent();
+                    window->setTitle(std::format(
+                        "FPS: {:.2f}, 1% Low: {:.2f}, 0.1% Low: {:.2f}",
+                        fps, low1, low01
+                    ));
+                    });
             }
             */
 
-            //timer.waitUntilNextStep();
-
+            //timer.waitUntilNextStep(); // to ted delat nebudeme
         }
 
         renderer->stop();
@@ -190,8 +216,8 @@ public:
         {
             renderThread.join();
         }
-
-	}
+    }
+};
 
 
 
@@ -224,4 +250,5 @@ public:
             .draw()
         );
     }*/
-};
+
+

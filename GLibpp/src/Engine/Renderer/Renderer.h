@@ -167,37 +167,39 @@ namespace Render {
             running.start();
 
             TimeManager timer(logicHz);
+            TimeManager timerOneSecond(1.0); // pro výpoèet FPS každou sekundu
 
 			uint32_t frameIndex = 0;
             while (running.isRunning())
             {
 
-                {   
+                {
                     if (uint32_t w, h; resizeRequest.consume(w, h))
                     {
                         this->resize(w, h);
                     }
                 }
 
-                /*
-                {
-                    timer.tickAndDispatchAction([&](double dt) {
-                        device.getWindow().setTitle(std::format(
-                            "Frame: {}, dt: {:.4f}s, FPS: {}",
-                            frameIndex, 
-                            timer.getLastFrameTime(), 
-                            timer.getFps()
-                        ));
-					});
-                    
-                }
-                */
-
                 timer.tick();
                 timer.dispatchAction([](double dt) {});
 
                 renderFrame(timer.getInterpolationFactor(), frameIndex++);
+
+
+                {
+                    timerOneSecond.tickAndDispatchAction([&](double dt) {
+                        device.getWindow().setTitle(std::format(
+                            "Frame: {}, fps: {:.4f}, fps: {:.4f}, fps: {:.4f}",
+                            frameIndex,
+                            timer.getFps(),
+                            timer.getLow1Percent(),
+                            timer.getLowPoint1Percent()
+                        ));
+                     });
+
+                }
             }
+
         }
 
         void stop()
@@ -215,7 +217,7 @@ namespace Render {
             // To øíká Windows: "Tato aplikace je dùležitìjší než prohlížeè nebo Word."
             SetPriorityClass(GetCurrentProcess(), HIGH_PRIORITY_CLASS);
 
-            // 2. Nastavíme vláknu rendereru "Time Critical" prioritu.
+            // 2. Nastavíme vlátnu rendereru "Time Critical" prioritu.
             // To znamená, že renderer dostane CPU pokaždé, když o nìj požádá,
             // a pøeruší témìø jakoukoli jinou èinnost v systému.
             SetThreadPriority(GetCurrentThread(), THREAD_PRIORITY_TIME_CRITICAL);
@@ -233,4 +235,4 @@ namespace Render {
         }
     };
 
-}
+};

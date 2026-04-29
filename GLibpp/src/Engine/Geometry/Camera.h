@@ -2,107 +2,119 @@
 
 #include "Vec4.h"
 #include "Mtx4.h"
-
 #include <cmath>
 #include <algorithm>
 
 struct Camera {
+    // --- Data ---
     Vec4 position;
-    Vec4 target;
-    Vec4 up;
+    Vec4 target; // Vypoèítané API zpìtnì kompatibilní
+    Vec4 up;     // Vypoèítané API zpìtnì kompatibilní
 
     float fovRad;
     float nearZ;
     float farZ;
 
-    Camera() = default;
+    // Vnitøní stav pro snadné ovládání
+    float yaw;   // Otáèení vlevo/vpravo (radiány)
+    float pitch; // Otáèení nahoru/dolù (radiány)
 
-    Camera(
-        const Vec4& position, 
-        const Vec4& target, 
-        const Vec4& up, 
-        float fovRad, 
-        float nearZ, 
-        float farZ
-    )
-        : position(position)
-        , target(target)
-        , up(up)
-        , fovRad(fovRad)
-        , nearZ(nearZ)
-        , farZ(farZ) 
-    {}
+    // --- Konstruktory ---
+    Camera() : yaw(0.0f), pitch(0.0f), fovRad(0.0f), nearZ(0.0f), farZ(0.0f) {}
 
-    Mtx4 calculateView() const
+    Camera(const Vec4& pos, const Vec4& tar, const Vec4& u, float fov, float nZ, float fZ)
+        : position(pos), target(tar), up(u), fovRad(fov), nearZ(nZ), farZ(fZ)
     {
+        // Pøi inicializaci pøes LookAt parametry musíme dopoèítat úhly yaw/pitch
+        updateAnglesFromTarget();
+    }
+
+    // --- Klíèové API pro výpoèet View Matice ---
+    Mtx4 calculateView() const {
         return Mtx4::LookAt(position, target, up);
-	}
-
-    static Camera Demo(float fovDegrees = 45.0f)
-    {
-        return Camera(
-            Vec4(5.0f, 5.0f, 5.0f, 1.0f),
-            Vec4(0.0f, 0.0f, 0.0f, 1.0f),
-            Vec4(0.0f, 1.0f, 0.0f, 0.0f),
-            fovDegrees * 3.14159265f / 180.0f,
-            0.01f,
-            100.0f
-        );
-    }
-    static Camera Demo(int fovDegrees = 45) {
-		return Demo(static_cast<float>(fovDegrees));
     }
 
-    Camera& operator=(const Camera& other) {
-        if (this != &other) {
-            position = other.position;
-            target = other.target;
-            up = other.up;
-            fovRad = other.fovRad;
-            nearZ = other.nearZ;
-            farZ = other.farZ;
-        }
-        return *this;
+    // --- Ovládání (pro Input systém) ---
+
+    // Otáèení (deltaX/deltaY z myši)
+    void rotate(float deltaYaw, float deltaPitch) {
+        yaw += deltaYaw;
+        pitch += deltaPitch;
+
+        // Omezení pohledu nahoru/dolù (ochrana pøed gimbal lockem v LookAt)
+        pitch = std::clamp(pitch, -1.55f, 1.55f);
+
+        updateTargetFromAngles();
     }
 
-    friend Camera Lerp(const Camera& a, const Camera& b, float t)
-    {
-        // Klasický Lerp: start + t * (end - start)
-        // Pøedpokládám, že tvùj Vec4 má definované operátory + a *
-        return Camera(
-            a.position + (b.position - a.position) * t,
-            a.target + (b.target - a.target) * t,
-            a.up + (b.up - a.up) * t,
-            a.fovRad + (b.fovRad - a.fovRad) * t,
-            a.nearZ + (b.nearZ - a.nearZ) * t,
-            a.farZ + (b.farZ - a.farZ) * t
-        );
+    // Pohyb (W, A, S, D z klávesnice)
+    void move(const Vec4& direction) {
+        // direction je lokální (napø. 1,0,0 pro dopøedu), musíme ho transformovat
+        // nebo jednodušeji:
+        position = position + direction;
+        updateTargetFromAngles(); // Target se musí posunout s námi
     }
 
-    friend Camera Slerp(const Camera& a, const Camera& b, float t)
-    {
-        // Lineární èást zùstává (ideálnì s std::lerp nebo (1-t)*a + t*b)
-        Vec4 pos = a.position * (1.0f - t) + b.position * t;
-        Vec4 target = a.target * (1.0f - t) + b.target * t;
-        float fov = a.fovRad * (1.0f - t) + b.fovRad * t;
-        float nZ = a.nearZ * (1.0f - t) + b.nearZ * t;
-        float fZ = a.farZ * (1.0f - t) + b.farZ * t;
+    // --- Interní logika ---
 
-        float dot = std::clamp(a.up.dot(b.up), -1.0f, 1.0f);
+    void updateTargetFromAngles() {
+        // Sférické souøadnice -> Kartézské souøadnice (Forward vektor)
+        Vec4 forward;
+        forward.x = std::cos(yaw) * std::cos(pitch);
+        forward.y = std::sin(pitch);
+        forward.z = std::sin(yaw) * std::cos(pitch);
+        forward.w = 0.0f;
+        forward.normalize();
 
-        Vec4 finalUp;
-        // Pokud jsou vektory skoro stejné, použijeme Lerp, abychom se vyhnuli dìlení nulou
-        if (dot > 0.9995f) {
-            finalUp = (a.up * (1.0f - t) + b.up * t);
-            finalUp.normalize();
-        }
-        else {
-            float theta = std::acos(dot) * t;
-            Vec4 relativeVec = (b.up - a.up * dot);
-            relativeVec.normalize();
-            finalUp = (a.up * std::cos(theta)) + (relativeVec * std::sin(theta));
-        }
+        // Target je prostì bod kousek pøed kamerou
+        target = position + forward;
 
-        return Camera(pos, target, finalUp, fov, nZ, fZ);
+        // Up vektor (zde fixní world up, pro stabilní FPS kameru)
+        // Pro náklony (Roll) by se muselo slerpovat i Up
+        Vec4 worldUp(0.0f, 1.0f, 0.0f, 0.0f);
+        Vec4 right = worldUp.cross(forward).normalized();
+        up = forward.cross(right).normalized();
+    }
+
+    void updateAnglesFromTarget() {
+        Vec4 dir = (target - position).normalized();
+        pitch = std::asin(dir.y);
+        yaw = std::atan2(dir.z, dir.x);
+    }
+
+    // --- Statické továrny ---
+    static Camera Demo(float fovDegrees = 45.0f) {
+        Camera c;
+        c.position = Vec4(5.0f, 5.0f, 5.0f, 1.0f);
+        c.target = Vec4(0.0f, 0.0f, 0.0f, 1.0f);
+        c.up = Vec4(0.0f, 1.0f, 0.0f, 0.0f);
+        c.fovRad = fovDegrees * 3.14159265f / 180.0f;
+        c.nearZ = 0.01f;
+        c.farZ = 100.0f;
+        c.updateAnglesFromTarget();
+        return c;
+    }
+
+    // --- Operátory a Interpolace (zùstávají stejné) ---
+    Camera& operator=(const Camera& other) = default;
+
+    friend Camera Lerp(const Camera& a, const Camera& b, float t) {
+        Camera res;
+        res.position = a.position + (b.position - a.position) * t;
+        res.yaw = a.yaw + (b.yaw - a.yaw) * t;
+        res.pitch = a.pitch + (b.pitch - a.pitch) * t;
+        res.fovRad = a.fovRad + (b.fovRad - a.fovRad) * t;
+        res.nearZ = a.nearZ + (b.nearZ - a.nearZ) * t;
+        res.farZ = a.farZ + (b.farZ - a.farZ) * t;
+        res.updateTargetFromAngles();
+        return res;
+    }
+
+    friend Camera Slerp(const Camera& a, const Camera& b, float t) {
+        // U moderní kamery je lepší interpolovat Yaw/Pitch než Target!
+        Camera res = Lerp(a, b, t);
+        // Pokud chceš slerpovat orientaci báze (Up), použij tu pùvodní Slerp logiku,
+        // ale pro FPS kameru je Lerp úhlù Yaw/Pitch vizuálnì plynulejší.
+        return res;
     }
 };
