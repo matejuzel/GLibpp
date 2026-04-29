@@ -60,13 +60,13 @@ public:
 		window->setFullscreenMode(fullscreen);
     }
 
-    void initialize(uint32_t width, uint32_t height) 
+    void initialize(uint32_t width, uint32_t height, const std::wstring& preferedDisplayName = L"")
     {
         {
             // WINDOW
             window = std::make_unique<WindowWin32>(width, height, false);
-
-            if (!window->build()) {
+            
+            if (!window->build(preferedDisplayName)) {
                 throw std::runtime_error("Failed to create window");
             }
 

@@ -78,7 +78,7 @@ public:
 		}
 	}
 
-	bool build();
+	bool build(std::wstring preferedMonitor = L"");
 	
 	void waitEvents() const noexcept;
 	void pollEvents() const noexcept;
@@ -103,6 +103,66 @@ public:
 
 	void releaseDeviceContext(HDC hdc) const {
 		ReleaseDC(hwnd, hdc);
+	}
+
+	struct MonitorData {
+		HMONITOR handle;      // Unikátní identifikátor ve Win32
+		std::wstring name;    // Systémový název (napø. pro ukládání do configu)
+		int width;
+		int height;
+		int x;                // Souøadnice v rámci virtuální plochy
+		int y;
+		bool isPrimary;
+
+		friend std::wostream& operator<<(std::wostream& os, const MonitorData& md) {
+			os << "Monitor: " << md.name.c_str() << " (" << md.width << "x" << md.height << ") at (" << md.x << "," << md.y << ")";
+			if (md.isPrimary) os << " [PRIMARY]";
+			return os;
+		}
+	};
+
+	std::vector<MonitorData> getMonitorInfoList() 
+	{
+		std::vector<MonitorData> monitors;
+
+		auto callback = [](HMONITOR hMonitor, HDC hdc, LPRECT lprc, LPARAM data) -> BOOL {
+			auto* list = reinterpret_cast<std::vector<MonitorData>*>(data);
+
+			MONITORINFOEXW mi;
+			mi.cbSize = sizeof(mi);
+
+			if (GetMonitorInfoW(hMonitor, &mi)) {
+				MonitorData d;
+				d.handle = hMonitor;
+				d.name = mi.szDevice;
+				d.width = mi.rcMonitor.right - mi.rcMonitor.left;
+				d.height = mi.rcMonitor.bottom - mi.rcMonitor.top;
+				d.x = mi.rcMonitor.left;
+				d.y = mi.rcMonitor.top;
+				d.isPrimary = (mi.dwFlags & MONITORINFOF_PRIMARY);
+
+				list->push_back(d);
+			}
+			return TRUE;
+			};
+
+		EnumDisplayMonitors(NULL, NULL, callback, reinterpret_cast<LPARAM>(&monitors));
+		return monitors;
+	}
+
+	void moveToMonitor(HWND hwnd, HMONITOR hMonitor) {
+		MONITORINFO mi;
+		mi.cbSize = sizeof(MONITORINFO);
+
+		// Získáme informace o monitoru na základì jeho identifikátoru (handle)
+		if (GetMonitorInfo(hMonitor, &mi)) {
+			// mi.rcMonitor obsahuje souøadnice celého monitoru ve virtuální ploše
+			SetWindowPos(hwnd, NULL,
+				mi.rcMonitor.left,  // Toto definuje, na kterém monitoru okno skonèí
+				mi.rcMonitor.top,
+				0, 0,
+				SWP_NOSIZE | SWP_NOZORDER | SWP_NOACTIVATE);
+		}
 	}
 
 private:

@@ -157,7 +157,7 @@ void WindowWin32::setTitle(const std::string& title) {
 }
 
 
-bool WindowWin32::build()
+bool WindowWin32::build(std::wstring preferedMonitor)
 {
     HINSTANCE hInstance = GetModuleHandle(nullptr);
 
@@ -173,12 +173,28 @@ bool WindowWin32::build()
     int winWidth = rect.right - rect.left;
     int winHeight = rect.bottom - rect.top;
 
+	auto xPos = CW_USEDEFAULT;
+	auto yPos = CW_USEDEFAULT;
+
+    if (true) {
+        auto monitors = getMonitorInfoList();
+        std::cout << "Detected monitors: " << monitors.size() << std::endl;
+        for (auto& monitor : monitors) {
+
+            if (monitor.name == preferedMonitor) {
+                std::wcout << "Preferred monitor found: " << monitor.name.c_str() << std::endl;
+                xPos = monitor.x;
+                yPos = monitor.y;
+			}
+        }
+    }
+
     CreateWindowEx(
         0,
         GetClassName(),
         L"Moje WinAPI okno",
         WS_OVERLAPPEDWINDOW,
-        CW_USEDEFAULT, CW_USEDEFAULT,
+        xPos, yPos,
         winWidth, winHeight,
         nullptr,
         nullptr,

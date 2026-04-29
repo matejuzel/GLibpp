@@ -12,12 +12,12 @@ int main()
     try 
     {
         App app;
-		app.initialize(150, 80);
+		app.initialize(800, 600, L"\\\\.\\DISPLAY1");
         app.run();
     }
     catch (std::runtime_error error) 
     { 
-        std::cout << error.what() << std::endl; 
+        std::cout << error.what() << std::endl;
         return 1; 
     }
 
