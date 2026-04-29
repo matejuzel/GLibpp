@@ -128,14 +128,18 @@ namespace Render {
             Vec4 vc(verts[2][0], verts[2][1], 0, 1);
             Vec4 vd(verts[3][0], verts[3][1], 0, 1);
 
+            /*
             Mtx4 model(
                 1, 0, 0, 0,
                 0, 1, 0, 0,
                 0, 0, 1, 0,
                 0, 0, 0, 1
             );
+            */
 
-            model.rotateY((float)ctx.frameIndex / 100.0f);
+            //model.rotateY((float)ctx.frameIndex / 100.0f);
+
+            auto model = ctx.model;
 
             Mtx4 mvp = ctx.projection * ctx.view * model;
 

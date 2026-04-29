@@ -10,9 +10,6 @@
 #include "RenderTargetDescriptor.h"
 #include <atomic>
 #include <thread>
-
-#include "FixedTimestep.h"
-#include "HighResTimer.h"
 #include "TimeManager.h"
 
 #define RENDER_BACKEND_DIB
@@ -38,10 +35,12 @@ private:
 	//std::unique_ptr<RendererEngine> renderer; // obecny renderer, ktery pouziva RenderDevice (DIB, Stencil, ...), ktery se zvoli definici makra RENDER_BACKEND_XXX
     std::unique_ptr<Render::Renderer<Render::DeviceDIB>> renderer; // pro vyvoj pouzijeme takhle explicitne, kvuli napovidani v IDE...
 
-    Camera camera = Camera::Demo(45);
+    Scene scene;
 
     bool fullscreen = false;
     RunState running;
+
+    float logicHz = 30.0f;
 
     bool checkWindowInitialized() const {
         if (window.get() == nullptr) {
@@ -98,8 +97,17 @@ public:
 
         {
             // RENDERER
-            renderer = std::make_unique<RendererEngine>(*window);
+            renderer = std::make_unique<RendererEngine>(*window, logicHz);
         }
+
+        {
+            scene.camera = Camera::Demo(45);
+            scene.modelMatrix = Mtx4::Identity();
+
+            renderer->updateScene(scene);
+            renderer->updateScene(scene);
+        }
+
 	}
 
     void onKeyCallback(KeyMap key, bool pressed) 
@@ -108,12 +116,29 @@ public:
             running.stop();
         }
 
+		if (key == KeyMap::KEY_ENTER) scene.rotationSpeed += 0.1f;
+		if (key == KeyMap::KEY_UP) scene.cameraSpeed -= 0.1f;
+        if (key == KeyMap::KEY_DOWN) scene.cameraSpeed += 0.1f;
+        if (key == KeyMap::KEY_LEFT) scene.cameraRotationSpeed -= 0.1f;
+        if (key == KeyMap::KEY_RIGHT) scene.cameraRotationSpeed += 0.1f;
 		std::cout << "Key event: " << (pressed ? "Pressed" : "Released") << " " << static_cast<int>(key) << std::endl;
 	}
 
     void updateLogic(double dt)
     {
-		std::cout << "Updating logic with dt = " << dt << " seconds" << std::endl;
+		//std::cout << "Updating logic with dt = " << dt << " seconds" << std::endl;
+
+        //scene.camera.position.x += 10.0f * static_cast<float>(dt);
+        //scene.camera.position.y += 10*sinf(0.1f * static_cast<float>(dt));
+
+
+		scene.modelMatrix.rotateY(scene.rotationSpeed * static_cast<float>(dt)); 
+		scene.camera.position.z += scene.cameraSpeed * static_cast<float>(dt);
+
+		renderer->updateScene(scene);
+
+
+
     }
 
     void run()
@@ -124,12 +149,17 @@ public:
             auto meshInstHandle = rm.meshRegister(MeshInstance());
         }
 
-        TimeManager timer(10.0f);
+        
+
+        TimeManager timer(logicHz);
 
         running.start();
         
         std::thread renderThread([this]() {
-            renderer->runLoop(camera);
+
+			renderer->updateScene(scene);
+
+            renderer->runLoop();
         });
 
         while (running.isRunning())
@@ -138,15 +168,20 @@ public:
 
             timer.tickAndDispatchAction([&](double dt) {
                 updateLogic(dt);
-				std::cout << "FPS: " << timer.getFps() << std::endl;
+				//std::cout << "FPS: " << timer.getFps() << std::endl;
 			});
 
             // Výpočet: kolik sekund zbývá, než akumulátor dosáhne m_fixedDelta?
-            double timeToWait = timer.getFixedDelta() - timer.getAccumulator();
+            //double timeToWait = timer.getFixedDelta() - timer.getAccumulator();
 
+            /*
             if (timeToWait > 0.001) { // Spíme jen, pokud je na to čas (víc než 1ms)
                 std::this_thread::sleep_for(std::chrono::milliseconds(static_cast<long long>(timeToWait * 1000)));
             }
+            */
+
+            //timer.waitUntilNextStep();
+
         }
 
         renderer->stop();

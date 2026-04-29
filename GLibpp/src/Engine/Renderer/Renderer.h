@@ -7,12 +7,17 @@
 
 #include <cstdint>
 #include <cstring>
+#include <format>
 #include <iostream>
+
+#include <windows.h>
+
 #include <memory>
 #include "Vec4.h"
 #include "Mtx4.h"
 
 #include "Camera.h"
+#include "DoubleBuffer.h"
 // Backend Common
 #include "DeviceContext.h"
 #include "DeviceBase.h"
@@ -27,15 +32,17 @@
 
 #include "ResourceManager.h"
 
+#include "Scene.h"
+
 #include "Mesh.h"
 
 #include "StableRegistry.h"
 #include "AssetRegistry.h"
 
 #include "RunState.h"
-#include "HighResTimer.h"
-#include "FixedTimestep.h"
-#include "Fps.h"
+#include "TimeManager.h"
+
+#include <utility>
 
 
 namespace Render {
@@ -79,27 +86,67 @@ namespace Render {
         ResizeRequest resizeRequest;
 
         ResourceManager resources;
+       
+
+        DoubleBuffer<std::pair<Scene, Scene>> sceneBuffer;
+
+        float logicHz;
 
     public:
 
+        // V DoubleBufferu máme: std::pair<Camera, Camera> 
+        // first  = Aktuální (Current)
+        // second = Pøedchozí (Previous)
+
+        void updateScene(const Scene& newScene)
+        {
+            // 1. Získáme referenci na back buffer, do kterého budeme pøipravovat nová data
+            auto& back = sceneBuffer.writeBuffer();
+
+            // 2. Získáme referenci na to, co se právì teï vykresluje (front buffer)
+            const auto& front = sceneBuffer.readBuffer();
+
+            // 3. LOGIKA POSUNU:
+            // To, co bylo v minulém snímku "aktuální", je v tomto snímku "pøedchozí"
+            back.second = front.first;
+
+            // To, co nám pøišlo teï, je "aktuální"
+            back.first = newScene;
+
+            // 4. Publikujeme (pøehodíme indexy)
+            sceneBuffer.publish();
+        }
+
+
 		ResourceManager& getResourceManager() { return resources; }
 
-        Renderer(WindowWin32& window)
+        Renderer(WindowWin32& window, float logicHz)
             : device(window)
 			, resources(device)
 			, viewport{ 0, 0, window.getClientWidth(), window.getClientHeight() }
+            , logicHz(logicHz)
         {
+            setupRendererPriority();
 			resize(window.getClientWidth(), window.getClientHeight());
 
             std::cout << "frame buffer: " << resources.framebufferHandle << std::endl;
             std::cout << "depth buffer: " << resources.depthbufferHandle << std::endl;
         }
 
-        void renderFrame(const Camera& camera, uint32_t frameIndex)
+        void renderFrame(double dt, uint32_t frameIndex)
         {   
             {
                 auto ctx = device.createContext();
+
+				Camera camera = Slerp(sceneBuffer.readBuffer().second.camera, sceneBuffer.readBuffer().first.camera, dt);
+                Mtx4 matrix0 = sceneBuffer.readBuffer().second.modelMatrix; // @test bez interpolace
+                Mtx4 matrix1 = sceneBuffer.readBuffer().first.modelMatrix; // @test bez interpolace
+				
+                dt = std::clamp(static_cast<float>(dt), 0.0f, 1.0f);
+				Mtx4 matrix = Mtx4::Slerp(matrix0, matrix1, dt);
                 
+				ctx.model = matrix;
+
                 ctx.frameIndex = frameIndex;
                 ctx.clearColor = Color::Grayscale(0.4f);
                 ctx.view = camera.calculateView();
@@ -114,40 +161,42 @@ namespace Render {
             device.present(resources.framebufferHandle);
         }
 
-        void runLoop(const Camera& camera)
+        void runLoop()
         {
 		    
             running.start();
 
-            Fps fps(1.0f);
-            FixedTimestep step(1.0f);
-            HighResTimer timer;
+            TimeManager timer(logicHz);
 
 			uint32_t frameIndex = 0;
             while (running.isRunning())
             {
 
-				renderFrame(camera, frameIndex++);
-
-                {
-                    // Zpracování požadavku na zmìnu velikosti
-                    uint32_t w, h;
-                    if (resizeRequest.consume(w, h))
+                {   
+                    if (uint32_t w, h; resizeRequest.consume(w, h))
                     {
                         this->resize(w, h);
                     }
                 }
 
+                /*
                 {
-                    double frameTime = timer.tick();
-                    if (frameTime > 0.25) frameTime = 0.25;
-
-                    if (step.consumeAll(frameTime))
-                    {
-                        device.getWindow().setTitle(std::format("Frame: {}, dt: {:.4f}s, FPS: {}", frameIndex, frameTime, fps.getFps()));
-                    }
-                    fps.tick();
+                    timer.tickAndDispatchAction([&](double dt) {
+                        device.getWindow().setTitle(std::format(
+                            "Frame: {}, dt: {:.4f}s, FPS: {}",
+                            frameIndex, 
+                            timer.getLastFrameTime(), 
+                            timer.getFps()
+                        ));
+					});
+                    
                 }
+                */
+
+                timer.tick();
+                timer.dispatchAction([](double dt) {});
+
+                renderFrame(timer.getInterpolationFactor(), frameIndex++);
             }
         }
 
@@ -159,6 +208,17 @@ namespace Render {
         void resizeRequestSet(uint32_t width, uint32_t height)
         {   
             resizeRequest.set(width, height);
+        }
+
+        void setupRendererPriority() {
+            // 1. Zvedneme prioritu celého procesu na "High".
+            // To øíká Windows: "Tato aplikace je dùležitìjší než prohlížeè nebo Word."
+            SetPriorityClass(GetCurrentProcess(), HIGH_PRIORITY_CLASS);
+
+            // 2. Nastavíme vláknu rendereru "Time Critical" prioritu.
+            // To znamená, že renderer dostane CPU pokaždé, když o nìj požádá,
+            // a pøeruší témìø jakoukoli jinou èinnost v systému.
+            SetThreadPriority(GetCurrentThread(), THREAD_PRIORITY_TIME_CRITICAL);
         }
 
     private:

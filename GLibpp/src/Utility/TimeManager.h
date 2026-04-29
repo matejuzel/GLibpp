@@ -1,6 +1,6 @@
 #pragma once
 
-#pragma comment(lib, "winmm.lib")
+//#pragma comment(lib, "winmm.lib")
 
 #include <windows.h>
 #include <functional>
@@ -9,6 +9,12 @@
 #include <vector>
 #include <algorithm>
 #include <timeapi.h>
+#include <thread>
+
+#include <timeapi.h> // Potøeba pro timeBeginPeriod
+#include <chrono>
+
+#pragma comment(lib, "winmm.lib")
 
 class TimeManager {
 public:
@@ -22,8 +28,12 @@ public:
         m_prev = m_start;
         m_absoluteStart = m_start;
 
-
+        timeBeginPeriod(1);
     }
+
+    ~TimeManager() {
+        timeEndPeriod(1);
+	}
 
     // Zmìøí èas a aktualizuje historii pro FPS
     double tick(double limit = 0.25) {
@@ -101,6 +111,8 @@ public:
     double getFrameDelta() const { return m_lastFrameTime; }
     double getInterpolationFactor() const { return m_accumulator / m_fixedDelta; }
 
+	double getLastFrameTime() const { return m_lastFrameTime; }
+
     double sinceStart() const {
         LARGE_INTEGER now;
         QueryPerformanceCounter(&now);
@@ -131,7 +143,49 @@ public:
         return m_accumulator; 
     }
 
+    void waitUntilNextStep(double slack = 0.0005) {
+        // 1. Nastavíme Windows scheduler na vysokou pøesnost (pokud u není)
+        // Ideálnì volat jednou globálnì, ale pro jistotu:
+        static bool precisionSet = false;
+        if (!precisionSet) {
+            timeBeginPeriod(1);
+            precisionSet = true;
+        }
+
+        while (true) {
+            double timeToWait = m_fixedDelta - m_accumulator;
+
+            // Pokud zbıvá víc èasu ne rezerva + minimální rozumnı spánek (1ms)
+            if (timeToWait > (slack + 0.001)) {
+                // Spíme o 'slack' ménì
+                double sleepTime = timeToWait - slack;
+                std::this_thread::sleep_for(
+                    std::chrono::microseconds(static_cast<long long>(sleepTime * 1000000.0))
+                );
+
+                // Po probuzení musíme znovu aktualizovat akumulátor (vnitøní tick)
+                // Aby smyèka vìdìla, kolik èasu reálnì uplynulo
+                updateAccumulatorOnly();
+            }
+            else {
+                // Jsme v oblasti rezervy – zbytek èasu "doukáme" krátkımi yieldy 
+                // nebo prázdnou smyèkou pro absolutní pøesnost.
+                break;
+            }
+        }
+    }
+
 private:
+
+    // Pomocná metoda pro aktualizaci vnitøního èasu bez ovlivnìní FPS historie
+    void updateAccumulatorOnly() {
+        LARGE_INTEGER now;
+        QueryPerformanceCounter(&now);
+        double dt = double(now.QuadPart - m_prev.QuadPart) / double(m_freq.QuadPart);
+        m_prev = now;
+        m_accumulator += dt;
+    }
+
     LARGE_INTEGER m_freq;
     LARGE_INTEGER m_prev;
     LARGE_INTEGER m_start;

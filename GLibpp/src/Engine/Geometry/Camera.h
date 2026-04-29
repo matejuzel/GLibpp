@@ -15,6 +15,8 @@ struct Camera {
     float nearZ;
     float farZ;
 
+    Camera() = default;
+
     Camera(
         const Vec4& position, 
         const Vec4& target, 
@@ -51,6 +53,18 @@ struct Camera {
 		return Demo(static_cast<float>(fovDegrees));
     }
 
+    Camera& operator=(const Camera& other) {
+        if (this != &other) {
+            position = other.position;
+            target = other.target;
+            up = other.up;
+            fovRad = other.fovRad;
+            nearZ = other.nearZ;
+            farZ = other.farZ;
+        }
+        return *this;
+    }
+
     friend Camera Lerp(const Camera& a, const Camera& b, float t)
     {
         // Klasický Lerp: start + t * (end - start)
@@ -67,27 +81,28 @@ struct Camera {
 
     friend Camera Slerp(const Camera& a, const Camera& b, float t)
     {
-        // 1. Lineární interpolace pro pozice a parametry èoèky
-        Vec4 pos = a.position + (b.position - a.position) * t;
-        Vec4 target = a.target + (b.target - a.target) * t;
-        float fov = a.fovRad + (b.fovRad - a.fovRad) * t;
-        float nZ = a.nearZ + (b.nearZ - a.nearZ) * t;
-        float fZ = a.farZ + (b.farZ - a.farZ) * t;
+        // Lineární èást zùstává (ideálnì s std::lerp nebo (1-t)*a + t*b)
+        Vec4 pos = a.position * (1.0f - t) + b.position * t;
+        Vec4 target = a.target * (1.0f - t) + b.target * t;
+        float fov = a.fovRad * (1.0f - t) + b.fovRad * t;
+        float nZ = a.nearZ * (1.0f - t) + b.nearZ * t;
+        float fZ = a.farZ * (1.0f - t) + b.farZ * t;
 
-        // 2. Sférická interpolace (Slerp) pro vektor UP
-        // Pøedpokládáme, že a.up a b.up jsou normalizované.
-        float dot = a.up.dot(b.up);
+        float dot = std::clamp(a.up.dot(b.up), -1.0f, 1.0f);
 
-        // Ošetøení numerické pøesnosti pro acos
-        dot = std::clamp(dot, -1.0f, 1.0f);
+        Vec4 finalUp;
+        // Pokud jsou vektory skoro stejné, použijeme Lerp, abychom se vyhnuli dìlení nulou
+        if (dot > 0.9995f) {
+            finalUp = (a.up * (1.0f - t) + b.up * t);
+            finalUp.normalize();
+        }
+        else {
+            float theta = std::acos(dot) * t;
+            Vec4 relativeVec = (b.up - a.up * dot);
+            relativeVec.normalize();
+            finalUp = (a.up * std::cos(theta)) + (relativeVec * std::sin(theta));
+        }
 
-        float theta = std::acos(dot) * t;
-        Vec4 relativeVec = (b.up - a.up * dot);
-        relativeVec.normalize();
-
-        // Výsledný rotovaný vektor UP
-        Vec4 up = (a.up * std::cos(theta)) + (relativeVec * std::sin(theta));
-
-        return Camera(pos, target, up, fov, nZ, fZ);
+        return Camera(pos, target, finalUp, fov, nZ, fZ);
     }
 };

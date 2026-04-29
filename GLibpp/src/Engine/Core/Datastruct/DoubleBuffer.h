@@ -5,7 +5,7 @@
 template<typename T>
 class DoubleBuffer {
 public:
-    DoubleBuffer() {
+    DoubleBuffer() :buffers_{}, index_(0) {
         index_.store(0, std::memory_order_relaxed);
     }
 

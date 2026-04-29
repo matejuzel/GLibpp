@@ -20,6 +20,8 @@ namespace Render {
         Color clearColor = { 0,0,0,255 };
         uint32_t frameIndex = 0;
 
+		Mtx4 model = Mtx4::Identity(); // tady to asi pak nebude, ale zatim pro testy...
+
         typename Device::TargetHandle framebufferHandle = Device::TARGET_INVALID;
         typename Device::TargetHandle depthbufferHandle = Device::TARGET_INVALID;
 
