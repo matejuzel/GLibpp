@@ -190,7 +190,8 @@ public:
                 input.keyboard.update();
                 updateLogic(dt);
                 renderer->updateScene(scene);
-                });
+                renderer->updateLastLogicTick(timer.sinceStart());
+             });
 
 
             /*

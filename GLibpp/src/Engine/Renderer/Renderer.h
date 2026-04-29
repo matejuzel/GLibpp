@@ -92,11 +92,23 @@ namespace Render {
 
         float logicHz;
 
+        std::atomic<double> lastLogicTick = { 0.0 };
+
     public:
 
         // V DoubleBufferu máme: std::pair<Camera, Camera> 
         // first  = Aktuální (Current)
         // second = Pøedchozí (Previous)
+
+        void updateLastLogicTick(double dt)
+        {
+            lastLogicTick.store(dt, std::memory_order_relaxed);
+        }
+
+        double getLastLogicTick() const
+        {
+            return lastLogicTick.load(std::memory_order_relaxed);
+		}
 
         void updateScene(const Scene& newScene)
         {
@@ -138,11 +150,12 @@ namespace Render {
             {
                 auto ctx = device.createContext();
 
+                dt = std::clamp(static_cast<float>(dt), 0.0f, 1.0f);
+
 				Camera camera = Slerp(sceneBuffer.readBuffer().second.camera, sceneBuffer.readBuffer().first.camera, dt);
                 Mtx4 matrix0 = sceneBuffer.readBuffer().second.modelMatrix; // @test bez interpolace
                 Mtx4 matrix1 = sceneBuffer.readBuffer().first.modelMatrix; // @test bez interpolace
 				
-                dt = std::clamp(static_cast<float>(dt), 0.0f, 1.0f);
 				Mtx4 matrix = Mtx4::Slerp(matrix0, matrix1, dt);
                 
 				ctx.model = matrix;
@@ -183,8 +196,11 @@ namespace Render {
                 timer.tick();
                 timer.dispatchAction([](double dt) {});
 
-                renderFrame(timer.getInterpolationFactor(), frameIndex++);
+                double now = timer.sinceStart();
+                double lastTick = this->getLastLogicTick();
+                float t = static_cast<float>((now - lastTick) / timer.getFixedDelta());
 
+                renderFrame(t, frameIndex++);
 
                 {
                     timerOneSecond.tickAndDispatchAction([&](double dt) {
