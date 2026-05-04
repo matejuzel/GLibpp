@@ -2,65 +2,49 @@
 
 #include <atomic>
 #include <array>
-#include <cstring>
 #include <format>
-
+#include <new> // Kvùli std::hardware_destructive_interference_size
 
 template <typename T>
 class ZeroAllocTripleBuffer {
 public:
-    // Konstruktor alokuje/inicializuje všechny 3 buffery hned na zaèátku
-    ZeroAllocTripleBuffer() {
-        // Buffery se vytvoøí pomocí výchozího konstruktoru typu T
-        buffers[0] = T();
-        buffers[1] = T();
-        buffers[2] = T();
-
-        producer_idx = 0;
-        consumer_idx = 2;
+    ZeroAllocTripleBuffer()
+        : buffers{}, producer_idx(0), consumer_idx(2) {
         dirty_idx.store(1, std::memory_order_relaxed);
     }
 
-    // Konstruktor s výchozí hodnotou pro inicializaci všech tøí bufferù
-    explicit ZeroAllocTripleBuffer(const T& initial_value) {
-        buffers[0] = initial_value;
-        buffers[1] = initial_value;
-        buffers[2] = initial_value;
-
-        producer_idx = 0;
-        consumer_idx = 2;
+    explicit ZeroAllocTripleBuffer(const T& initial_value)
+        : buffers{ initial_value, initial_value, initial_value },
+        producer_idx(0), consumer_idx(2) {
         dirty_idx.store(1, std::memory_order_relaxed);
     }
 
-    // Zakážeme kopírování a pøesun samotného bufferu pro bezpeèné použití ve více vláknech
     ZeroAllocTripleBuffer(const ZeroAllocTripleBuffer&) = delete;
     ZeroAllocTripleBuffer& operator=(const ZeroAllocTripleBuffer&) = delete;
     ZeroAllocTripleBuffer(ZeroAllocTripleBuffer&&) = delete;
     ZeroAllocTripleBuffer& operator=(ZeroAllocTripleBuffer&&) = delete;
 
-    // --- PRODUCER (Logic Thread) API ---
-
-    // Získání pøímé reference na buffer, do kterého se má zapisovat.
-    // Žádná alokace ani kopírování se nekoná.
+    // --- PRODUCER API ---
     T& get_write_buffer() {
         return buffers[producer_idx];
     }
 
-    // Zveøejnìní (publikace) novì zapsaných dat.
-    // Prohodí index aktuálního zápisového bufferu s indexem 'dirty'.
     void publish() {
+        // Exchange s release sémantikou dává consumeru vìdìt, že data jsou pøipravena
         producer_idx = dirty_idx.exchange(producer_idx, std::memory_order_acq_rel);
     }
 
-    // --- CONSUMER (Render Thread) API ---
-
-    // Aktualizace ètecího bufferu. Pokud jsou k dispozici nová data,
-    // prohodí se indexy a vrátí true. Jinak vrátí false.
+    // --- CONSUMER API ---
     bool update_reader() {
+        // Rychlý test: Pokud se index nezmìnil, ušetøíme drahý exchange
+        if (dirty_idx.load(std::memory_order_relaxed) == consumer_idx) {
+            return false;
+        }
+
+        // Pokud je dirty_idx jiný, vyzvedneme si ho
         int latest = dirty_idx.exchange(consumer_idx, std::memory_order_acq_rel);
 
         if (latest == consumer_idx) {
-            // Žádná nová data od posledního ètení
             return false;
         }
 
@@ -68,23 +52,36 @@ public:
         return true;
     }
 
-    // Získání reference na aktuální ètecí buffer pro Render thread
     const T& get_read_buffer() const {
         return buffers[consumer_idx];
     }
 
-    const std::string toString() const {
+    std::string toString() const {
         return std::format(
             "ZeroAllocTripleBuffer {{ producer_idx: {}, consumer_idx: {}, dirty_idx: {} }}",
             producer_idx, consumer_idx, dirty_idx.load(std::memory_order_relaxed)
         );
-	}
+    }
 
 private:
+    // Detekce a bezpeèné nadefinování velikosti cache line
+#ifdef __cpp_lib_hardware_interference_size
+    // Pokud kompilátor konstantu podporuje, použijeme ji pøímo
+    static constexpr size_t cache_line = std::hardware_destructive_interference_size;
+#else
+    // Fallback pro systémy/kompilátory, které ji nemají
+    static constexpr size_t cache_line = 64;
+#endif
+
+    // 1. Samotná data bufferù
     std::array<T, 3> buffers;
 
-    int producer_idx; // Pouze pro vlákno zapisující
-    int consumer_idx; // Pouze pro vlákno ètoucí
+    // 2. Data pro Producer vlákno (zarovnáno na novou cache line)
+    alignas(cache_line) int producer_idx;
 
-    std::atomic<int> dirty_idx; // Atomický prostøedník
+    // 3. Data pro Consumer vlákno (zarovnáno na další cache line)
+    alignas(cache_line) int consumer_idx;
+
+    // 4. Sdílená atomická promìnná (zarovnáno na další cache line)
+    alignas(cache_line) std::atomic<int> dirty_idx;
 };

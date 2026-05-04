@@ -98,6 +98,8 @@ namespace Render {
 
         SceneBuffer& sceneBuffered;
 
+        using SceneInterpolationPair = ZeroAllocStateHistory<Scene>;
+
     public:
 
         // V DoubleBufferu máme: std::pair<Camera, Camera> 
@@ -150,7 +152,7 @@ namespace Render {
             std::cout << "depth buffer: " << resources.depthbufferHandle << std::endl;
         }
 
-        void renderFrame(double dt, const Scene& sceneCurrent, const Scene& scenePrevious, uint32_t frameIndex)
+        void renderFrame(double dt, const Scene& scene, uint32_t frameIndex)
         {   
             float dtClamped = std::clamp(static_cast<float>(dt), 0.0f, 1.0f);
             {
@@ -158,7 +160,9 @@ namespace Render {
                 auto ctx = device.createContext();
                 
 
-				Camera camera = Slerp(sceneBuffer.readBuffer().second.camera, sceneBuffer.readBuffer().first.camera, dtClamped);
+				//Camera camera = Slerp(sceneBuffer.readBuffer().second.camera, sceneBuffer.readBuffer().first.camera, dtClamped); // Toto funguje perfektne
+                Camera camera = scene.camera; // Toto cuka
+
                 Mtx4 matrix0 = sceneBuffer.readBuffer().second.modelMatrix; // @test bez interpolace
                 Mtx4 matrix1 = sceneBuffer.readBuffer().first.modelMatrix; // @test bez interpolace
 				
@@ -185,10 +189,14 @@ namespace Render {
 		    
             running.start();
 
+			Scene scenePrevious;
+			Scene sceneCurrent;
+            Scene sceneInterpolated;
+
             TimeManager timerLogic(logicHz);
             TimeManager timer1Hz(1.0); // pro výpoèet FPS každou sekundu
 
-            ZeroAllocStateHistory<Scene> sceneHistory;
+            SceneInterpolationPair sceneHistory;
 
 			uint32_t frameIndex = 0;
             while (running.isRunning())
@@ -202,20 +210,27 @@ namespace Render {
                 }
 
                 if (sceneBuffered.update_reader()) {
-                    
-					sceneHistory.advance_and_get_current() = sceneBuffered.get_read_buffer();
+
+                    sceneHistory.advance_and_get_current() = sceneBuffered.get_read_buffer();
+                    std::cout << "swapped" << std::endl;
                 }
 
-				const Scene& sceneCurrent = sceneHistory.get_current();
-                const Scene& scenePrevious = sceneHistory.get_previous();
-
                 timerLogic.tickAndFlush();
+
+                sceneCurrent = sceneHistory.get_current();
+                scenePrevious = sceneHistory.get_previous();
 
                 double now = timerLogic.sinceStart();
                 double lastTick = this->getLastLogicTick();
                 float t = static_cast<float>((now - lastTick) / timerLogic.getFixedDelta());
 
-                renderFrame(t, sceneCurrent, scenePrevious, frameIndex++);
+                
+
+                
+                std::cout << t << std::endl;
+				sceneInterpolated = Slerp(sceneCurrent, scenePrevious, std::clamp(static_cast<float>(t), 0.0f, 1.0f));
+
+                renderFrame(t, sceneInterpolated, frameIndex++);
 
                 {
                     timer1Hz.tickAndDispatchAction([&](double dt) {

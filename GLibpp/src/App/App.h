@@ -48,7 +48,7 @@ private:
 
     GLibpp::Input input;
 
-    float logicHz = 30.0f;
+    float logicHz = 5.0f;
 
     bool checkWindowInitialized() const {
         if (window.get() == nullptr) {
@@ -204,12 +204,13 @@ public:
                 updateLogic(dt);
                 renderer->updateScene(scene);
 
-				auto& writeBuffer = sceneBuffered.get_write_buffer();
-				writeBuffer = scene;
-                sceneBuffered.publish();
 
 
                 renderer->updateLastLogicTick(timer.sinceStart());
+
+                auto& writeBuffer = sceneBuffered.get_write_buffer();
+                writeBuffer = scene;
+                sceneBuffered.publish();
 
                 //std::cout << sceneBuffered.toString() << std::endl;
              });

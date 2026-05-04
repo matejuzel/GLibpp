@@ -13,4 +13,12 @@ struct Scene {
 	float cameraSpeed = 0.0f;
 	float cameraRotationSpeed = 0.0f;
 
+
+	friend Scene Slerp(const Scene& a, const Scene& b, float t) {
+	
+		Scene sceneInterpolated;
+		sceneInterpolated.camera = Slerp(a.camera, b.camera, t);
+		return sceneInterpolated;
+	}
+
 };
