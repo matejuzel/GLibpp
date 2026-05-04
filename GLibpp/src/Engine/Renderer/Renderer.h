@@ -147,16 +147,16 @@ namespace Render {
 
         void renderFrame(double dt, uint32_t frameIndex)
         {   
+            float dtClamped = std::clamp(static_cast<float>(dt), 0.0f, 1.0f);
             {
+                
                 auto ctx = device.createContext();
 
-                dt = std::clamp(static_cast<float>(dt), 0.0f, 1.0f);
-
-				Camera camera = Slerp(sceneBuffer.readBuffer().second.camera, sceneBuffer.readBuffer().first.camera, dt);
+				Camera camera = Slerp(sceneBuffer.readBuffer().second.camera, sceneBuffer.readBuffer().first.camera, dtClamped);
                 Mtx4 matrix0 = sceneBuffer.readBuffer().second.modelMatrix; // @test bez interpolace
                 Mtx4 matrix1 = sceneBuffer.readBuffer().first.modelMatrix; // @test bez interpolace
 				
-				Mtx4 matrix = Mtx4::Slerp(matrix0, matrix1, dt);
+				Mtx4 matrix = Mtx4::Slerp(matrix0, matrix1, dtClamped);
                 
 				ctx.model = matrix;
 
