@@ -179,8 +179,8 @@ namespace Render {
 		    
             running.start();
 
-            TimeManager timer(logicHz);
-            TimeManager timerOneSecond(1.0); // pro výpoèet FPS každou sekundu
+            TimeManager timerLogic(logicHz);
+            TimeManager timer1Hz(1.0); // pro výpoèet FPS každou sekundu
 
 			uint32_t frameIndex = 0;
             while (running.isRunning())
@@ -193,24 +193,23 @@ namespace Render {
                     }
                 }
 
-                timer.tick();
-                timer.dispatchAction([](double dt) {});
+                timerLogic.tickAndFlush();
 
-                double now = timer.sinceStart();
+                double now = timerLogic.sinceStart();
                 double lastTick = this->getLastLogicTick();
-                float t = static_cast<float>((now - lastTick) / timer.getFixedDelta());
+                float t = static_cast<float>((now - lastTick) / timerLogic.getFixedDelta());
 
                 renderFrame(t, frameIndex++);
 
                 {
-                    timerOneSecond.tickAndDispatchAction([&](double dt) {
+                    timer1Hz.tickAndDispatchAction([&](double dt) {
                         device.getWindow().setTitle(std::format(
                             "FPS: {:.0f} ||| 1% Low: {:.0f} ||| 0.1% Low: {:.0f} ||| Min/Max: {:.0f}/{:.0f} [Frame: {}]",
-                            timer.getFps(),
-                            timer.getLow1Percent(),
-                            timer.getLowPoint1Percent(),
-                            timer.getMaxFrameTimeFps(),
-                            timer.getMinFrameTimeFps(),
+                            timerLogic.getFps(),
+                            timerLogic.getLow1Percent(),
+                            timerLogic.getLowPoint1Percent(),
+                            timerLogic.getMaxFrameTimeFps(),
+                            timerLogic.getMinFrameTimeFps(),
                             frameIndex
                         ));
                      });

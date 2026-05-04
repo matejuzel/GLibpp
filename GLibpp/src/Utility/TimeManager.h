@@ -61,16 +61,27 @@ public:
         return frameTime;
     }
 
-    void dispatchAction(const std::function<void(double)>& stepCallback) {
+    void dispatchAction(const std::function<void(double)>& stepCallback) 
+    {
         while (m_accumulator >= m_fixedDelta) {
             stepCallback(m_fixedDelta);
             m_accumulator -= m_fixedDelta;
         }
     }
 
-    void tickAndDispatchAction(const std::function<void(double)>& stepCallback, double limit = 0.25) {
+    void tickAndDispatchAction(const std::function<void(double)>& stepCallback, double limit = 0.25) 
+    {
         tick(limit);
         dispatchAction(stepCallback);
+    }
+
+    void tickAndFlush(double limit = 0.25) 
+    {
+        tick(limit);
+        while (m_accumulator >= m_fixedDelta) 
+        {
+            m_accumulator -= m_fixedDelta;
+        }
     }
 
     // --- FPS Metriky ---

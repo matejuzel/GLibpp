@@ -33,6 +33,7 @@
     <ClInclude Include="src\Engine\Core\Datastruct\AssetRegistry.h" />
     <ClInclude Include="src\Engine\Core\Datastruct\DoubleBuffer.h" />
     <ClInclude Include="src\Engine\Core\Datastruct\StableRegistry.h" />
+    <ClInclude Include="src\Engine\Core\Datastruct\ZeroAllocTripleBuffer.h" />
     <ClInclude Include="src\Engine\Core\handles.h" />
     <ClInclude Include="src\Engine\Core\Input\Input.h" />
     <ClInclude Include="src\Engine\Core\RunState.h" />

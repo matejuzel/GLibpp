@@ -123,6 +123,10 @@ public:
         }
 	}
 
+    void processInputs()
+    {
+    }
+
     void updateLogic(double dtExtra)
     {
 		float dt = std::clamp(static_cast<float>(dtExtra), 0.0f, 1.0f);
@@ -170,7 +174,7 @@ public:
         }
 
 
-
+		// logic scheduler - bude volat updateLogic() s pevnou frekvenci, nezavisle na renderovani
         TimeManager timer(logicHz);
 
         //TimeManager timerOneSecond(1.0); // pro výpočet FPS každou sekundu
