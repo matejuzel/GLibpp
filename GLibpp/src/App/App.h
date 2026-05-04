@@ -2,6 +2,11 @@
 #include <memory>
 
 #include "WindowWin32.h"
+#include "ZeroAllocTripleBuffer.h"
+#include "Scene.h"
+using SceneBuffer = ZeroAllocTripleBuffer<Scene>;
+
+
 #include "Renderer.h"
 #include "RenderCommandList.h"
 #include "Mtx4.h"
@@ -52,6 +57,9 @@ private:
         return true;
 	}
 
+
+	SceneBuffer sceneBuffered;
+
 public:
 
     App() = default;
@@ -100,7 +108,7 @@ public:
 
         {
             // RENDERER
-            renderer = std::make_unique<RendererEngine>(*window, logicHz);
+            renderer = std::make_unique<RendererEngine>(*window, sceneBuffered, logicHz);
         }
 
         {
@@ -176,6 +184,7 @@ public:
 
 		// logic scheduler - bude volat updateLogic() s pevnou frekvenci, nezavisle na renderovani
         TimeManager timer(logicHz);
+        TimeManager timer1Hz(1.0f);
 
         //TimeManager timerOneSecond(1.0); // pro výpočet FPS každou sekundu
 
@@ -194,8 +203,20 @@ public:
                 input.keyboard.update();
                 updateLogic(dt);
                 renderer->updateScene(scene);
+
+				auto& writeBuffer = sceneBuffered.get_write_buffer();
+				writeBuffer = scene;
+                sceneBuffered.publish();
+
+
                 renderer->updateLastLogicTick(timer.sinceStart());
+
+                //std::cout << sceneBuffered.toString() << std::endl;
              });
+
+            timer1Hz.tickAndDispatchAction([&](double dt) {
+                // zatim nic
+			});
 
 
             /*

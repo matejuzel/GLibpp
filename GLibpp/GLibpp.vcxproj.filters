@@ -206,5 +206,8 @@
     <ClInclude Include="src\Engine\Core\Datastruct\ZeroAllocTripleBuffer.h">
       <Filter>Zdrojové soubory\Engine\Core\Datastruct</Filter>
     </ClInclude>
+    <ClInclude Include="src\Engine\Core\Datastruct\ZeroAllocStateHistory.h">
+      <Filter>Zdrojové soubory\Engine\Core\Datastruct</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

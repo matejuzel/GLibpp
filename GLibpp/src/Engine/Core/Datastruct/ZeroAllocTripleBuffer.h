@@ -2,6 +2,9 @@
 
 #include <atomic>
 #include <array>
+#include <cstring>
+#include <format>
+
 
 template <typename T>
 class ZeroAllocTripleBuffer {
@@ -69,6 +72,13 @@ public:
     const T& get_read_buffer() const {
         return buffers[consumer_idx];
     }
+
+    const std::string toString() const {
+        return std::format(
+            "ZeroAllocTripleBuffer {{ producer_idx: {}, consumer_idx: {}, dirty_idx: {} }}",
+            producer_idx, consumer_idx, dirty_idx.load(std::memory_order_relaxed)
+        );
+	}
 
 private:
     std::array<T, 3> buffers;

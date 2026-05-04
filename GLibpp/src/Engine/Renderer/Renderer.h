@@ -42,6 +42,8 @@
 #include "RunState.h"
 #include "TimeManager.h"
 
+#include "ZeroAllocStateHistory.h"
+
 #include <utility>
 
 
@@ -94,6 +96,8 @@ namespace Render {
 
         std::atomic<double> lastLogicTick = { 0.0 };
 
+        SceneBuffer& sceneBuffered;
+
     public:
 
         // V DoubleBufferu máme: std::pair<Camera, Camera> 
@@ -132,10 +136,11 @@ namespace Render {
 
 		ResourceManager& getResourceManager() { return resources; }
 
-        Renderer(WindowWin32& window, float logicHz)
+        Renderer(WindowWin32& window, SceneBuffer& sceneBuffered, float logicHz)
             : device(window)
 			, resources(device)
 			, viewport{ 0, 0, window.getClientWidth(), window.getClientHeight() }
+            , sceneBuffered(sceneBuffered)
             , logicHz(logicHz)
         {
             setupRendererPriority();
@@ -145,12 +150,13 @@ namespace Render {
             std::cout << "depth buffer: " << resources.depthbufferHandle << std::endl;
         }
 
-        void renderFrame(double dt, uint32_t frameIndex)
+        void renderFrame(double dt, const Scene& sceneCurrent, const Scene& scenePrevious, uint32_t frameIndex)
         {   
             float dtClamped = std::clamp(static_cast<float>(dt), 0.0f, 1.0f);
             {
                 
                 auto ctx = device.createContext();
+                
 
 				Camera camera = Slerp(sceneBuffer.readBuffer().second.camera, sceneBuffer.readBuffer().first.camera, dtClamped);
                 Mtx4 matrix0 = sceneBuffer.readBuffer().second.modelMatrix; // @test bez interpolace
@@ -182,6 +188,8 @@ namespace Render {
             TimeManager timerLogic(logicHz);
             TimeManager timer1Hz(1.0); // pro výpoèet FPS každou sekundu
 
+            ZeroAllocStateHistory<Scene> sceneHistory;
+
 			uint32_t frameIndex = 0;
             while (running.isRunning())
             {
@@ -193,13 +201,21 @@ namespace Render {
                     }
                 }
 
+                if (sceneBuffered.update_reader()) {
+                    
+					sceneHistory.advance_and_get_current() = sceneBuffered.get_read_buffer();
+                }
+
+				const Scene& sceneCurrent = sceneHistory.get_current();
+                const Scene& scenePrevious = sceneHistory.get_previous();
+
                 timerLogic.tickAndFlush();
 
                 double now = timerLogic.sinceStart();
                 double lastTick = this->getLastLogicTick();
                 float t = static_cast<float>((now - lastTick) / timerLogic.getFixedDelta());
 
-                renderFrame(t, frameIndex++);
+                renderFrame(t, sceneCurrent, scenePrevious, frameIndex++);
 
                 {
                     timer1Hz.tickAndDispatchAction([&](double dt) {
