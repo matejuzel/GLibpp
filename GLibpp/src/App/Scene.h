@@ -4,7 +4,9 @@
 
 struct Scene {
 
+	float logicHz = 0.0f;
 	double lastLogicTick = 0.0;
+	
 
 	Camera camera;
 	Mtx4 modelMatrix;

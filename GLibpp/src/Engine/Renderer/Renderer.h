@@ -83,8 +83,6 @@ namespace Render {
         Device device;
         
         Viewport viewport;
-        
-        RunState running;
         ResizeRequest resizeRequest;
 
         ResourceManager resources;
@@ -94,35 +92,9 @@ namespace Render {
         SceneBuffer& sceneBuffered;
 
         using SceneInterpolationPair = ZeroAllocStateHistory<Scene>;
+        RunState running;
 
     public:
-
-        // V DoubleBufferu máme: std::pair<Camera, Camera> 
-        // first  = Aktuální (Current)
-        // second = Pøedchozí (Previous)
-
-        
-
-        /*
-        void updateScene(const Scene& newScene)
-        {
-            // 1. Získáme referenci na back buffer, do kterého budeme pøipravovat nová data
-            auto& back = sceneBuffer.writeBuffer();
-
-            // 2. Získáme referenci na to, co se právì teï vykresluje (front buffer)
-            const auto& front = sceneBuffer.readBuffer();
-
-            // 3. LOGIKA POSUNU:
-            // To, co bylo v minulém snímku "aktuální", je v tomto snímku "pøedchozí"
-            back.second = front.first;
-
-            // To, co nám pøišlo teï, je "aktuální"
-            back.first = newScene;
-
-            // 4. Publikujeme (pøehodíme indexy)
-            sceneBuffer.publish();
-        }
-        */
 
 		ResourceManager& getResourceManager() { return resources; }
 
@@ -165,7 +137,6 @@ namespace Render {
 
         void runLoop()
         {
-		    
             running.start();
 
 			Scene scenePrevious;
