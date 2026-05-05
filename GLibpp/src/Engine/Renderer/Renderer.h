@@ -200,10 +200,10 @@ namespace Render {
 
                 double now = timerLogic.sinceStart();
                 double lastTick = sceneCurrent.lastLogicTick;
-                float t = static_cast<float>((now - lastTick) / timerLogic.getFixedDelta());
+                double t = (now - lastTick) / timerLogic.getFixedDelta();
+				double tClamped = std::clamp(t, 0.0, 1.0);
 
-				float tClamped = std::clamp(t, 0.0f, 1.0f);
-				sceneInterpolated = Slerp(scenePrevious, sceneCurrent, tClamped);
+				sceneInterpolated = Slerp(scenePrevious, sceneCurrent, static_cast<float>(tClamped));
 
                 renderFrame(sceneInterpolated, frameIndex++);
 
