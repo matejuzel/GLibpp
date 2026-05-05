@@ -48,7 +48,7 @@ private:
 
     GLibpp::Input input;
 
-    float logicHz = 5.0f;
+    float logicHz = 30.0f;
 
     bool checkWindowInitialized() const {
         if (window.get() == nullptr) {
@@ -171,6 +171,10 @@ public:
 		scene.modelMatrix.rotateY(scene.rotationSpeed * dt); 
 		scene.camera.position.z += scene.cameraSpeed * dt;
 
+
+        scene.test += 1.0f;
+        std::cout << "test inc(1): " << scene.test << std::endl;
+
     }
 
     void run()
@@ -189,6 +193,10 @@ public:
         //TimeManager timerOneSecond(1.0); // pro výpočet FPS každou sekundu
 
         running.start();
+
+
+        sceneBuffered.publish();
+        sceneBuffered.publish();
 
         std::thread renderThread([this]() {
             renderer->updateScene(scene); // to tu asi ani byt nemusi
@@ -211,6 +219,7 @@ public:
                 auto& writeBuffer = sceneBuffered.get_write_buffer();
                 writeBuffer = scene;
                 sceneBuffered.publish();
+                std::cout << "Producer: published" << std::endl;
 
                 //std::cout << sceneBuffered.toString() << std::endl;
              });

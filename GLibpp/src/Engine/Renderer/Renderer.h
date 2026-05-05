@@ -212,7 +212,10 @@ namespace Render {
                 if (sceneBuffered.update_reader()) {
 
                     sceneHistory.advance_and_get_current() = sceneBuffered.get_read_buffer();
-                    std::cout << "swapped" << std::endl;
+                    //std::cout << "Consumer: swapped" << std::endl;
+                }
+                else {
+                    //std::cout << "Consumer: original" << std::endl;
                 }
 
                 timerLogic.tickAndFlush();
@@ -225,10 +228,12 @@ namespace Render {
                 float t = static_cast<float>((now - lastTick) / timerLogic.getFixedDelta());
 
                 
+                //std::cout << t << std::endl;
+				sceneInterpolated = Slerp(scenePrevious, sceneCurrent, std::clamp(static_cast<float>(t), 0.0f, 1.0f));
 
-                
-                std::cout << t << std::endl;
-				sceneInterpolated = Slerp(sceneCurrent, scenePrevious, std::clamp(static_cast<float>(t), 0.0f, 1.0f));
+
+				float test = sceneInterpolated.test;
+                //std::cout << "(" << scenePrevious.test << " ; " << sceneCurrent.test << ") ["<< t <<"]" << std::endl;
 
                 renderFrame(t, sceneInterpolated, frameIndex++);
 
