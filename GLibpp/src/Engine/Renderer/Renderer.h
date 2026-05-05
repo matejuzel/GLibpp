@@ -88,9 +88,6 @@ namespace Render {
         ResizeRequest resizeRequest;
 
         ResourceManager resources;
-       
-
-        DoubleBuffer<std::pair<Scene, Scene>> sceneBuffer;
 
         float logicHz;
 
@@ -116,6 +113,7 @@ namespace Render {
             return lastLogicTick.load(std::memory_order_relaxed);
 		}
 
+        /*
         void updateScene(const Scene& newScene)
         {
             // 1. Získáme referenci na back buffer, do kterého budeme pøipravovat nová data
@@ -134,7 +132,7 @@ namespace Render {
             // 4. Publikujeme (pøehodíme indexy)
             sceneBuffer.publish();
         }
-
+        */
 
 		ResourceManager& getResourceManager() { return resources; }
 
@@ -152,34 +150,25 @@ namespace Render {
             std::cout << "depth buffer: " << resources.depthbufferHandle << std::endl;
         }
 
-        void renderFrame(double dt, const Scene& scene, uint32_t frameIndex)
+        void renderFrame(const Scene& scene, uint32_t frameIndex)
         {   
-            float dtClamped = std::clamp(static_cast<float>(dt), 0.0f, 1.0f);
-            {
+            auto ctx = device.createContext();
                 
-                auto ctx = device.createContext();
-                
+            Camera camera = scene.camera; // Toto cuka
 
-				//Camera camera = Slerp(sceneBuffer.readBuffer().second.camera, sceneBuffer.readBuffer().first.camera, dtClamped); // Toto funguje perfektne
-                Camera camera = scene.camera; // Toto cuka
-
-                Mtx4 matrix0 = sceneBuffer.readBuffer().second.modelMatrix; // @test bez interpolace
-                Mtx4 matrix1 = sceneBuffer.readBuffer().first.modelMatrix; // @test bez interpolace
-				
-				Mtx4 matrix = Mtx4::Slerp(matrix0, matrix1, dtClamped);
+			Mtx4 matrix = scene.modelMatrix;
                 
-				ctx.model = matrix;
+			ctx.model = matrix;
 
-                ctx.frameIndex = frameIndex;
-                ctx.clearColor = Color::Grayscale(0.4f);
-                ctx.view = camera.calculateView();
-                ctx.projection = Mtx4::Perspective(camera.fovRad, viewport.computeAspectRatio(), camera.nearZ, camera.farZ);
-                ctx.viewport = viewport;
-                ctx.framebufferHandle = resources.framebufferHandle;
+            ctx.frameIndex = frameIndex;
+            ctx.clearColor = Color::Grayscale(0.4f);
+            ctx.view = camera.calculateView();
+            ctx.projection = Mtx4::Perspective(camera.fovRad, viewport.computeAspectRatio(), camera.nearZ, camera.farZ);
+            ctx.viewport = viewport;
+            ctx.framebufferHandle = resources.framebufferHandle;
                 
-                device.clear(ctx);
-                device.drawStaticTestMesh(ctx);
-            }
+            device.clear(ctx);
+            device.drawStaticTestMesh(ctx);
             
             device.present(resources.framebufferHandle);
         }
@@ -212,10 +201,6 @@ namespace Render {
                 if (sceneBuffered.update_reader()) {
 
                     sceneHistory.advance_and_get_current() = sceneBuffered.get_read_buffer();
-                    //std::cout << "Consumer: swapped" << std::endl;
-                }
-                else {
-                    //std::cout << "Consumer: original" << std::endl;
                 }
 
                 timerLogic.tickAndFlush();
@@ -227,15 +212,10 @@ namespace Render {
                 double lastTick = this->getLastLogicTick();
                 float t = static_cast<float>((now - lastTick) / timerLogic.getFixedDelta());
 
-                
-                //std::cout << t << std::endl;
-				sceneInterpolated = Slerp(scenePrevious, sceneCurrent, std::clamp(static_cast<float>(t), 0.0f, 1.0f));
+				float tClamped = std::clamp(t, 0.0f, 1.0f);
+				sceneInterpolated = Slerp(scenePrevious, sceneCurrent, tClamped);
 
-
-				float test = sceneInterpolated.test;
-                //std::cout << "(" << scenePrevious.test << " ; " << sceneCurrent.test << ") ["<< t <<"]" << std::endl;
-
-                renderFrame(t, sceneInterpolated, frameIndex++);
+                renderFrame(sceneInterpolated, frameIndex++);
 
                 {
                     timer1Hz.tickAndDispatchAction([&](double dt) {

@@ -17,6 +17,7 @@ using SceneBuffer = ZeroAllocTripleBuffer<Scene>;
 #include <thread>
 #include "TimeManager.h"
 #include "Input.h"
+#include <random>
 
 #define RENDER_BACKEND_DIB
 
@@ -48,7 +49,7 @@ private:
 
     GLibpp::Input input;
 
-    float logicHz = 30.0f;
+    float logicHz = 30;
 
     bool checkWindowInitialized() const {
         if (window.get() == nullptr) {
@@ -115,10 +116,17 @@ public:
             scene.camera = Camera::Demo(45);
             scene.modelMatrix = Mtx4::Identity();
 
-            renderer->updateScene(scene);
-            renderer->updateScene(scene);
+            //renderer->updateScene(scene);
+            //renderer->updateScene(scene);
         }
 
+	}
+
+    void lagTest(int ms)
+    {
+        // Simulace náročné logiky, která trvá ms milisekund
+        std::this_thread::sleep_for(std::chrono::milliseconds(ms));
+		std::cout << "Lag test: Simulated work for " << ms << " ms" << std::endl;
 	}
 
     void onKeyCallback(KeyMap key, bool pressed) 
@@ -173,7 +181,7 @@ public:
 
 
         scene.test += 1.0f;
-        std::cout << "test inc(1): " << scene.test << std::endl;
+        //std::cout << "test inc(1): " << scene.test << std::endl;
 
     }
 
@@ -188,7 +196,7 @@ public:
 
 		// logic scheduler - bude volat updateLogic() s pevnou frekvenci, nezavisle na renderovani
         TimeManager timer(logicHz);
-        TimeManager timer1Hz(1.0f);
+        TimeManager timer10Hz(10.0f);
 
         //TimeManager timerOneSecond(1.0); // pro výpočet FPS každou sekundu
 
@@ -199,7 +207,7 @@ public:
         sceneBuffered.publish();
 
         std::thread renderThread([this]() {
-            renderer->updateScene(scene); // to tu asi ani byt nemusi
+            //renderer->updateScene(scene); // to tu asi ani byt nemusi
             renderer->runLoop();
             });
 
@@ -210,7 +218,7 @@ public:
             timer.tickAndDispatchAction([&](double dt) {
                 input.keyboard.update();
                 updateLogic(dt);
-                renderer->updateScene(scene);
+                //renderer->updateScene(scene);
 
 
 
@@ -219,13 +227,20 @@ public:
                 auto& writeBuffer = sceneBuffered.get_write_buffer();
                 writeBuffer = scene;
                 sceneBuffered.publish();
-                std::cout << "Producer: published" << std::endl;
+                //std::cout << "Producer: published" << std::endl;
 
                 //std::cout << sceneBuffered.toString() << std::endl;
              });
 
-            timer1Hz.tickAndDispatchAction([&](double dt) {
+            timer10Hz.tickAndDispatchAction([&](double dt) {
                 // zatim nic
+
+                /*
+                static std::mt19937 rng(std::random_device{}());
+                std::uniform_int_distribution<int> dist(0, 10);
+                int random = dist(rng);
+                lagTest(random);
+                */
 			});
 
 
