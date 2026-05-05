@@ -79,24 +79,19 @@ namespace Render {
     private:
 
         using ResourceManager = ResourceManager<Device>;
+        using SceneInterpolationPair = ZeroAllocStateHistory<Scene>;
 
         Device device;
-        
         Viewport viewport;
         ResizeRequest resizeRequest;
-
         ResourceManager resources;
 
         float logicHz;
 
         SceneBuffer& sceneBuffered;
-
-        using SceneInterpolationPair = ZeroAllocStateHistory<Scene>;
         RunState running;
 
     public:
-
-		ResourceManager& getResourceManager() { return resources; }
 
         Renderer(WindowWin32& window, SceneBuffer& sceneBuffered, float logicHz)
             : device(window)
@@ -112,20 +107,24 @@ namespace Render {
             std::cout << "depth buffer: " << resources.depthbufferHandle << std::endl;
         }
 
+        ResourceManager& getResourceManager() { return resources; }
+
         void renderFrame(const Scene& scene, uint32_t frameIndex)
         {   
-            auto ctx = device.createContext();
-                
-            Camera camera = scene.camera; // Toto cuka
+            auto projection = Mtx4::Perspective(
+                scene.camera.fovRad, 
+                viewport.computeAspectRatio(), 
+                scene.camera.nearZ, 
+                scene.camera.farZ
+			);
 
-			Mtx4 matrix = scene.modelMatrix;
-                
-			ctx.model = matrix;
+            auto ctx = device.createContext();
 
             ctx.frameIndex = frameIndex;
             ctx.clearColor = Color::Grayscale(0.4f);
-            ctx.view = camera.calculateView();
-            ctx.projection = Mtx4::Perspective(camera.fovRad, viewport.computeAspectRatio(), camera.nearZ, camera.farZ);
+			ctx.model = scene.modelMatrix;
+            ctx.view = scene.camera.calculateView();
+            ctx.projection = projection;
             ctx.viewport = viewport;
             ctx.framebufferHandle = resources.framebufferHandle;
                 
