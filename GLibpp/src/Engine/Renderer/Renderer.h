@@ -91,8 +91,6 @@ namespace Render {
 
         float logicHz;
 
-        std::atomic<double> lastLogicTick = { 0.0 };
-
         SceneBuffer& sceneBuffered;
 
         using SceneInterpolationPair = ZeroAllocStateHistory<Scene>;
@@ -103,15 +101,7 @@ namespace Render {
         // first  = Aktuální (Current)
         // second = Pøedchozí (Previous)
 
-        void updateLastLogicTick(double dt)
-        {
-            lastLogicTick.store(dt, std::memory_order_relaxed);
-        }
-
-        double getLastLogicTick() const
-        {
-            return lastLogicTick.load(std::memory_order_relaxed);
-		}
+        
 
         /*
         void updateScene(const Scene& newScene)
@@ -209,7 +199,7 @@ namespace Render {
                 scenePrevious = sceneHistory.get_previous();
 
                 double now = timerLogic.sinceStart();
-                double lastTick = this->getLastLogicTick();
+                double lastTick = sceneCurrent.lastLogicTick;
                 float t = static_cast<float>((now - lastTick) / timerLogic.getFixedDelta());
 
 				float tClamped = std::clamp(t, 0.0f, 1.0f);

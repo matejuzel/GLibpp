@@ -4,6 +4,8 @@
 
 struct Scene {
 
+	double lastLogicTick = 0.0;
+
 	Camera camera;
 	Mtx4 modelMatrix;
 

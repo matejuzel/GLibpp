@@ -193,21 +193,15 @@ public:
             auto meshInstHandle = rm.meshRegister(MeshInstance());
         }
 
-
 		// logic scheduler - bude volat updateLogic() s pevnou frekvenci, nezavisle na renderovani
         TimeManager timer(logicHz);
         TimeManager timer10Hz(10.0f);
 
-        //TimeManager timerOneSecond(1.0); // pro výpočet FPS každou sekundu
-
         running.start();
 
-
-        sceneBuffered.publish();
         sceneBuffered.publish();
 
         std::thread renderThread([this]() {
-            //renderer->updateScene(scene); // to tu asi ani byt nemusi
             renderer->runLoop();
             });
 
@@ -218,24 +212,18 @@ public:
             timer.tickAndDispatchAction([&](double dt) {
                 input.keyboard.update();
                 updateLogic(dt);
-                //renderer->updateScene(scene);
 
-
-
-                renderer->updateLastLogicTick(timer.sinceStart());
+				scene.lastLogicTick = timer.sinceStart();
 
                 auto& writeBuffer = sceneBuffered.get_write_buffer();
                 writeBuffer = scene;
                 sceneBuffered.publish();
-                //std::cout << "Producer: published" << std::endl;
-
-                //std::cout << sceneBuffered.toString() << std::endl;
              });
 
             timer10Hz.tickAndDispatchAction([&](double dt) {
-                // zatim nic
-
+                
                 /*
+                // test jitteru App logiky
                 static std::mt19937 rng(std::random_device{}());
                 std::uniform_int_distribution<int> dist(0, 10);
                 int random = dist(rng);
