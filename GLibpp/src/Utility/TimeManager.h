@@ -18,10 +18,23 @@
 
 class TimeManager {
 public:
+
+    static LONGLONG getGlobalStart() {
+        static LONGLONG globalStart = []() {
+            LARGE_INTEGER freq, start;
+            QueryPerformanceFrequency(&freq);
+            QueryPerformanceCounter(&start);
+            return start.QuadPart;
+        }();
+        return globalStart;
+	}
+
     // hz - frekvence fixního updatu
     // fpsWindowSeconds - jak dlouhé období se bere pro výpoèet FPS (napø. 1.0s)
     TimeManager(double hz = 60.0, double fpsWindowSeconds = 1.0)
-        : m_fixedDelta(1.0 / hz), m_accumulator(0.0), m_fpsWindow(fpsWindowSeconds)
+        : m_fixedDelta(1.0 / hz)
+        , m_accumulator(0.0)
+        , m_fpsWindow(fpsWindowSeconds)
     {
         QueryPerformanceFrequency(&m_freq);
         QueryPerformanceCounter(&m_start);
@@ -29,7 +42,45 @@ public:
         m_absoluteStart = m_start;
 
         timeBeginPeriod(1);
+
+        //std::cout << "Performance Counter Frequency: " << m_freq.QuadPart << "; Absolute Start:" << m_absoluteStart.QuadPart << std::endl << "; used global start: false" << std::endl;
     }
+
+    TimeManager(double hz, LARGE_INTEGER absoluteStart, double fpsWindowSeconds = 1.0)
+        : m_fixedDelta(1.0 / hz)
+        , m_accumulator(0.0)
+        , m_fpsWindow(fpsWindowSeconds)
+    {
+        QueryPerformanceFrequency(&m_freq);
+
+        m_absoluteStart = absoluteStart;
+        m_prev = absoluteStart;
+        m_start = absoluteStart;
+
+        timeBeginPeriod(1);
+
+        //std::cout << "Performance Counter Frequency: " << m_freq.QuadPart << "; Absolute Start:" << m_absoluteStart.QuadPart << std::endl << "; used global start: false" << std::endl;
+    }
+
+    TimeManager(double hz, bool useGlobalStart, double fpsWindowSeconds = 1.0)
+        : m_fixedDelta(1.0 / hz)
+        , m_accumulator(0.0)
+        , m_fpsWindow(fpsWindowSeconds)
+    {
+        QueryPerformanceFrequency(&m_freq);
+        if (useGlobalStart) {
+            m_absoluteStart.QuadPart = TimeManager::getGlobalStart();
+        } else {
+            QueryPerformanceCounter(&m_absoluteStart);
+        }
+        m_prev = m_absoluteStart;
+        m_start = m_absoluteStart;
+
+        timeBeginPeriod(1);
+
+        std::cout << "Performance Counter Frequency: " << m_freq.QuadPart << "; Absolute Start:" << m_absoluteStart.QuadPart << std::endl << "; used global start: " << (useGlobalStart ? "true" : "false") << std::endl;
+    }
+
 
     ~TimeManager() {
         timeEndPeriod(1);

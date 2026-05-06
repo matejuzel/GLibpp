@@ -194,7 +194,7 @@ public:
         }
 
 		// logic scheduler - bude volat updateLogic() s pevnou frekvenci, nezavisle na renderovani
-        TimeManager timer(logicHz);
+        TimeManager timer(logicHz, true);
         TimeManager timer10Hz(10.0f);
 
         running.start();

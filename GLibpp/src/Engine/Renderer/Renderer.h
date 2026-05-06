@@ -111,12 +111,10 @@ namespace Render {
 
         void renderFrame(const Scene& scene, uint32_t frameIndex)
         {   
-            auto projection = Mtx4::Perspective(
-                scene.camera.fovRad, 
-                viewport.computeAspectRatio(), 
-                scene.camera.nearZ, 
-                scene.camera.farZ
-			);
+			auto fovRad = scene.camera.fovRad;
+			auto aspect = viewport.computeAspectRatio();
+			auto nearZ = scene.camera.nearZ;
+			auto farZ = scene.camera.farZ;
 
             auto ctx = device.createContext();
 
@@ -124,7 +122,7 @@ namespace Render {
             ctx.clearColor = Color::Grayscale(0.4f);
 			ctx.model = scene.modelMatrix;
             ctx.view = scene.camera.calculateView();
-            ctx.projection = projection;
+            ctx.projection = Mtx4::Perspective(fovRad, aspect, nearZ, farZ);
             ctx.viewport = viewport;
             ctx.framebufferHandle = resources.framebufferHandle;
                 
@@ -142,7 +140,7 @@ namespace Render {
 			Scene sceneCurrent;
             Scene sceneInterpolated;
 
-            TimeManager timerLogic(logicHz);
+            TimeManager timerLogic(logicHz, true);
             TimeManager timer1Hz(1.0); // pro výpoèet FPS každou sekundu
 
             SceneInterpolationPair sceneHistory;
@@ -172,6 +170,8 @@ namespace Render {
                 double lastTick = sceneCurrent.lastLogicTick;
                 double t = (now - lastTick) / timerLogic.getFixedDelta();
 				double tClamped = std::clamp(t, 0.0, 1.0);
+
+				//std::cout << t << " : " << tClamped << std::endl;
 
 				sceneInterpolated = Slerp(scenePrevious, sceneCurrent, static_cast<float>(tClamped));
 
