@@ -4,7 +4,7 @@
 #include "WindowWin32.h"
 #include "ZeroAllocTripleBuffer.h"
 #include "Scene.h"
-using SceneBuffer = ZeroAllocTripleBuffer<Scene>;
+using SceneBuffer = ZeroAllocTripleBuffer<LogicState>;
 
 
 #include "Renderer.h"
@@ -185,11 +185,11 @@ public:
 
     }
 
-    void scenePublish(const Scene& scene, double lastLogicTick) {
+    void scenePublish(const LogicState& logicState, double lastLogicTick) {
         
         auto& writeBuffer = sceneBuffered.get_write_buffer();
-        writeBuffer = scene;
-        writeBuffer.lastLogicTick = lastLogicTick;
+        writeBuffer = logicState;
+        writeBuffer.tickInfo.lastLogicTick = lastLogicTick;
         sceneBuffered.publish();
 	}
 
@@ -206,9 +206,12 @@ public:
         TimeManager timer(logicHz, true);
         TimeManager timer10Hz(10.0f);
 
-        Scene scene;
-        scene.camera = Camera::Demo(45);
-        scene.modelMatrix = Mtx4::Identity();
+        //Scene scene;
+
+        LogicState logicState;
+
+        logicState.scene.camera = Camera::Demo(45);
+        logicState.scene.modelMatrix = Mtx4::Identity();
 
         running.start();
 
@@ -224,8 +227,8 @@ public:
 
             timer.tickAndDispatchAction([&](double dt, double lastLogicTick) {
                 input.keyboard.update();
-                updateLogic(dt, scene);
-                scenePublish(scene, lastLogicTick);
+                updateLogic(dt, logicState.scene);
+                scenePublish(logicState, lastLogicTick);
              });
 
             timer10Hz.tickAndDispatchAction([&](double dt) {

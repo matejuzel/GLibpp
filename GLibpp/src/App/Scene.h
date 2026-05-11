@@ -4,10 +4,6 @@
 
 struct Scene {
 
-	float logicHz = 0.0f;
-	double lastLogicTick = 0.0;
-	
-
 	Camera camera;
 	Mtx4 modelMatrix;
 
@@ -25,4 +21,14 @@ struct Scene {
 		return sceneInterpolated;
 	}
 
+};
+
+
+struct LogicTickInfo {
+	double lastLogicTick;
+};
+
+struct LogicState {
+	LogicTickInfo tickInfo;
+	Scene scene;
 };

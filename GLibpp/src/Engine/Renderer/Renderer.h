@@ -79,7 +79,7 @@ namespace Render {
     private:
 
         using ResourceManager = ResourceManager<Device>;
-        using SceneInterpolationPair = ZeroAllocStateHistory<Scene>;
+        using SceneInterpolationPair = ZeroAllocStateHistory<LogicState>;
 
         Device device;
         Viewport viewport;
@@ -136,9 +136,9 @@ namespace Render {
         {
             running.start();
 
-			Scene scenePrevious;
-			Scene sceneCurrent;
-            Scene sceneInterpolated;
+			LogicState scenePrevious;
+            LogicState sceneCurrent;
+            LogicState sceneInterpolated;
 
             TimeManager timerLogic(logicHz, true);
             TimeManager timer1Hz(1.0); // pro výpoèet FPS každou sekundu
@@ -167,15 +167,15 @@ namespace Render {
                 scenePrevious = sceneHistory.get_previous();
 
                 double now = timerLogic.sinceStart();
-                double lastTick = sceneCurrent.lastLogicTick;
+                double lastTick = sceneCurrent.tickInfo.lastLogicTick;
                 double t = (now - lastTick) / timerLogic.getFixedDelta();
 				double tClamped = std::clamp(t, 0.0, 1.0);
 
 				//std::cout << t << " : " << tClamped << std::endl;
 
-				sceneInterpolated = Slerp(scenePrevious, sceneCurrent, static_cast<float>(tClamped));
+				sceneInterpolated.scene = Slerp(scenePrevious.scene, sceneCurrent.scene, static_cast<float>(tClamped));
 
-                renderFrame(sceneInterpolated, frameIndex++);
+                renderFrame(sceneInterpolated.scene, frameIndex++);
 
                 {
                     timer1Hz.tickAndDispatchAction([&](double dt) {
