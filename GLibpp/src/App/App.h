@@ -59,7 +59,7 @@ private:
 	}
 
 
-    LogicStateBuffered sceneBuffered;
+    LogicStateBuffered logicStateBuffered;
 
 public:
 
@@ -109,7 +109,7 @@ public:
 
         {
             // RENDERER
-            renderer = std::make_unique<RendererEngine>(*window, sceneBuffered, logicHz);
+            renderer = std::make_unique<RendererEngine>(*window, logicStateBuffered, logicHz);
         }
 
         {
@@ -187,10 +187,10 @@ public:
 
     void scenePublish(const LogicState& logicState, double lastLogicTick) {
         
-        auto& writeBuffer = sceneBuffered.get_write_buffer();
+        auto& writeBuffer = logicStateBuffered.get_write_buffer();
         writeBuffer = logicState;
         writeBuffer.tickInfo.lastLogicTick = lastLogicTick;
-        sceneBuffered.publish();
+        logicStateBuffered.publish();
 	}
 
     void run()
@@ -215,7 +215,7 @@ public:
 
         running.start();
 
-        sceneBuffered.publish();
+        logicStateBuffered.publish();
 
         std::thread renderThread([this]() {
             renderer->runLoop();

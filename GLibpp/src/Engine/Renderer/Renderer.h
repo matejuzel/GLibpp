@@ -88,16 +88,16 @@ namespace Render {
 
         float logicHz;
 
-        LogicStateBuffered& sceneBuffered;
+        LogicStateBuffered& logicStateBuffered;
         RunState running;
 
     public:
 
-        Renderer(WindowWin32& window, LogicStateBuffered& sceneBuffered, float logicHz)
+        Renderer(WindowWin32& window, LogicStateBuffered& logicStateBuffered, float logicHz)
             : device(window)
 			, resources(device)
 			, viewport{ 0, 0, window.getClientWidth(), window.getClientHeight() }
-            , sceneBuffered(sceneBuffered)
+            , logicStateBuffered(logicStateBuffered)
             , logicHz(logicHz)
         {
             setupRendererPriority();
@@ -156,9 +156,9 @@ namespace Render {
                     }
                 }
 
-                if (sceneBuffered.update_reader()) {
+                if (logicStateBuffered.update_reader()) {
 
-                    sceneHistory.advance_and_get_current() = sceneBuffered.get_read_buffer();
+                    sceneHistory.advance_and_get_current() = logicStateBuffered.get_read_buffer();
                 }
 
                 timerLogic.tickAndFlush();
