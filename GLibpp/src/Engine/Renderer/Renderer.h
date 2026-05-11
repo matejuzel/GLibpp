@@ -79,7 +79,7 @@ namespace Render {
     private:
 
         using ResourceManager = ResourceManager<Device>;
-        using SceneInterpolationPair = ZeroAllocStateHistory<LogicState>;
+        using LogicStateFramePair = ZeroAllocStateHistory<LogicState>;
 
         Device device;
         Viewport viewport;
@@ -143,7 +143,7 @@ namespace Render {
             TimeManager timerLogic(logicHz, true);
             TimeManager timer1Hz(1.0); // pro výpoèet FPS každou sekundu
 
-            SceneInterpolationPair sceneHistory;
+            LogicStateFramePair logicStateFramePair;
 
 			uint32_t frameIndex = 0;
             while (running.isRunning())
@@ -158,13 +158,13 @@ namespace Render {
 
                 if (logicStateBuffered.update_reader()) {
 
-                    sceneHistory.advance_and_get_current() = logicStateBuffered.get_read_buffer();
+                    logicStateFramePair.advance_and_get_current() = logicStateBuffered.get_read_buffer();
                 }
 
                 timerLogic.tickAndFlush();
 
-                sceneCurrent = sceneHistory.get_current();
-                scenePrevious = sceneHistory.get_previous();
+                sceneCurrent = logicStateFramePair.get_current();
+                scenePrevious = logicStateFramePair.get_previous();
 
                 double now = timerLogic.sinceStart();
                 double lastTick = sceneCurrent.tickInfo.lastLogicTick;
