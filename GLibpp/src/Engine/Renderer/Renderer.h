@@ -161,18 +161,19 @@ namespace Render {
 
                 timerLogic.tickAndFlush();
 
-                double now = timerLogic.sinceStart();
-                double lastTick = logicStateFramePair.get_current().tickInfo.lastLogicTick;
-                double t = (now - lastTick) / timerLogic.getFixedDelta();
+				auto& logicStateCurrent = logicStateFramePair.get_current();
+				auto& logicStatePrevious = logicStateFramePair.get_previous();
+
+                double t = (timerLogic.sinceStart() - logicStateCurrent.tickInfo.lastLogicTick) / timerLogic.getFixedDelta();
 				double tClamped = std::clamp(t, 0.0, 1.0);
 				
                 logicStateInterpolated.scene = Slerp(
-                    logicStateFramePair.get_previous().scene, 
-                    logicStateFramePair.get_current().scene, 
+                    logicStatePrevious.scene,
+                    logicStateCurrent.scene, 
                     static_cast<float>(tClamped)
                 );
 
-                renderFrame(logicStateInterpolated.scene, frameIndex++);
+                renderFrame(logicStateInterpolated.scene, ++frameIndex);
 
                 {
                     timer1Hz.tickAndDispatchAction([&](double dt) {
@@ -186,7 +187,6 @@ namespace Render {
                             frameIndex
                         ));
                      });
-
                 }
             }
 
