@@ -120,7 +120,21 @@ public:
         }
     }
 
+    void dispatchAction(const std::function<void(double, double)>& stepCallback)
+    {
+        while (m_accumulator >= m_fixedDelta) {
+            stepCallback(m_fixedDelta, sinceStart());
+            m_accumulator -= m_fixedDelta;
+        }
+    }
+
     void tickAndDispatchAction(const std::function<void(double)>& stepCallback, double limit = 0.25) 
+    {
+        tick(limit);
+        dispatchAction(stepCallback);
+    }
+
+    void tickAndDispatchAction(const std::function<void(double, double)>& stepCallback, double limit = 0.25)
     {
         tick(limit);
         dispatchAction(stepCallback);

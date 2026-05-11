@@ -42,7 +42,7 @@ private:
 	//std::unique_ptr<RendererEngine> renderer; // obecny renderer, ktery pouziva RenderDevice (DIB, Stencil, ...), ktery se zvoli definici makra RENDER_BACKEND_XXX
     std::unique_ptr<Render::Renderer<Render::DeviceDIB>> renderer; // pro vyvoj pouzijeme takhle explicitne, kvuli napovidani v IDE...
 
-    Scene scene;
+    //Scene scene;
 
     bool fullscreen = false;
     RunState running;
@@ -113,8 +113,8 @@ public:
         }
 
         {
-            scene.camera = Camera::Demo(45);
-            scene.modelMatrix = Mtx4::Identity();
+            //scene.camera = Camera::Demo(45);
+            //scene.modelMatrix = Mtx4::Identity();
 
             //renderer->updateScene(scene);
             //renderer->updateScene(scene);
@@ -143,7 +143,7 @@ public:
     {
     }
 
-    void updateLogic(double dtExtra)
+    void updateLogic(double dtExtra, Scene& scene)
     {
 		float dt = std::clamp(static_cast<float>(dtExtra), 0.0f, 1.0f);
 
@@ -185,8 +185,17 @@ public:
 
     }
 
+    void scenePublish(const Scene& scene, double lastLogicTick) {
+        
+        auto& writeBuffer = sceneBuffered.get_write_buffer();
+        writeBuffer = scene;
+        writeBuffer.lastLogicTick = lastLogicTick;
+        sceneBuffered.publish();
+	}
+
     void run()
     {
+
         {
             auto& rm = renderer->getResourceManager();
             auto texHandle = rm.targetCreate(Render::RenderTargetDescriptor::FramebufferRGBA32bit(window->getClientWidth(), window->getClientHeight()));
@@ -196,6 +205,10 @@ public:
 		// logic scheduler - bude volat updateLogic() s pevnou frekvenci, nezavisle na renderovani
         TimeManager timer(logicHz, true);
         TimeManager timer10Hz(10.0f);
+
+        Scene scene;
+        scene.camera = Camera::Demo(45);
+        scene.modelMatrix = Mtx4::Identity();
 
         running.start();
 
@@ -209,15 +222,10 @@ public:
         {
             window->pollEvents();
 
-            timer.tickAndDispatchAction([&](double dt) {
+            timer.tickAndDispatchAction([&](double dt, double lastLogicTick) {
                 input.keyboard.update();
-                updateLogic(dt);
-
-				scene.lastLogicTick = timer.sinceStart();
-
-                auto& writeBuffer = sceneBuffered.get_write_buffer();
-                writeBuffer = scene;
-                sceneBuffered.publish();
+                updateLogic(dt, scene);
+                scenePublish(scene, lastLogicTick);
              });
 
             timer10Hz.tickAndDispatchAction([&](double dt) {
