@@ -136,9 +136,7 @@ namespace Render {
         {
             running.start();
 
-			LogicState scenePrevious;
-            LogicState sceneCurrent;
-            LogicState sceneInterpolated;
+            LogicState logicStateInterpolated;
 
             TimeManager timerLogic(logicHz, true);
             TimeManager timer1Hz(1.0); // pro výpoèet FPS každou sekundu
@@ -163,19 +161,18 @@ namespace Render {
 
                 timerLogic.tickAndFlush();
 
-                sceneCurrent = logicStateFramePair.get_current();
-                scenePrevious = logicStateFramePair.get_previous();
-
                 double now = timerLogic.sinceStart();
-                double lastTick = sceneCurrent.tickInfo.lastLogicTick;
+                double lastTick = logicStateFramePair.get_current().tickInfo.lastLogicTick;
                 double t = (now - lastTick) / timerLogic.getFixedDelta();
 				double tClamped = std::clamp(t, 0.0, 1.0);
+				
+                logicStateInterpolated.scene = Slerp(
+                    logicStateFramePair.get_previous().scene, 
+                    logicStateFramePair.get_current().scene, 
+                    static_cast<float>(tClamped)
+                );
 
-				//std::cout << t << " : " << tClamped << std::endl;
-
-				sceneInterpolated.scene = Slerp(scenePrevious.scene, sceneCurrent.scene, static_cast<float>(tClamped));
-
-                renderFrame(sceneInterpolated.scene, frameIndex++);
+                renderFrame(logicStateInterpolated.scene, frameIndex++);
 
                 {
                     timer1Hz.tickAndDispatchAction([&](double dt) {
