@@ -4,7 +4,7 @@
 #include "WindowWin32.h"
 #include "ZeroAllocTripleBuffer.h"
 #include "Scene.h"
-using SceneBuffer = ZeroAllocTripleBuffer<LogicState>;
+using LogicStateBuffered = ZeroAllocTripleBuffer<LogicState>;
 
 
 #include "Renderer.h"
@@ -59,7 +59,7 @@ private:
 	}
 
 
-	SceneBuffer sceneBuffered;
+    LogicStateBuffered sceneBuffered;
 
 public:
 

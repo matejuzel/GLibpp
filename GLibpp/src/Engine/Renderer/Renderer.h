@@ -88,12 +88,12 @@ namespace Render {
 
         float logicHz;
 
-        SceneBuffer& sceneBuffered;
+        LogicStateBuffered& sceneBuffered;
         RunState running;
 
     public:
 
-        Renderer(WindowWin32& window, SceneBuffer& sceneBuffered, float logicHz)
+        Renderer(WindowWin32& window, LogicStateBuffered& sceneBuffered, float logicHz)
             : device(window)
 			, resources(device)
 			, viewport{ 0, 0, window.getClientWidth(), window.getClientHeight() }
