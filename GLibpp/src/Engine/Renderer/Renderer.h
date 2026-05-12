@@ -4,18 +4,14 @@
 #include "Viewport.h"
 #include "Color.h"
 #include "WindowWin32.h"
-
 #include <cstdint>
 #include <cstring>
 #include <format>
 #include <iostream>
-
 #include <windows.h>
-
 #include <memory>
 #include "Vec4.h"
 #include "Mtx4.h"
-
 #include "Camera.h"
 #include "DoubleBuffer.h"
 // Backend Common
@@ -26,24 +22,14 @@
 // Backend DIB
 #include "DeviceDIB.h"
 
-// Backend Stencil
-//#include "RenderDeviceStencil.h"
-
-
 #include "ResourceManager.h"
-
 #include "Scene.h"
-
 #include "Mesh.h"
-
 #include "StableRegistry.h"
 #include "AssetRegistry.h"
-
 #include "RunState.h"
 #include "TimeManager.h"
-
 #include "ZeroAllocStateHistory.h"
-
 #include <utility>
 
 
@@ -71,7 +57,6 @@ namespace Render {
             return false;
         }
     };
-
 
     template <typename Device>
     class Renderer {
@@ -107,8 +92,6 @@ namespace Render {
             std::cout << "depth buffer: " << resources.depthbufferHandle << std::endl;
         }
 
-        ResourceManager& getResourceManager() { return resources; }
-
         void renderFrame(const Scene& scene, uint32_t frameIndex)
         {   
 			auto fovRad = scene.camera.fovRad;
@@ -134,16 +117,16 @@ namespace Render {
 
         void runLoop()
         {
-            running.start();
-
             LogicState logicStateInterpolated;
-
-            TimeManager timerLogic(logicHz, true);
-            TimeManager timer1Hz(1.0); // pro výpoèet FPS každou sekundu
-
             LogicStateFramePair logicStateFramePair;
 
+            TimeManager timer(logicHz, true);
+            TimeManager timer1Hz(1.0); // pro výpoèet FPS každou sekundu
+
 			uint32_t frameIndex = 0;
+
+            running.start();
+
             while (running.isRunning())
             {
 
@@ -154,17 +137,19 @@ namespace Render {
                     }
                 }
 
-                if (logicStateBuffered.update_reader()) {
-
-                    logicStateFramePair.advance_and_get_current() = logicStateBuffered.get_read_buffer();
+                if (logicStateBuffered.update_reader()) 
+                {
+                    // z tripple bufferu (App -> Renderer) si vezmeme posledni neprecteny stav a 
+                    // ulozime ho do logicStateFramePair (aktualizace puvodni current posuneme na previous a ulozime novy current)
+                    logicStateFramePair.advance_and_load_current(logicStateBuffered.get_read_buffer());
                 }
 
-                timerLogic.tickAndFlush();
+                timer.tickAndFlush();
 
 				auto& logicStateCurrent = logicStateFramePair.get_current();
 				auto& logicStatePrevious = logicStateFramePair.get_previous();
 
-                double t = (timerLogic.sinceStart() - logicStateCurrent.tickInfo.lastLogicTick) / timerLogic.getFixedDelta();
+                double t = (timer.sinceStart() - logicStateCurrent.tickInfo.lastLogicTick) / timer.getFixedDelta();
 				double tClamped = std::clamp(t, 0.0, 1.0);
 				
                 logicStateInterpolated.scene = Slerp(
@@ -175,19 +160,9 @@ namespace Render {
 
                 renderFrame(logicStateInterpolated.scene, ++frameIndex);
 
-                {
-                    timer1Hz.tickAndDispatchAction([&](double dt) {
-                        device.getWindow().setTitle(std::format(
-                            "FPS: {:.0f} ||| 1% Low: {:.0f} ||| 0.1% Low: {:.0f} ||| Min/Max: {:.0f}/{:.0f} [Frame: {}]",
-                            timerLogic.getFps(),
-                            timerLogic.getLow1Percent(),
-                            timerLogic.getLowPoint1Percent(),
-                            timerLogic.getMaxFrameTimeFps(),
-                            timerLogic.getMinFrameTimeFps(),
-                            frameIndex
-                        ));
-                     });
-                }
+                timer1Hz.tickAndDispatchAction([&](double dt) {
+                    device.getWindow().setTitle(timer, frameIndex);
+                });
             }
 
         }
@@ -202,15 +177,9 @@ namespace Render {
             resizeRequest.set(width, height);
         }
 
-        void setupRendererPriority() {
-            // 1. Zvedneme prioritu celého procesu na "High".
-            // To øíká Windows: "Tato aplikace je dùležitìjší než prohlížeè nebo Word."
-            SetPriorityClass(GetCurrentProcess(), HIGH_PRIORITY_CLASS);
-
-            // 2. Nastavíme vlátnu rendereru "Time Critical" prioritu.
-            // To znamená, že renderer dostane CPU pokaždé, když o nìj požádá,
-            // a pøeruší témìø jakoukoli jinou èinnost v systému.
-            SetThreadPriority(GetCurrentThread(), THREAD_PRIORITY_TIME_CRITICAL);
+        ResourceManager& getResourceManager()
+        {
+            return resources;
         }
 
     private:
@@ -223,6 +192,20 @@ namespace Render {
             resources.depthbufferHandle = device.targetResize(resources.depthbufferHandle, width, height);
             viewport.resize(width, height);
         }
+
+        void setupRendererPriority()
+        {
+            // Zvedneme prioritu JEN aktuálního vlákna renderu
+            // z NORMAL na ABOVE_NORMAL.
+            // To typicky zlepší stabilitu frameratu, aniž by to nièilo systém.
+            HANDLE thread = GetCurrentThread();
+
+            if (!SetThreadPriority(thread, THREAD_PRIORITY_ABOVE_NORMAL)) {
+                // Volitelné: lognout chybu, ale nepanikaøit.
+                // std::cerr << "Failed to set thread priority\n";
+            }
+        }
+
     };
 
 };

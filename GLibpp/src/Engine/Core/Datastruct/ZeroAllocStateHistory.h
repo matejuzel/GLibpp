@@ -29,6 +29,19 @@ public:
         return history[current_idx];
     }
 
+    void advance_and_load_current(const T& state)
+    {
+        std::swap(previous_idx, current_idx);
+        history[current_idx] = state;
+    }
+
+    void advance_and_load_current(T&& state)
+    {
+        std::swap(previous_idx, current_idx);
+        history[current_idx] = std::move(state);
+    }
+
+
     // --- PØÍSTUP PRO ÈTENÍ ---
 
     const T& get_previous() const {

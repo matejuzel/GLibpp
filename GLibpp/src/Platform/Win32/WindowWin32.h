@@ -11,6 +11,7 @@
 #include "math/Vec4.h"
 #include "core/input/Keymap.h"
 #include "Win32DC.h"
+#include "TimeManager.h"
 
 class WindowWin32;
 
@@ -64,6 +65,20 @@ public:
 	}
 	
 	void setTitle(const std::string& title);
+
+	void setTitle(const TimeManager& timer, long frameIndex)
+	{
+		setTitle(std::format(
+			"FPS: {:.0f} ||| 1% Low: {:.0f} ||| 0.1% Low: {:.0f} ||| Min/Max: {:.0f}/{:.0f} [Frame: {}]",
+			timer.getFps(),
+			timer.getLow1Percent(),
+			timer.getLowPoint1Percent(),
+			timer.getMaxFrameTimeFps(),
+			timer.getMinFrameTimeFps(),
+			frameIndex
+		));
+	}
+
 
 	void setFullscreenMode(bool fullscreen)
 	{
