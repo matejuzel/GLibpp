@@ -3,6 +3,7 @@
 
 #include "StableRegistry.h"
 #include "Mesh.h"
+#include "MeshInstance.h"
 
 namespace Render {
 
@@ -32,7 +33,8 @@ namespace Render {
         static constexpr TargetHandle TARGET_INVALID = TargetRegistry::INVALID;
 
 
-        using MeshHandle = uint32_t; // @todo
+        using MeshHandle = typename StableRegistry<Mesh>::Handle;
+        using MeshInstanceHandle = typename StableRegistry<MeshInstance>::Handle;
 
         // typy pro buffery
         using PositionBuffer = typename DeviceTraits<DerivedDevice>::GpuBuffer3D;
@@ -65,10 +67,10 @@ namespace Render {
             static_cast<DerivedDevice*>(this)->drawStaticTestMeshImpl(ctx);
         }
 
-        void drawMeshEnqueue(const Context& ctx, MeshHandle meshHandle)
-        {
-            static_cast<DerivedDevice*>(this)->drawMeshEnqueueImpl(ctx);
-        }
+        //void drawMeshEnqueue(const Context& ctx, MeshHandle meshHandle)
+        //{
+        //    static_cast<DerivedDevice*>(this)->drawMeshEnqueueImpl(ctx);
+        //}
 
         void clear(const Context& ctx) noexcept
         {

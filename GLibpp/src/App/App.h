@@ -197,9 +197,9 @@ public:
     {
 
         {
-            auto& rm = renderer->getResourceManager();
-            auto texHandle = rm.targetCreate(Render::RenderTargetDescriptor::FramebufferRGBA32bit(window->getClientWidth(), window->getClientHeight()));
-            auto meshInstHandle = rm.meshRegister(MeshInstance());
+            //auto& rm = renderer->getResourceManager();
+            //auto texHandle = rm.targetCreate(Render::RenderTargetDescriptor::FramebufferRGBA32bit(window->getClientWidth(), window->getClientHeight()));
+            //auto meshInstHandle = rm.meshRegister(MeshInstance());
         }
 
 		// logic scheduler - bude volat updateLogic() s pevnou frekvenci, nezavisle na renderovani

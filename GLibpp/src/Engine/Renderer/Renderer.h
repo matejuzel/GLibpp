@@ -76,6 +76,12 @@ namespace Render {
         LogicStateBuffered& logicStateBuffered;
         RunState running;
 
+        // docasne zatim takhle
+        ResourceManager::MeshHandle mshHandle00 = resources.meshRegister(Mesh::Cube(1.0f));
+        ResourceManager::MeshInstanceHandle mshInstHandle00 = resources.meshInstanceRegister(mshHandle00, Mtx4::Identity());
+        ResourceManager::MeshInstanceHandle mshInstHandle01 = resources.meshInstanceRegister(mshHandle00, Mtx4::Identity().rotateY(0.3f));
+        ResourceManager::MeshInstanceHandle mshInstHandle02 = resources.meshInstanceRegister(mshHandle00, Mtx4::Identity().rotateY(0.6f));
+        ResourceManager::MeshInstanceHandle mshInstHandle03 = resources.meshInstanceRegister(mshHandle00, Mtx4::Identity().rotateY(0.9f));
     public:
 
         Renderer(WindowWin32& window, LogicStateBuffered& logicStateBuffered, float logicHz)
@@ -129,7 +135,7 @@ namespace Render {
             TimeManager timer1Hz(1.0); // pro výpoèet FPS každou sekundu
 			TimeManager timerSyncV(60.0);
 
-			uint32_t frameIndex = 0;
+			uint32_t frameIndex = 0;            
 
             running.start();
 

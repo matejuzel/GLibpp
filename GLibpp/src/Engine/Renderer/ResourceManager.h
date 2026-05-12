@@ -16,7 +16,11 @@ namespace Render {
     struct ResourceManager {
 
 		using TargetHandle = typename Device::TargetHandle;
-		using MeshInstanceHandle = typename uint32_t; // @todo
+		//using MeshHandle = typename StableRegistry<Mesh>::Handle;
+		//using MeshInstanceHandle = typename StableRegistry<MeshInstance>::Handle;
+
+		using MeshHandle = typename Device::MeshHandle;
+		using MeshInstanceHandle = typename Device::MeshInstanceHandle;
 
 		ResourceManager(Device& device)
 			: device(device)
@@ -35,11 +39,19 @@ namespace Render {
 			return device.targetCreate(descriptor);
 		}
 
-		MeshInstanceHandle meshRegister(const MeshInstance& mesh)
+		MeshHandle meshRegister(const Mesh& mesh)
 		{
 			// @todo
-			return 0;
+			return {0,0};
 		}
+
+		MeshInstanceHandle meshInstanceRegister(MeshHandle meshHandle, const Mtx4& transform)
+		{
+			// @todo
+			return {0,0};
+		}
+
+
 
 
 		Device& device;
