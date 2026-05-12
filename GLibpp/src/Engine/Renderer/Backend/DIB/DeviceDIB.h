@@ -8,6 +8,7 @@
 #include "Win32Dc.h"
 
 #include <vector>
+#include <immintrin.h> // AVX2
 
 namespace Render {
 
@@ -22,6 +23,34 @@ namespace Render {
         //StableRegistry<DeviceTargetBase<Device>> targets;
         // ..
     };
+
+
+    enum class ClearMode {
+        Scalar,
+        SSE2,
+        AVX2
+    };
+
+    struct CpuFeatures {
+        bool sse2 = false;
+        bool avx2 = false;
+    };
+
+    inline CpuFeatures detectCpuFeatures() {
+        CpuFeatures f;
+
+        int cpuInfo[4];
+
+        __cpuid(cpuInfo, 1);
+        f.sse2 = (cpuInfo[3] & (1 << 26)) != 0; // SSE2
+
+        // AVX2 je v extended leaf 7
+        __cpuid(cpuInfo, 7);
+        f.avx2 = (cpuInfo[1] & (1 << 5)) != 0; // AVX2
+
+        return f;
+    }
+
 
 
     // forward - kvuli pouziti friend
@@ -60,9 +89,9 @@ namespace Render {
 
         RegistryDIB<Self> registry;
 
-        
 
-        
+		ClearMode clearMode = ClearMode::SSE2;
+		CpuFeatures cpuFeatures = detectCpuFeatures();
 
     public:
 
@@ -77,14 +106,16 @@ namespace Render {
         */
     public:
 
-        DeviceDIB(WindowWin32& window) : Base(window) {}
+        DeviceDIB(WindowWin32& window) 
+            : Base(window) 
+        {
+        }
 
     private:
 
         using GpuBuffer3D = DeviceTraits<Self>::GpuBuffer3D;
         using GpuBuffer2D = DeviceTraits<Self>::GpuBuffer2D;
         using GpuIndexBuffer = DeviceTraits<Self>::GpuIndexBuffer;
-
 
         TargetHandle targetCreateImpl(const RenderTargetDescriptor& descriptor) noexcept 
         {
@@ -128,20 +159,7 @@ namespace Render {
             Vec4 vc(verts[2][0], verts[2][1], 0, 1);
             Vec4 vd(verts[3][0], verts[3][1], 0, 1);
 
-            /*
-            Mtx4 model(
-                1, 0, 0, 0,
-                0, 1, 0, 0,
-                0, 0, 1, 0,
-                0, 0, 0, 1
-            );
-            */
-
-            //model.rotateY((float)ctx.frameIndex / 100.0f);
-
-            auto model = ctx.model;
-
-            Mtx4 mvp = ctx.projection * ctx.view * model;
+            Mtx4 mvp = ctx.projection * ctx.view * ctx.model;
 
             va = mvp * va;
             vb = mvp * vb;
@@ -183,6 +201,45 @@ namespace Render {
             // @todo
         }
 
+
+
+        inline void clearScalar(uint32_t* dst, size_t size, uint32_t color) noexcept
+        {
+            std::fill_n(dst, size, color);
+        }
+
+        inline void clearSSE2(uint32_t* dst, size_t size, uint32_t color) noexcept
+        {
+            __m128i fill = _mm_set1_epi32(color);
+
+            size_t i = 0;
+            size_t simdCount = size / 4;
+
+            for (size_t n = 0; n < simdCount; ++n) {
+                _mm_storeu_si128((__m128i*)(dst + i), fill);
+                i += 4;
+            }
+
+            for (; i < size; ++i)
+                dst[i] = color;
+        }
+
+        inline void clearAVX2(uint32_t* dst, size_t size, uint32_t color) noexcept
+        {
+            __m256i fill = _mm256_set1_epi32(color);
+
+            size_t i = 0;
+            size_t simdCount = size / 8;
+
+            for (size_t n = 0; n < simdCount; ++n) {
+                _mm256_storeu_si256((__m256i*)(dst + i), fill);
+                i += 8;
+            }
+
+            for (; i < size; ++i)
+                dst[i] = color;
+        }
+
         void clearImpl(const Context& ctx) noexcept
         {
             if (!registry.targets.isValid(ctx.framebufferHandle)) return;
@@ -190,8 +247,29 @@ namespace Render {
             Target& target = registry.targets.get(ctx.framebufferHandle);
             uint32_t color = ctx.clearColor.toRGBA();
             size_t size = target.descriptor.width * target.descriptor.height;
-            std::fill_n(target.framebuffer, size, color);
-            // dalo by se pouzit SSE (SIMD) pro rychlejší vyplnìní, ale pro jednoduchost a pøehlednost teï použijeme std::fill_n   
+            uint32_t* dst = target.framebuffer;
+
+            switch (clearMode)
+            {
+            case ClearMode::AVX2:
+                if (cpuFeatures.avx2) {
+                    clearAVX2(dst, size, color);
+                    return;
+                }
+                [[fallthrough]];
+
+            case ClearMode::SSE2:
+                if (cpuFeatures.sse2) {
+                    clearSSE2(dst, size, color);
+                    return;
+                }
+                [[fallthrough]];
+
+            case ClearMode::Scalar:
+            default:
+                clearScalar(dst, size, color);
+                return;
+            }
         }
 
         void presentImpl(TargetHandle targetHandle) noexcept

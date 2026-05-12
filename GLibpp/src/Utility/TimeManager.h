@@ -147,6 +147,7 @@ public:
         {
             m_accumulator -= m_fixedDelta;
         }
+		//m_accumulator = 0.0;
     }
 
     // --- FPS Metriky ---

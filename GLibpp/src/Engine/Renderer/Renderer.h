@@ -110,8 +110,13 @@ namespace Render {
             ctx.framebufferHandle = resources.framebufferHandle;
                 
             device.clear(ctx);
-            device.drawStaticTestMesh(ctx);
-            
+
+            for (int i = 0; i < 12; ++i) 
+            {
+                device.drawStaticTestMesh(ctx);
+                ctx.model.rotateZ(30);
+            }
+
             device.present(resources.framebufferHandle);
         }
 
@@ -122,6 +127,7 @@ namespace Render {
 
             TimeManager timer(logicHz, true);
             TimeManager timer1Hz(1.0); // pro výpoèet FPS každou sekundu
+			TimeManager timerSyncV(60.0);
 
 			uint32_t frameIndex = 0;
 
@@ -144,10 +150,10 @@ namespace Render {
                     logicStateFramePair.advance_and_load_current(logicStateBuffered.get_read_buffer());
                 }
 
-                timer.tickAndFlush();
+                auto& logicStateCurrent = logicStateFramePair.get_current();
+                auto& logicStatePrevious = logicStateFramePair.get_previous();
 
-				auto& logicStateCurrent = logicStateFramePair.get_current();
-				auto& logicStatePrevious = logicStateFramePair.get_previous();
+                timer.tickAndFlush();
 
                 double t = (timer.sinceStart() - logicStateCurrent.tickInfo.lastLogicTick) / timer.getFixedDelta();
 				double tClamped = std::clamp(t, 0.0, 1.0);
@@ -158,6 +164,7 @@ namespace Render {
                     static_cast<float>(tClamped)
                 );
 
+                
                 renderFrame(logicStateInterpolated.scene, ++frameIndex);
 
                 timer1Hz.tickAndDispatchAction([&](double dt) {
