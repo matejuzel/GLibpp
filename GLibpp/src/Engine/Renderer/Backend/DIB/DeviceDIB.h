@@ -140,7 +140,7 @@ namespace Render {
             return registry.targets.get(targetHandle);
 		}
 
-        void drawStaticTestMeshImpl(const Context& ctx) noexcept
+        void drawStaticTestMeshImpl(const Context& ctx, float scaleFactor) noexcept
         {
             
             if (!registry.targets.isValid(ctx.framebufferHandle)) return;
@@ -159,7 +159,7 @@ namespace Render {
             Vec4 vc(verts[2][0], verts[2][1], 0, 1);
             Vec4 vd(verts[3][0], verts[3][1], 0, 1);
 
-            Mtx4 mvp = ctx.projection * ctx.view * ctx.model;
+            Mtx4 mvp = ctx.projection * ctx.view * ctx.model * Mtx4::Scaling(scaleFactor);
 
             va = mvp * va;
             vb = mvp * vb;

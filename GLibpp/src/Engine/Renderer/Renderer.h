@@ -120,9 +120,13 @@ namespace Render {
             for (int i = 0; i < 8; ++i) 
             {
                 device.drawStaticTestMesh(ctx);
-                //ctx.model.rotateZ(30);
                 ctx.model.rotateZ(GLibpp::Math::deg2rad(10.0f));
             }
+
+            ctx.model = scene.modelMatrix * scene.modelMatrix2;
+            device.drawStaticTestMesh(ctx, 0.5f);
+            std::cout << scene.modelMatrix2.toString() << std::endl;
+
 
             device.present(resources.framebufferHandle);
         }

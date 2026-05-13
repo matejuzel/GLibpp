@@ -59,9 +59,9 @@ namespace Render {
             return static_cast<DerivedDevice*>(this)->targetGetImpl(targetHandle);
 		}
         
-        void drawStaticTestMesh(const Context& ctx) noexcept
+        void drawStaticTestMesh(const Context& ctx, float scaleFactor = 1.0f) noexcept
         {
-            static_cast<DerivedDevice*>(this)->drawStaticTestMeshImpl(ctx);
+            static_cast<DerivedDevice*>(this)->drawStaticTestMeshImpl(ctx, scaleFactor);
         }
 
         //void drawMeshEnqueue(const Context& ctx, MeshHandle meshHandle)

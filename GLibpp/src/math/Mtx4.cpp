@@ -352,6 +352,11 @@
         return *this;
     }
 
+    Mtx4& Mtx4::scale(float factor) {
+        *this = *this * Mtx4::Scaling(factor);
+        return *this;
+    }
+
     Mtx4& Mtx4::rotateX(float a) {
         *this = *this * Mtx4::RotationX(a);
         return *this;
@@ -440,6 +445,15 @@
             x, 0, 0, 0,
             0, y, 0, 0,
             0, 0, z, 0,
+            0, 0, 0, 1
+        );
+    }
+
+    Mtx4 Mtx4::Scaling(float factor) {
+        return Mtx4(
+            factor, 0, 0, 0,
+            0, factor, 0, 0,
+            0, 0, factor, 0,
             0, 0, 0, 1
         );
     }

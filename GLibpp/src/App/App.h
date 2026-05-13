@@ -152,7 +152,8 @@ public:
         //scene.camera.position.y += 10*sinf(0.1f * static_cast<float>(dt));
 
 
-
+        scene.modelMatrix2.rotateZ(GLibpp::Math::deg2rad(360.0f * dt));
+        scene.modelMatrix2.rotateY(GLibpp::Math::deg2rad(60.0f * dt));
         
         if (input.keyboard.isDown(KeyMap::KEY_ENTER)) {
 			scene.modelMatrix.rotateY(1.0f * dt);
@@ -216,6 +217,10 @@ public:
 
         logicState.scene.camera = Camera::Demo(45);
         logicState.scene.modelMatrix = Mtx4::Identity();
+        logicState.scene.modelMatrix2 = Mtx4::Identity().translate(2.1f, 0.0f, 0.0f);
+
+        std::cout << logicState.scene.modelMatrix.toString() << std::endl;
+        std::cout << logicState.scene.modelMatrix2.toString() << std::endl;
 
         running.start();
 

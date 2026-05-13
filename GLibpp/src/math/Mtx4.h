@@ -53,6 +53,7 @@ struct Mtx4 {
     Mtx4& transpose();
     Mtx4& translate(float x, float y, float z);
     Mtx4& scale(float x, float y, float z);
+    Mtx4& scale(float factor);
     Mtx4& rotateX(float a);
     Mtx4& rotateY(float a);
     Mtx4& rotateZ(float a);
@@ -68,6 +69,7 @@ struct Mtx4 {
     static Mtx4 Identity();
     static Mtx4 Translation(float x, float y, float z);
     static Mtx4 Scaling(float x, float y, float z);
+    static Mtx4 Scaling(float factor);
     static Mtx4 RotationX(float a);
     static Mtx4 RotationY(float a);
     static Mtx4 RotationZ(float a);
