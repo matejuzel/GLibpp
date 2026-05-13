@@ -19,8 +19,8 @@ namespace Render {
 		//using MeshHandle = typename StableRegistry<Mesh>::Handle;
 		//using MeshInstanceHandle = typename StableRegistry<MeshInstance>::Handle;
 
-		using MeshHandle = typename Device::MeshHandle;
-		using MeshInstanceHandle = typename Device::MeshInstanceHandle;
+		using MeshHandle = typename StableRegistry<Mesh>::Handle;
+		using MeshInstanceHandle = typename StableRegistry<MeshInstance>::Handle;
 
 		ResourceManager(Device& device)
 			: device(device)

@@ -33,9 +33,6 @@ namespace Render {
         static constexpr TargetHandle TARGET_INVALID = TargetRegistry::INVALID;
 
 
-        using MeshHandle = typename StableRegistry<Mesh>::Handle;
-        using MeshInstanceHandle = typename StableRegistry<MeshInstance>::Handle;
-
         // typy pro buffery
         using PositionBuffer = typename DeviceTraits<DerivedDevice>::GpuBuffer3D;
         using VectorBuffer = typename DeviceTraits<DerivedDevice>::GpuBuffer3D;

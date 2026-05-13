@@ -143,9 +143,8 @@ public:
     {
     }
 
-    void updateLogic(double dtExtra, Scene& scene)
+    void updateLogic(float dt, Scene& scene)
     {
-		float dt = std::clamp(static_cast<float>(dtExtra), 0.0f, 1.0f);
 
 		//std::cout << "Updating logic with dt = " << dt << " seconds" << std::endl;
 
@@ -157,6 +156,11 @@ public:
         
         if (input.keyboard.isDown(KeyMap::KEY_ENTER)) {
 			scene.modelMatrix.rotateY(1.0f * dt);
+        }
+
+        if (input.keyboard.isDown(KeyMap::KEY_SPACE)) {
+            scene.modelMatrix.rotateZ(GLibpp::Math::deg2rad(360.0f * dt));
+            //scene.modelMatrix.rotateZ(GLibpp::Math::deg2rad(1.0f));
         }
 
         if (input.keyboard.isDown(KeyMap::KEY_UP)) {
@@ -227,7 +231,7 @@ public:
 
             timer.tickAndDispatchAction([&](double dt, double lastLogicTick) {
                 input.keyboard.update();
-                updateLogic(dt, logicState.scene);
+                updateLogic(static_cast<float>(dt), logicState.scene);
                 scenePublish(logicState, lastLogicTick);
              });
 

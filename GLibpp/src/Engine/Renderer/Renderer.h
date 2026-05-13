@@ -31,7 +31,7 @@
 #include "TimeManager.h"
 #include "ZeroAllocStateHistory.h"
 #include <utility>
-
+#include "Mathematics.h"
 
 namespace Render {
 
@@ -117,10 +117,11 @@ namespace Render {
                 
             device.clear(ctx);
 
-            for (int i = 0; i < 12; ++i) 
+            for (int i = 0; i < 8; ++i) 
             {
                 device.drawStaticTestMesh(ctx);
-                ctx.model.rotateZ(30);
+                //ctx.model.rotateZ(30);
+                ctx.model.rotateZ(GLibpp::Math::deg2rad(10.0f));
             }
 
             device.present(resources.framebufferHandle);

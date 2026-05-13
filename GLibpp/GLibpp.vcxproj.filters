@@ -209,5 +209,8 @@
     <ClInclude Include="src\Engine\Core\Datastruct\ZeroAllocStateHistory.h">
       <Filter>Zdrojové soubory\Engine\Core\Datastruct</Filter>
     </ClInclude>
+    <ClInclude Include="src\Math\Mathematics.h">
+      <Filter>Zdrojové soubory\Math</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>
