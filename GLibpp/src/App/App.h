@@ -49,7 +49,7 @@ private:
 
     GLibpp::Input input;
 
-    float logicHz = 30;
+    float logicHz = 120;
 
     bool checkWindowInitialized() const {
         if (window.get() == nullptr) {
@@ -194,12 +194,12 @@ public:
         scene.matrixWheel04.rotateY(angle);
 
         if (input.keyboard.isDown(KeyMap::KEY_LEFT)) {
-            //scene.camera.rotate(-1.0f * dt, 0.0f);
+            scene.matrixVehicle.rotateY(1.0f * dt);
             scene.matrixSteer.rotateX(dt * 0.5);
         }
 
         if (input.keyboard.isDown(KeyMap::KEY_RIGHT)) {
-            //scene.camera.rotate(1.0f * dt, 0.0f);
+            scene.matrixVehicle.rotateY(-1.0f * dt);
             scene.matrixSteer.rotateX(- dt * 0.5);
         }
         

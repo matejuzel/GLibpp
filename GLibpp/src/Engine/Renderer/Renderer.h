@@ -118,7 +118,7 @@ namespace Render {
             device.clear(ctx);
 
             {
-                uint32_t segments = 12;
+                uint32_t segments = 16;
                 float radius = 0.5f;
 
                 // scene.matrixVehicle * wheelSteer * wheelRoll * wheelOffset;
