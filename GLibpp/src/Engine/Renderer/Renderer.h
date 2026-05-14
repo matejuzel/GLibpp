@@ -117,16 +117,16 @@ namespace Render {
                 
             device.clear(ctx);
 
+            device.drawMesh(ctx, Mesh::Cube(1.0f), scene.modelMatrix);
+            device.drawMesh(ctx, Mesh::Cube(0.3f), scene.modelMatrix * scene.modelMatrix2);
+
+            if (0)
             for (int i = 0; i < 8; ++i) 
             {
                 device.drawStaticTestMesh(ctx);
                 ctx.model.rotateZ(GLibpp::Math::deg2rad(10.0f));
             }
-
-            ctx.model = scene.modelMatrix * scene.modelMatrix2;
-            device.drawStaticTestMesh(ctx, 0.5f);
-            std::cout << scene.modelMatrix2.toString() << std::endl;
-
+            
 
             device.present(resources.framebufferHandle);
         }

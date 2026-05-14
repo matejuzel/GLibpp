@@ -181,11 +181,13 @@ public:
         }
         
 
-		scene.modelMatrix.rotateY(scene.rotationSpeed * dt); 
+		scene.modelMatrix.rotateY(scene.rotationSpeed * dt);
 		scene.camera.position.z += scene.cameraSpeed * dt;
 
-
-        scene.test += 1.0f;
+        if (input.keyboard.isDown(KeyMap::KEY_ENTER)) {
+            scene.test += 1.0f;
+        }
+        
         //std::cout << "test inc(1): " << scene.test << std::endl;
 
     }

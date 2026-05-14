@@ -93,6 +93,8 @@ namespace Render {
 		ClearMode clearMode = ClearMode::SSE2;
 		CpuFeatures cpuFeatures = detectCpuFeatures();
 
+        std::vector<float> floatBuffer;
+
     public:
 
         /* problem s nenapovidanim IDE to nevyresilo
@@ -139,6 +141,211 @@ namespace Render {
             if (!registry.targets.isValid(targetHandle)) throw std::runtime_error("Invalid TargetHandle: " + std::to_string(targetHandle.index) + ", " + std::to_string(targetHandle.generation));
             return registry.targets.get(targetHandle);
 		}
+
+        void drawMeshImpl(const Context& ctx, const Mesh& mesh, const Mtx4& transform, const Color& color) noexcept
+        {
+            if (!registry.targets.isValid(ctx.framebufferHandle)) return;
+
+            // --- 1) Matice ---
+            Mtx4 mv = ctx.view * transform;          // model-view
+            Mtx4 mvp = ctx.projection * mv;           // model-view-projection
+
+            uint32_t x = ctx.viewport.x;
+            uint32_t y = ctx.viewport.y;
+            uint32_t width = ctx.viewport.width;
+            uint32_t height = ctx.viewport.height;
+
+            auto viewportTransform = [&](Vec4& v) {
+                v.x = (v.x * 0.5f + 0.5f) * width + x;
+                v.y = (-v.y * 0.5f + 0.5f) * height + y;
+                };
+
+            // --- 2) Buffery ---
+            size_t vertexCount = mesh.getVertexBuffer().size();
+
+            if (floatBuffer.size() < 3 * vertexCount)
+                floatBuffer.resize(3 * vertexCount);
+
+            // view-space pozice pro výpoèet normál
+            static std::vector<float> viewPos;
+            if (viewPos.size() < 3 * vertexCount)
+                viewPos.resize(3 * vertexCount);
+
+            // --- 3) Transformace vrcholù ---
+            int offset = 0;
+            int offsetView = 0;
+
+            for (const auto& vertex : mesh.getVertexBuffer())
+            {
+                // view-space pozice (pro normály)
+                Vec4 vView = mv * vertex;
+                vView.divideW();
+
+                viewPos[offsetView++] = vView.x;
+                viewPos[offsetView++] = vView.y;
+                viewPos[offsetView++] = vView.z;
+
+                // projekce + viewport
+                Vec4 v = mvp * vertex;
+                v.divideW();
+                viewportTransform(v);
+
+                floatBuffer[offset++] = v.x;
+                floatBuffer[offset++] = v.y;
+                floatBuffer[offset++] = v.z;
+            }
+
+            Target& target = registry.targets.get(ctx.framebufferHandle);
+
+            // --- 4) Smìrové svìtlo ve VIEW SPACE ---
+            float Lx = 0.0f;
+            float Ly = 0.0f;
+            float Lz = -1.0f; // svìtlo zepøedu v prostoru kamery
+
+            float lenL = std::sqrt(Lx * Lx + Ly * Ly + Lz * Lz);
+            Lx /= lenL; Ly /= lenL; Lz /= lenL;
+
+            // difuzní rozsah
+            float a = 0.2f;
+            float b = 1.0f;
+
+            // --- 5) Rasterizace trojúhelníkù ---
+            const auto& ib = mesh.getIndexBuffer();
+
+            for (int i = 0; i < ib.size(); i += 3)
+            {
+                int ia = ib[i];
+                int ibb = ib[i + 1];
+                int ic = ib[i + 2];
+
+                // --- view-space pozice pro normálu ---
+                float axv = viewPos[3 * ia];
+                float ayv = viewPos[3 * ia + 1];
+                float azv = viewPos[3 * ia + 2];
+
+                float bxv = viewPos[3 * ibb];
+                float byv = viewPos[3 * ibb + 1];
+                float bzv = viewPos[3 * ibb + 2];
+
+                float cxv = viewPos[3 * ic];
+                float cyv = viewPos[3 * ic + 1];
+                float czv = viewPos[3 * ic + 2];
+
+                // --- normála ve view space ---
+                float ABx = bxv - axv;
+                float ABy = byv - ayv;
+                float ABz = bzv - azv;
+
+                float ACx = cxv - axv;
+                float ACy = cyv - ayv;
+                float ACz = czv - azv;
+
+                float Nx = ABy * ACz - ABz * ACy;
+                float Ny = ABz * ACx - ABx * ACz;
+                float Nz = ABx * ACy - ABy * ACx;
+
+                float lenN = std::sqrt(Nx * Nx + Ny * Ny + Nz * Nz);
+                if (lenN > 0.00001f) {
+                    Nx /= lenN; Ny /= lenN; Nz /= lenN;
+                }
+
+                // --- Lambert ---
+                float dotNL = Nx * Lx + Ny * Ly + Nz * Lz;
+                if (dotNL < 0.0f) dotNL = 0.0f;
+                if (dotNL > 1.0f) dotNL = 1.0f;
+
+                float I = a + dotNL * (b - a);
+
+                // --- barva ---
+                uint32_t shaded = Color(
+                    uint8_t(color.r * I),
+                    uint8_t(color.g * I),
+                    uint8_t(color.b * I),
+                    color.a
+                ).toRGBA();
+
+                // --- screen-space pozice ---
+                float ax = floatBuffer[3 * ia];
+                float ay = floatBuffer[3 * ia + 1];
+
+                float bx = floatBuffer[3 * ibb];
+                float by = floatBuffer[3 * ibb + 1];
+
+                float cx = floatBuffer[3 * ic];
+                float cy = floatBuffer[3 * ic + 1];
+
+                RasterizatorDIB::drawTriangle(
+                    target,
+                    ax, ay,
+                    bx, by,
+                    cx, cy,
+                    shaded
+                );
+            }
+        }
+
+
+
+        void drawMeshImpl2(const Context& ctx, const Mesh& mesh, const Mtx4& transform, const Color& color) noexcept
+        {
+            if (!registry.targets.isValid(ctx.framebufferHandle)) return;
+
+            Mtx4 mvp = ctx.projection * ctx.view * transform;
+
+            uint32_t x = ctx.viewport.x;
+            uint32_t y = ctx.viewport.y;
+            uint32_t width = ctx.viewport.width;
+            uint32_t height = ctx.viewport.height;
+
+            auto viewportTransform = [&](Vec4& v) {
+                v.x = (v.x * 0.5f + 0.5f) * width + x;
+                v.y = (-v.y * 0.5f + 0.5f) * height + y;
+            };
+            
+            auto vertexCount = mesh.getVertexBuffer().size();
+            if (floatBuffer.size() < 3*vertexCount)
+            {
+                floatBuffer.resize(3*vertexCount);
+            }
+
+            for (int offset = 0; const auto& vertex : mesh.getVertexBuffer())
+            {
+                auto vertex_ = mvp * vertex;
+                vertex_.divideW();
+
+                viewportTransform(vertex_);
+
+                floatBuffer[offset++] = vertex_.x;
+                floatBuffer[offset++] = vertex_.y;
+                floatBuffer[offset++] = vertex_.z;
+            }
+
+            Target& target = registry.targets.get(ctx.framebufferHandle);
+
+            for (int i = 0; i < mesh.getIndexBuffer().size()/3; i++)
+            {
+                int ia = mesh.getIndexBuffer()[3*i];
+                int ib = mesh.getIndexBuffer()[3*i + 1];
+                int ic = mesh.getIndexBuffer()[3*i + 2];
+
+                float vax = floatBuffer[3*ia];
+                float vay = floatBuffer[3*ia + 1];
+
+                float vbx = floatBuffer[3*ib];
+                float vby = floatBuffer[3*ib + 1];
+
+                float vcx = floatBuffer[3*ic];
+                float vcy = floatBuffer[3*ic + 1];
+
+                RasterizatorDIB::drawTriangle(
+                    target,
+                    vax, vay,
+                    vbx, vby,
+                    vcx, vcy,
+                    color.toRGBA()
+                );
+            }
+        }
 
         void drawStaticTestMeshImpl(const Context& ctx, float scaleFactor) noexcept
         {

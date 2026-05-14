@@ -84,6 +84,7 @@ struct Mtx4 {
 
 
     static Mtx4 Slerp(const Mtx4& a, const Mtx4& b, float t) {
+
         auto slerpVec = [](const Vec4& v1, const Vec4& v2, float t) -> Vec4 {
             float dot = std::clamp(v1.dot(v2), -1.0f, 1.0f);
             if (dot > 0.9999f) return v1;

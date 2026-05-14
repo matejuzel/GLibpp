@@ -43,6 +43,8 @@ namespace Render {
 
         static void inline drawTriangle(DeviceTargetDIB& target, int x0, int y0, int x1, int y1, int x2, int y2, uint32_t color) noexcept
         {
+            //std::cout << "triangle([" << x0 << "," << y0 << "] [" << x1 << "," << y1 << "][" << x2 << "," << y2 << "])" << std::endl;
+
             // Seøadíme vrcholy podle Y (od nejnižšího)
             if (y1 < y0) { std::swap(y0, y1); std::swap(x0, x1); }
             if (y2 < y0) { std::swap(y0, y2); std::swap(x0, x2); }

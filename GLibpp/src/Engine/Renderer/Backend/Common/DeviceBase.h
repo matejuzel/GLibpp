@@ -59,6 +59,11 @@ namespace Render {
             return static_cast<DerivedDevice*>(this)->targetGetImpl(targetHandle);
 		}
         
+        void drawMesh(const Context& ctx, const Mesh& mesh, const Mtx4& transform, const Color& color = Color::Grayscale(0.3f)) noexcept
+        {
+            static_cast<DerivedDevice*>(this)->drawMeshImpl(ctx, mesh, transform, color);
+        }
+
         void drawStaticTestMesh(const Context& ctx, float scaleFactor = 1.0f) noexcept
         {
             static_cast<DerivedDevice*>(this)->drawStaticTestMeshImpl(ctx, scaleFactor);

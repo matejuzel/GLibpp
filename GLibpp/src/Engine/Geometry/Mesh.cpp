@@ -34,51 +34,33 @@ Mesh& Mesh::addCube(float scale)
     vertexBuffer.clear();
     indexBuffer.clear();
 
+    vertexBuffer.reserve(8);
+    indexBuffer.reserve(36);
+
     float s = scale * 0.5f;
 
-    // 8 cube vertices
-    vertexBuffer = {
-        {-s, -s, -s, 1.f},
-        { s, -s, -s, 1.f},
-        { s,  s, -s, 1.f},
-        {-s,  s, -s, 1.f},
+    vertexBuffer.push_back({ -s, -s, -s, 1.f });
+    vertexBuffer.push_back({ s, -s, -s, 1.f });
+    vertexBuffer.push_back({ s,  s, -s, 1.f });
+    vertexBuffer.push_back({ -s,  s, -s, 1.f });
 
-        {-s, -s,  s, 1.f},
-        { s, -s,  s, 1.f},
-        { s,  s,  s, 1.f},
-        {-s,  s,  s, 1.f},
-    };
+    vertexBuffer.push_back({ -s, -s,  s, 1.f });
+    vertexBuffer.push_back({ s, -s,  s, 1.f });
+    vertexBuffer.push_back({ s,  s,  s, 1.f });
+    vertexBuffer.push_back({ -s,  s,  s, 1.f });
 
-    // 12 triangles (36 indices)
     indexBuffer = {
-        // front
-        4, 5, 6,
-        6, 7, 4,
-
-        // back
-        0, 1, 2,
-        2, 3, 0,
-
-        // left
-        0, 4, 7,
-        7, 3, 0,
-
-        // right
-        1, 5, 6,
-        6, 2, 1,
-
-        // top
-        3, 2, 6,
-        6, 7, 3,
-
-        // bottom
-        0, 1, 5,
-        5, 4, 0
+        0,2,1,  2,0,3,
+        4,5,6,  6,7,4,
+        0,1,5,  5,4,0,
+        3,6,2,  6,3,7,
+        0,4,7,  7,3,0,
+        1,2,6,  6,5,1
     };
 
-    //computeAABB();
     return *this;
 }
+
 
 // ------------------------------------------------------------
 // addNet
