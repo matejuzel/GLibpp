@@ -16,6 +16,7 @@ public:
     Vec4(int x, int y, int z = 0, int w = 1)
         : x(static_cast<float>(x)), y(static_cast<float>(y)), z(static_cast<float>(z)), w(static_cast<float>(w)) {}
 
+
     float length() const;
     Vec4 normalized() const;
     Vec4& normalize();

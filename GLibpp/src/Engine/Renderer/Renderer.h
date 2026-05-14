@@ -117,8 +117,16 @@ namespace Render {
                 
             device.clear(ctx);
 
-            device.drawMesh(ctx, Mesh::Cube(1.0f), scene.modelMatrix);
-            device.drawMesh(ctx, Mesh::Cube(0.3f), scene.modelMatrix * scene.modelMatrix2);
+            {
+                uint32_t segments = 12;
+                float radius = 0.5f;
+                device.drawMesh(ctx, Mesh::Cylinder(radius, 0.3, segments), scene.matrixVehicle * scene.matrixWheel01);
+                device.drawMesh(ctx, Mesh::Cylinder(radius, 0.3, segments), scene.matrixVehicle * scene.matrixWheel02);
+                device.drawMesh(ctx, Mesh::Cylinder(radius, 0.3, segments), scene.matrixVehicle * scene.matrixWheel03);
+                device.drawMesh(ctx, Mesh::Cylinder(radius, 0.3, segments), scene.matrixVehicle * scene.matrixWheel04);
+            }
+            
+            //device.drawMesh(ctx, Mesh::Cylinder(0.5f, 0.2, 8), scene.modelMatrix * scene.modelMatrix2);
 
             if (0)
             for (int i = 0; i < 8; ++i) 

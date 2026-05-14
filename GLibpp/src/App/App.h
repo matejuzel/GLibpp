@@ -155,29 +155,50 @@ public:
         scene.modelMatrix2.rotateZ(GLibpp::Math::deg2rad(360.0f * dt));
         scene.modelMatrix2.rotateY(GLibpp::Math::deg2rad(60.0f * dt));
         
+
         if (input.keyboard.isDown(KeyMap::KEY_ENTER)) {
 			scene.modelMatrix.rotateY(1.0f * dt);
         }
 
         if (input.keyboard.isDown(KeyMap::KEY_SPACE)) {
             scene.modelMatrix.rotateZ(GLibpp::Math::deg2rad(360.0f * dt));
-            //scene.modelMatrix.rotateZ(GLibpp::Math::deg2rad(1.0f));
         }
 
         if (input.keyboard.isDown(KeyMap::KEY_UP)) {
-            scene.camera.move(Vec4(0.0f, 0.0f, -1.0f, 0.0f) * dt);
+            scene.speed += 2 * dt;
         }
 
         if (input.keyboard.isDown(KeyMap::KEY_DOWN)) {
-            scene.camera.move(Vec4(0.0f, 0.0f, 1.0f, 0.0f) * dt);
+            //scene.camera.move(Vec4(0.0f, 0.0f, 1.0f, 0.0f) * dt);
+            scene.speed -= 6 * dt;
         }
 
+        if (scene.speed > -0.01f && scene.speed < 0.01f) scene.speed = 0.0f;
+        if (scene.speed > 0) scene.speed -= 0.001f;
+        if (scene.speed < 0) scene.speed += 0.001f;
+
+        scene.matrixVehicle.translate(0, 0, scene.speed * dt);
+        /*scene.matrixWheel01.translate(0, 0, scene.speed);
+        scene.matrixWheel02.translate(0, 0, scene.speed);
+        scene.matrixWheel03.translate(0, 0, scene.speed);
+        scene.matrixWheel04.translate(0, 0, scene.speed);*/
+
+
+        float wheelRadius = 0.5f;
+        float angle = -(scene.speed * dt) / wheelRadius;
+
+
+        scene.matrixWheel01.rotateY(angle);
+        scene.matrixWheel02.rotateY(angle);
+        scene.matrixWheel03.rotateY(angle);
+        scene.matrixWheel04.rotateY(angle);
+
         if (input.keyboard.isDown(KeyMap::KEY_LEFT)) {
-            scene.camera.rotate(-1.0f * dt, 0.0f);
+            //scene.camera.rotate(-1.0f * dt, 0.0f);
         }
 
         if (input.keyboard.isDown(KeyMap::KEY_RIGHT)) {
-            scene.camera.rotate(1.0f * dt, 0.0f);
+            //scene.camera.rotate(1.0f * dt, 0.0f);
         }
         
 
