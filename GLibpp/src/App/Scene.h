@@ -15,6 +15,8 @@ struct Scene {
 	Mtx4 matrixWheel02 = Mtx4::Identity().translate( 1.0f, 0.5f,  2.0f).rotateZ(GLibpp::Math::deg2rad(90.0f));
 	Mtx4 matrixWheel03 = Mtx4::Identity().translate(-1.0f, 0.5f, -2.0f).rotateZ(GLibpp::Math::deg2rad(90.0f));
 	Mtx4 matrixWheel04 = Mtx4::Identity().translate( 1.0f, 0.5f, -2.0f).rotateZ(GLibpp::Math::deg2rad(90.0f));
+
+	Mtx4 matrixSteer = Mtx4::Identity();
 	float speed = 0.0f;
 
 

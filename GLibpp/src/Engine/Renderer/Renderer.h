@@ -120,6 +120,8 @@ namespace Render {
             {
                 uint32_t segments = 12;
                 float radius = 0.5f;
+
+                // scene.matrixVehicle * wheelSteer * wheelRoll * wheelOffset;
                 device.drawMesh(ctx, Mesh::Cylinder(radius, 0.3, segments), scene.matrixVehicle * scene.matrixWheel01);
                 device.drawMesh(ctx, Mesh::Cylinder(radius, 0.3, segments), scene.matrixVehicle * scene.matrixWheel02);
                 device.drawMesh(ctx, Mesh::Cylinder(radius, 0.3, segments), scene.matrixVehicle * scene.matrixWheel03);

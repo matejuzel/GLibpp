@@ -195,10 +195,12 @@ public:
 
         if (input.keyboard.isDown(KeyMap::KEY_LEFT)) {
             //scene.camera.rotate(-1.0f * dt, 0.0f);
+            scene.matrixSteer.rotateX(dt * 0.5);
         }
 
         if (input.keyboard.isDown(KeyMap::KEY_RIGHT)) {
             //scene.camera.rotate(1.0f * dt, 0.0f);
+            scene.matrixSteer.rotateX(- dt * 0.5);
         }
         
 
