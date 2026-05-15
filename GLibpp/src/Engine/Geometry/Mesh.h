@@ -31,6 +31,14 @@ public:
         return msh;
     }
 
+    Mesh& applyTransformation(const Mtx4& mtx)
+    {
+        for (auto& v : vertexBuffer) {
+            v = mtx * v;
+        }
+        return *this;
+    }
+
     Mesh& addCylinder(float radius, float height, uint32_t segments) {
 
         const float halfH = height * 0.5f;

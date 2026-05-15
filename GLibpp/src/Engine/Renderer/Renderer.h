@@ -119,13 +119,21 @@ namespace Render {
 
             {
                 uint32_t segments = 12;
-                float radius = 0.5f;
+                float radius = scene.car.wheelRadius;
 
                 // scene.matrixVehicle * wheelSteer * wheelRoll * wheelOffset;
-                device.drawMesh(ctx, Mesh::Cylinder(radius, 0.3, segments), scene.matrixVehicle * scene.matrixWheel01);
-                device.drawMesh(ctx, Mesh::Cylinder(radius, 0.3, segments), scene.matrixVehicle * scene.matrixWheel02);
-                device.drawMesh(ctx, Mesh::Cylinder(radius, 0.3, segments), scene.matrixVehicle * scene.matrixWheel03);
-                device.drawMesh(ctx, Mesh::Cylinder(radius, 0.3, segments), scene.matrixVehicle * scene.matrixWheel04);
+                //device.drawMesh(ctx, Mesh::Cylinder(radius, 0.3, segments), scene.matrixVehicle * scene.matrixWheel01);
+                //device.drawMesh(ctx, Mesh::Cylinder(radius, 0.3, segments), scene.matrixVehicle * scene.matrixWheel02);
+                //device.drawMesh(ctx, Mesh::Cylinder(radius, 0.3, segments), scene.matrixVehicle * scene.matrixWheel03);
+                //device.drawMesh(ctx, Mesh::Cylinder(radius, 0.3, segments), scene.matrixVehicle * scene.matrixWheel04);
+
+                device.drawMesh(ctx, Mesh::Cylinder(radius, 0.3, segments).applyTransformation(Mtx4::RotationZ(3.14159f / 2.0f)), scene.car.object * scene.car.getFrontLeft());
+                device.drawMesh(ctx, Mesh::Cylinder(radius, 0.3, segments).applyTransformation(Mtx4::RotationZ(3.14159f / 2.0f)), scene.car.object * scene.car.getFrontRight());
+                device.drawMesh(ctx, Mesh::Cylinder(radius, 0.3, segments).applyTransformation(Mtx4::RotationZ(3.14159f / 2.0f)), scene.car.object * scene.car.getBackLeft());
+                device.drawMesh(ctx, Mesh::Cylinder(radius, 0.3, segments).applyTransformation(Mtx4::RotationZ(3.14159f / 2.0f)), scene.car.object * scene.car.getBackRight());
+                //device.drawMesh(ctx, Mesh::Cylinder(radius, 0.3, segments), scene.matrixVehicle * scene.matrixWheel02);
+                //device.drawMesh(ctx, Mesh::Cylinder(radius, 0.3, segments), scene.matrixVehicle * scene.matrixWheel03);
+                //device.drawMesh(ctx, Mesh::Cylinder(radius, 0.3, segments), scene.matrixVehicle * scene.matrixWheel04);
             }
             
             //device.drawMesh(ctx, Mesh::Cylinder(0.5f, 0.2, 8), scene.modelMatrix * scene.modelMatrix2);

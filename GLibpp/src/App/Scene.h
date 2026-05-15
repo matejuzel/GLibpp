@@ -6,6 +6,10 @@
 struct Scene {
 
 	Camera camera;
+
+	CarTransformation car;
+
+
 	Mtx4 modelMatrix;
 	Mtx4 modelMatrix2;
 	Mtx4 modelMatrix3;
