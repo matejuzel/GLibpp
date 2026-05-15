@@ -52,14 +52,15 @@ struct WheelTransformation {
 
     Mesh getMesh() const { return mesh; }
 
+    float steerAngle = 0.0f; // rad 
+
 private:
 
     Mesh mesh;
     Vec4 position;
 
     float steerAngleMax = GLibpp::Math::deg2rad(35.0f);
-    float steerAngle = 0.0f; // rad 
-
+    
     float rollAngle = 0.0f;
 
 };
@@ -103,7 +104,7 @@ struct CarTransformation {
     }
 
     void run(float dt) {
-
+        object.rotateY(wheelFrontLeft.steerAngle * dt * speed);
         object.translate(0.0f, 0.0f, speed * dt);
         rollAllWheels(speed * dt / wheelRadius);
     }
