@@ -5,11 +5,13 @@
 
 #include "Mathematics.h"
 #include "Mtx4.h"
+#include "Mesh.h"
 
 struct WheelTransformation {
 
-    WheelTransformation(float zPos, float xPos)
+    WheelTransformation(float zPos, float xPos, float radius)
         : position(Vec4(xPos, 0.0f, zPos, 1.0f))
+        , mesh(Mesh::Cylinder(radius, 0.3, 12).applyTransformation(Mtx4::RotationZ(3.14159f / 2.0f)))
     {
     }
 
@@ -48,8 +50,11 @@ struct WheelTransformation {
         return m_pos * m_steer * m_roll;
     }
 
+    Mesh getMesh() const { return mesh; }
+
 private:
 
+    Mesh mesh;
     Vec4 position;
 
     float steerAngleMax = GLibpp::Math::deg2rad(35.0f);
@@ -62,7 +67,22 @@ private:
 struct CarTransformation {
     
     float speed = 0.0f; //  m / s
-    float wheelRadius = 0.5f;
+    float wheelRadius = 0.3f;
+
+
+    CarTransformation()
+        : object(Mtx4::Identity())
+        , wheelFrontLeft ( 1.0f, -0.5f, wheelRadius)
+        , wheelFrontRight( 1.0f,  0.5f, wheelRadius)
+        , wheelBackLeft  (-1.0f, -0.5f, wheelRadius)
+        , wheelBackRight (-1.0f,  0.5f, wheelRadius)
+        , mesh(Mesh::Cylinder(1.0f, 6, 16).applyTransformation(Mtx4::RotationX(3.14159 / 2.0f)))
+    {
+    }
+
+    const Mesh& getMesh() const {
+        return mesh;
+    }
 
     void speedUp(float dSpeed) 
     {
@@ -95,16 +115,8 @@ struct CarTransformation {
         wheelBackRight.doRoll(dAngle);
     }
 
-    CarTransformation()
-        : object(Mtx4::Identity()) 
-        , wheelFrontLeft(1.0f, -0.5f)
-        , wheelFrontRight(1.0f, 0.5f)
-        , wheelBackLeft(-1.0f, -0.5f)
-        , wheelBackRight(-1.0f, 0.5f)
-    {
-    }
-
     Mtx4 object;
+    Mesh mesh;
 
     WheelTransformation wheelFrontLeft;
     WheelTransformation wheelFrontRight;
