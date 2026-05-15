@@ -130,6 +130,8 @@ namespace Render {
                 device.drawMesh(ctx, scene.car.wheelBackRight.getMesh(), scene.car.getBackRight());
             }
 
+            device.drawMesh(ctx, Mesh::Cube(0.3f), scene.car.getIcrTransformation());
+
             if (0)
             for (int i = 0; i < 8; ++i) 
             {

@@ -11,7 +11,7 @@ struct WheelTransformation {
 
     WheelTransformation(float zPos, float xPos, float radius)
         : position(Vec4(xPos, 0.0f, zPos, 1.0f))
-        , mesh(Mesh::Cylinder(radius, 0.3, 12).applyTransformation(Mtx4::RotationZ(3.14159f / 2.0f)))
+        , mesh(Mesh::Cylinder(radius, 0.16, 12).applyTransformation(Mtx4::RotationZ(3.14159f / 2.0f)))
     {
     }
 
@@ -53,7 +53,7 @@ struct WheelTransformation {
     Mesh getMesh() const { return mesh; }
 
     float steerAngle = 0.0f; // rad 
-
+    float rollAngle = 0.0f;
 private:
 
     Mesh mesh;
@@ -61,22 +61,38 @@ private:
 
     float steerAngleMax = GLibpp::Math::deg2rad(35.0f);
     
-    float rollAngle = 0.0f;
+    
 
 };
 
 struct CarTransformation {
     
     float speed = 0.0f; //  m / s
-    float wheelRadius = 0.3f;
+    float wheelRadius = 0.3f; // polomer kola
+    float wheelBase = 2.0; // rozvor (vzdalenost os predni a zadni napravy)
+    float wheelTrack = 1.0; // rozchod (vzdalenost kol na jedne naprave)
 
+    float getIcr() const {
+
+        if (abs(wheelFrontLeft.steerAngle) < 0.001) return 0.0;
+
+        return wheelBase / tan(wheelFrontLeft.steerAngle);
+    }
+
+    Mtx4 getIcrTransformation() const {
+       
+        Mtx4 m = Mtx4::Identity();
+        m.translate(getIcr(), 0.0f, -wheelBase / 2.0f);
+
+        return object * m;
+    }
 
     CarTransformation()
         : object(Mtx4::Identity())
-        , wheelFrontLeft ( 1.0f, -0.5f, wheelRadius)
-        , wheelFrontRight( 1.0f,  0.5f, wheelRadius)
-        , wheelBackLeft  (-1.0f, -0.5f, wheelRadius)
-        , wheelBackRight (-1.0f,  0.5f, wheelRadius)
+        , wheelFrontLeft ( wheelBase/2.0f, -wheelTrack/2.0f, wheelRadius)
+        , wheelFrontRight( wheelBase/2.0f,  wheelTrack/2.0f, wheelRadius)
+        , wheelBackLeft  (-wheelBase/2.0f, -wheelTrack/2.0f, wheelRadius)
+        , wheelBackRight (-wheelBase/2.0f,  wheelTrack/2.0f, wheelRadius)
         , mesh(Mesh::Cylinder(1.0f, 6, 16).applyTransformation(Mtx4::RotationX(3.14159 / 2.0f)))
     {
     }
@@ -92,6 +108,12 @@ struct CarTransformation {
         if (abs(speed) < 0.01) speed = 0.0f;
     }
 
+    void speedDown(float faktor) {
+
+        if (speed > 0.1) speed -= faktor;
+        if (speed < -0.1) speed += faktor;
+    }
+
 
     void steerFrontWheels(float dAngle) {
         wheelFrontLeft.doSteer(dAngle);
@@ -104,7 +126,16 @@ struct CarTransformation {
     }
 
     void run(float dt) {
-        object.rotateY(wheelFrontLeft.steerAngle * dt * speed);
+
+        //object.rotateY(wheelFrontLeft.steerAngle * dt * speed); // tohle by bylo kolem stredu auto, ale musime podle stredu zadni napravy...
+        if (abs(getIcr()) > 0.00001) {
+        
+            auto T = Mtx4::Translation(0.0f, 0.0f, -wheelBase / 2.0f);
+            auto R = Mtx4::RotationY(dt * speed / getIcr());
+            auto Tinv = Mtx4::Translation(0.0f, 0.0f, wheelBase / 2.0f);
+            object = object * T * R * Tinv;
+        }
+        
         object.translate(0.0f, 0.0f, speed * dt);
         rollAllWheels(speed * dt / wheelRadius);
     }
@@ -278,17 +309,7 @@ public:
     }
 
     void updateLogic(float dt, Scene& scene)
-    {
-
-		//std::cout << "Updating logic with dt = " << dt << " seconds" << std::endl;
-
-        //scene.camera.position.x += 10.0f * static_cast<float>(dt);
-        //scene.camera.position.y += 10*sinf(0.1f * static_cast<float>(dt));
-
-
-        scene.modelMatrix2.rotateZ(GLibpp::Math::deg2rad(360.0f * dt));
-        scene.modelMatrix2.rotateY(GLibpp::Math::deg2rad(60.0f * dt));
-        
+    {   
 
         if (input.keyboard.isDown(KeyMap::KEY_ENTER)) {
 			scene.modelMatrix.rotateY(1.0f * dt);
@@ -296,21 +317,22 @@ public:
 
         if (input.keyboard.isDown(KeyMap::KEY_SPACE)) {
             scene.modelMatrix.rotateZ(GLibpp::Math::deg2rad(360.0f * dt));
+
+            scene.camera.move((Vec4(0.0f, 4.0f, 0.0f, 1.0f)) * dt);
         }
 
+        bool flag = true;
         if (input.keyboard.isDown(KeyMap::KEY_UP)) {
             scene.car.speedUp(3 * dt);
-        }
-        else {
-            scene.car.speedUp(-0.5 * dt);
+            flag = false;
         }
 
         if (input.keyboard.isDown(KeyMap::KEY_DOWN)) {
             scene.car.speedUp(-2 * dt);
+            flag = false;
         }
-        else {
-            scene.car.speedUp(0.5 * dt);
-        }
+
+        if (flag) scene.car.speedDown(0.01);
 
 
         scene.car.run(dt);
