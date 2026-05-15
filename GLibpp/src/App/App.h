@@ -170,7 +170,7 @@ private:
 
     GLibpp::Input input;
 
-    float logicHz = 30;
+    float logicHz = 120;
 
     bool checkWindowInitialized() const {
         if (window.get() == nullptr) {
@@ -325,7 +325,7 @@ public:
 
         bool flagResetSteer = true;
         if (input.keyboard.isDown(KeyMap::KEY_LEFT)) {
-            //scene.camera.rotate(-1.0f * dt, 0.0f);
+            scene.matrixVehicle.rotateY(1.0f * dt);
             scene.matrixSteer.rotateX(dt * 0.5);
 
             scene.car.steerFrontWheels(dt * 0.5);
@@ -333,7 +333,7 @@ public:
         }
 
         if (input.keyboard.isDown(KeyMap::KEY_RIGHT)) {
-            //scene.camera.rotate(1.0f * dt, 0.0f);
+            scene.matrixVehicle.rotateY(-1.0f * dt);
             scene.matrixSteer.rotateX(- dt * 0.5);
 
             scene.car.steerFrontWheels(-dt * 0.5);
