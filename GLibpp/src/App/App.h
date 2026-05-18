@@ -5,7 +5,122 @@
 
 #include "Mathematics.h"
 #include "Mtx4.h"
+#include "Vec4.h"
 #include "Mesh.h"
+
+
+
+
+namespace GLibpp::Physics {
+
+    struct BicicleParams {
+        BicicleParams(float wheelRadius, float wheelBase, float wheelTrack, float maxSteerAngle) : wheelRadius(wheelRadius), wheelBase(wheelBase), wheelTrack(wheelTrack), maxSteerAngle(maxSteerAngle) {}
+        const float wheelRadius; // polomer kola
+        const float wheelBase; // rozvor (vzdalenost os predni a zadni napravy)
+        const float wheelTrack; // rozchod (vzdalenost kol na jedne naprave)
+        const float maxSteerAngle;
+    };
+
+    class BicycleModel {
+
+    public:
+
+        BicicleParams params;
+
+    private:
+
+        // stav
+        Vec4 position;
+        float speed = 0.0f;
+        float steerAngle = 0.0f; // uhel natoceni vzhledem ke stredu predni napravy (virtualni kolo vprostred napravy)
+        float heading = 0.0f;
+
+    public:
+        BicycleModel(float wheelRadius, float wheelBase, float wheelTrack, float maxSteerAngle)
+            : params(wheelRadius, wheelBase, wheelTrack, maxSteerAngle)
+        {}
+
+        static BicycleModel Basic()
+        {
+            return BicycleModel(0.3f, 2.0f, 1.0f, Math::deg2rad(35.0f));
+        }
+
+        /** Instantaneous Center of Rotation - vzdalenost centra rotace pri zataceni ke stredu zadni napravy */
+        float getIcr() const
+        {
+            return params.wheelBase / tan(steerAngle);
+        }
+
+        float getSteerLeft() const
+        {
+            return atan(params.wheelBase / (getIcr() + params.wheelTrack * 0.5f));
+        }
+
+        float getSteerRight() const
+        {
+            return atan(params.wheelBase / (getIcr() - params.wheelTrack * 0.5f));
+        }
+
+        void update(float dt) 
+        {
+            if (fabs(steerAngle) < 0.0001f) {
+                // rovně
+                position.x += speed * dt * cos(heading);
+                position.y += speed * dt * sin(heading);
+                return;
+            }
+
+            float R = getIcr();
+            float dtheta = (speed * dt) / R;
+
+            heading += dtheta;
+
+            position.x += speed * dt * cos(heading);
+            position.y += speed * dt * sin(heading);
+        }
+
+        void accelerate(float dv)
+        {
+            speed += dv;
+            if (fabs(speed) < 0.01f)
+                speed = 0.0f;
+        }
+
+        void brake(float faktor)
+        {
+            if (speed > 0.1f) speed -= faktor;
+            if (speed < -0.1f) speed += faktor;
+        }
+
+        void steer(float dAngle)
+        {
+            steerAngle += dAngle;
+
+            if (steerAngle > params.maxSteerAngle)
+                steerAngle = params.maxSteerAngle;
+
+            if (steerAngle < -params.maxSteerAngle)
+                steerAngle = -params.maxSteerAngle;
+        }
+
+        void steerReset(float dt)
+        {
+            float delta = 4.0f * params.maxSteerAngle * dt;
+
+            if (fabs(steerAngle) <= delta)
+                steerAngle = 0.0f;
+            else
+                steerAngle -= copysign(delta, steerAngle);
+        }
+
+        float getSpeed() const { return speed; }
+        float getHeading() const { return heading; }
+        Vec4  getPosition() const { return position; }
+    };
+
+};
+
+
 
 struct WheelTransformation {
 
@@ -64,6 +179,7 @@ private:
     
 
 };
+
 
 struct CarTransformation {
     
