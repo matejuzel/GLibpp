@@ -67,6 +67,37 @@ namespace GLibpp::Physics {
 
         void update(float dt)
         {
+            Vec4 forward = heading * Vec4(0, 0, 1, 0);
+            Vec4 right = heading * Vec4(1, 0, 0, 0);
+
+            // rovná jízda
+            if (fabs(steerAngle) < 0.0001f) {
+                position = position + (forward * (speed * dt));
+                return;
+            }
+
+            float R = getIcr();
+            float dtheta = (speed * dt) / R;
+
+            // ICR leží vpravo od zadní nápravy
+            Vec4 icr = position + right * R;
+
+            // rotace kolem Y
+            Quaternion delta = Quaternion::FromAxisAngle(Vec4(0, 1, 0, 0), dtheta);
+
+            // otočíme heading
+            heading = (delta * heading).normalized();
+
+            // otočíme pozici kolem ICR
+            Vec4 rel = position - icr;
+            rel = delta * rel;
+            position = icr + rel;
+        }
+
+
+
+        void update__(float dt)
+        {
             // 1) Forward vektor z quaternionu
             Vec4 forward = heading * Vec4(0, 0, 1, 0);
 
@@ -200,8 +231,7 @@ private:
 
 };
 
-/*
-struct CarTransformation {
+struct CarTransformation__ {
     
     float speed = 0.0f; //  m / s
     float wheelRadius = 0.3f; // polomer kola
@@ -223,7 +253,7 @@ struct CarTransformation {
         return object * m;
     }
 
-    CarTransformation()
+    CarTransformation__()
         : object(Mtx4::Identity())
         , wheelFrontLeft ( wheelBase/2.0f, -wheelTrack/2.0f, wheelRadius)
         , wheelFrontRight( wheelBase/2.0f,  wheelTrack/2.0f, wheelRadius)
@@ -304,7 +334,7 @@ struct CarTransformation {
         return object * wheelBackRight.get();
     }
 };
-*/
+
 
 struct CarTransformation
 {
@@ -386,10 +416,12 @@ struct CarTransformation
             .translate(0, 0, wheelBase * 0.5f);
     }
 
+    Mtx4 getIcrTransformation() const {
 
-    Mtx4 getIcrTransformation() const
-    {
-        return getCarMatrix();
+        Mtx4 m = Mtx4::Identity();
+        m.translate(getIcr(), 0.0f, -wheelBase / 2.0f);
+
+        return object * m;
     }
 
     // ------------------------------------------------------------
