@@ -12,7 +12,7 @@ int main()
     try 
     {
         App app;
-		app.initialize(800, 600, L"\\\\.\\DISPLAY1");
+		app.initialize(800, 600, L"\\\\.\\DISPLAY2");
         app.run();
     }
     catch (std::runtime_error error) 
