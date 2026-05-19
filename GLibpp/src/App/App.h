@@ -357,12 +357,25 @@ struct CarTransformation
     Mtx4 object;
     Mesh mesh;
 
+    /*
     CarTransformation()
         : model(GLibpp::Physics::BicycleModel::Basic())
         , wheelFrontLeft(+wheelBase * 0.5f, -wheelTrack * 0.5f, wheelRadius)
         , wheelFrontRight(+wheelBase * 0.5f, +wheelTrack * 0.5f, wheelRadius)
         , wheelBackLeft(-wheelBase * 0.5f, -wheelTrack * 0.5f, wheelRadius)
         , wheelBackRight(-wheelBase * 0.5f, +wheelTrack * 0.5f, wheelRadius)
+        , object(Mtx4::Identity())
+        , mesh(Mesh::Cylinder(1.0f, 6, 16).applyTransformation(Mtx4::RotationX(3.14159f / 2.0f)))
+    {
+    }
+    */
+
+    CarTransformation()
+        : model(GLibpp::Physics::BicycleModel::Basic())
+        , wheelFrontLeft(+wheelBase, -wheelTrack * 0.5f, wheelRadius)
+        , wheelFrontRight(+wheelBase, +wheelTrack * 0.5f, wheelRadius)
+        , wheelBackLeft(0, -wheelTrack * 0.5f, wheelRadius)
+        , wheelBackRight(0, +wheelTrack * 0.5f, wheelRadius)
         , object(Mtx4::Identity())
         , mesh(Mesh::Cylinder(1.0f, 6, 16).applyTransformation(Mtx4::RotationX(3.14159f / 2.0f)))
     {
@@ -419,7 +432,8 @@ struct CarTransformation
     Mtx4 getIcrTransformation() const {
 
         Mtx4 m = Mtx4::Identity();
-        m.translate(getIcr(), 0.0f, -wheelBase / 2.0f);
+        //m.translate(getIcr(), 0.0f, -wheelBase / 2.0f);
+        m.translate(getIcr(), 0.0f, 0.0f);
 
         return object * m;
     }
