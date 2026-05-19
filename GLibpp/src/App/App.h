@@ -7,7 +7,7 @@
 #include "Mtx4.h"
 #include "Vec4.h"
 #include "Mesh.h"
-
+#include "Quaternion.h"
 
 
 
@@ -15,37 +15,37 @@ namespace GLibpp::Physics {
 
     struct BicicleParams {
         BicicleParams(float wheelRadius, float wheelBase, float wheelTrack, float maxSteerAngle) : wheelRadius(wheelRadius), wheelBase(wheelBase), wheelTrack(wheelTrack), maxSteerAngle(maxSteerAngle) {}
-        const float wheelRadius; // polomer kola
-        const float wheelBase; // rozvor (vzdalenost os predni a zadni napravy)
-        const float wheelTrack; // rozchod (vzdalenost kol na jedne naprave)
-        const float maxSteerAngle;
+         float wheelRadius; // polomer kola
+         float wheelBase; // rozvor (vzdalenost os predni a zadni napravy)
+         float wheelTrack; // rozchod (vzdalenost kol na jedne naprave)
+         float maxSteerAngle;
     };
 
     class BicycleModel {
 
     public:
-
         BicicleParams params;
 
     private:
+        Vec4 position;        // světová pozice
+        Quaternion heading;   // NEW – plná 3D orientace
 
-        // stav
-        Vec4 position;
         float speed = 0.0f;
-        float steerAngle = 0.0f; // uhel natoceni vzhledem ke stredu predni napravy (virtualni kolo vprostred napravy)
-        float heading = 0.0f;
+        float steerAngle = 0.0f;
 
     public:
+
         BicycleModel(float wheelRadius, float wheelBase, float wheelTrack, float maxSteerAngle)
-            : params(wheelRadius, wheelBase, wheelTrack, maxSteerAngle)
-        {}
+            : params(wheelRadius, wheelBase, wheelTrack, maxSteerAngle),
+            heading(Quaternion::Identity()) // NEW
+        {
+        }
 
         static BicycleModel Basic()
         {
             return BicycleModel(0.3f, 2.0f, 1.0f, Math::deg2rad(35.0f));
         }
 
-        /** Instantaneous Center of Rotation - vzdalenost centra rotace pri zataceni ke stredu zadni napravy */
         float getIcr() const
         {
             return params.wheelBase / tan(steerAngle);
@@ -61,23 +61,40 @@ namespace GLibpp::Physics {
             return atan(params.wheelBase / (getIcr() - params.wheelTrack * 0.5f));
         }
 
-        void update(float dt) 
+        // ---------------------------------------------------------
+        //                  UPDATE (Quaternion verze)
+        // ---------------------------------------------------------
+
+        void update(float dt)
         {
+            // 1) Forward vektor z quaternionu
+            Vec4 forward = heading * Vec4(0, 0, 1, 0);
+
+            // 2) Rovná jízda
             if (fabs(steerAngle) < 0.0001f) {
-                // rovně
-                position.x += speed * dt * cos(heading);
-                position.y += speed * dt * sin(heading);
+                position.x += forward.x * speed * dt;
+                position.z += forward.z * speed * dt;
                 return;
             }
 
+            // 3) Poloměr zatáčení
             float R = getIcr();
             float dtheta = (speed * dt) / R;
 
-            heading += dtheta;
+            // 4) Rotace kolem Y (yaw)
+            Quaternion delta = Quaternion::FromAxisAngle(Vec4(0, 1, 0, 0), dtheta);
+            heading = (heading * delta).normalized();
 
-            position.x += speed * dt * cos(heading);
-            position.y += speed * dt * sin(heading);
+            // 5) Nový forward
+            forward = heading * Vec4(0, 0, 1, 0);
+
+            // 6) Posun
+            position.x += forward.x * speed * dt;
+            position.z += forward.z * speed * dt;
         }
+
+
+        // ---------------------------------------------------------
 
         void accelerate(float dv)
         {
@@ -114,8 +131,11 @@ namespace GLibpp::Physics {
         }
 
         float getSpeed() const { return speed; }
-        float getHeading() const { return heading; }
-        Vec4  getPosition() const { return position; }
+
+        // NEW – heading je quaternion, takže vracíme quaternion
+        Quaternion getHeading() const { return heading; }
+
+        Vec4 getPosition() const { return position; }
     };
 
 };
@@ -180,7 +200,7 @@ private:
 
 };
 
-
+/*
 struct CarTransformation {
     
     float speed = 0.0f; //  m / s
@@ -284,6 +304,130 @@ struct CarTransformation {
         return object * wheelBackRight.get();
     }
 };
+*/
+
+struct CarTransformation
+{
+    // fyzikální model – poloha = střed zadní nápravy
+    GLibpp::Physics::BicycleModel model;
+
+    // vizuální parametry (API zachováno)
+    float speed = 0.0f;
+    float wheelRadius = 0.3f;
+    float wheelBase = 2.0f;
+    float wheelTrack = 1.0f;
+
+    // wheel transformace
+    WheelTransformation wheelFrontLeft;
+    WheelTransformation wheelFrontRight;
+    WheelTransformation wheelBackLeft;
+    WheelTransformation wheelBackRight;
+
+    // transformace auta (původ = střed zadní nápravy)
+    Mtx4 object;
+    Mesh mesh;
+
+    CarTransformation()
+        : model(GLibpp::Physics::BicycleModel::Basic())
+        , wheelFrontLeft(+wheelBase * 0.5f, -wheelTrack * 0.5f, wheelRadius)
+        , wheelFrontRight(+wheelBase * 0.5f, +wheelTrack * 0.5f, wheelRadius)
+        , wheelBackLeft(-wheelBase * 0.5f, -wheelTrack * 0.5f, wheelRadius)
+        , wheelBackRight(-wheelBase * 0.5f, +wheelTrack * 0.5f, wheelRadius)
+        , object(Mtx4::Identity())
+        , mesh(Mesh::Cylinder(1.0f, 6, 16).applyTransformation(Mtx4::RotationX(3.14159f / 2.0f)))
+    {
+    }
+
+    const Mesh& getMesh() const { return mesh; }
+
+    // ------------------------------------------------------------
+    // API – delegace do BicycleModel
+    // ------------------------------------------------------------
+
+    void speedUp(float dSpeed)
+    {
+        model.accelerate(dSpeed);
+        speed = model.getSpeed();
+    }
+
+    void speedDown(float faktor)
+    {
+        model.brake(faktor);
+        speed = model.getSpeed();
+    }
+
+    void steerFrontWheels(float dAngle)
+    {
+        model.steer(dAngle);
+        wheelFrontLeft.steerAngle = model.getSteerLeft();
+        wheelFrontRight.steerAngle = model.getSteerRight();
+    }
+
+    void steerFrontWheelsReset(float dt)
+    {
+        model.steerReset(dt);
+        wheelFrontLeft.steerAngle = model.getSteerLeft();
+        wheelFrontRight.steerAngle = model.getSteerRight();
+    }
+
+    float getIcr() const
+    {
+        return model.getIcr();
+    }
+
+    // ------------------------------------------------------------
+    // Transformace auta – PŮVOD = střed zadní nápravy
+    // ------------------------------------------------------------
+
+    Mtx4 getCarMatrix() const
+    {
+        return Mtx4::Identity()
+            .translate(model.getPosition().x, model.getPosition().y, model.getPosition().z) * model.getHeading().toMatrix()
+            .translate(0, 0, wheelBase * 0.5f);
+    }
+
+
+    Mtx4 getIcrTransformation() const
+    {
+        return getCarMatrix();
+    }
+
+    // ------------------------------------------------------------
+    // UPDATE
+    // ------------------------------------------------------------
+    void run(float dt)
+    {
+        // fyzika
+        model.update(dt);
+
+        object = Mtx4::Identity().translate(model.getPosition().x, model.getPosition().y, model.getPosition().z) * model.getHeading().toMatrix();
+
+        // roll kol
+        float dRoll = (model.getSpeed() * dt) / wheelRadius;
+        rollAllWheels(dRoll);
+
+        // vizuální steer kol
+        wheelFrontLeft.steerAngle = model.getSteerLeft();
+        wheelFrontRight.steerAngle = model.getSteerRight();
+    }
+
+    void rollAllWheels(float dAngle)
+    {
+        wheelFrontLeft.doRoll(dAngle);
+        wheelFrontRight.doRoll(dAngle);
+        wheelBackLeft.doRoll(dAngle);
+        wheelBackRight.doRoll(dAngle);
+    }
+
+    // ------------------------------------------------------------
+    // TRANSFORMACE KOL – API zachováno
+    // ------------------------------------------------------------
+    Mtx4 getFrontLeft()  const { return object * wheelFrontLeft.get(); }
+    Mtx4 getFrontRight() const { return object * wheelFrontRight.get(); }
+    Mtx4 getBackLeft()   const { return object * wheelBackLeft.get(); }
+    Mtx4 getBackRight()  const { return object * wheelBackRight.get(); }
+};
+
 
 
 #include "Scene.h"

@@ -41,6 +41,11 @@ public:
         return *this;
     }
 
+
+    friend inline Vec4 cross(const Vec4& a, const Vec4& b) 
+    {
+        return Vec4::cross(a, b);
+    }
 };
 
 
