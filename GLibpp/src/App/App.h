@@ -43,7 +43,7 @@ namespace GLibpp::Physics {
 
         static BicycleModel Basic()
         {
-            return BicycleModel(0.3f, 3.0f, 3.0f, Math::deg2rad(75.0f));
+            return BicycleModel(1.0f, 3.0f, 3.0f, Math::deg2rad(45.0f));
         }
 
         float getIcr() const
@@ -455,13 +455,20 @@ struct CarTransformation
 
     void rollAllWheels2(float dt)
     {
+        float eps = 1e-3f;
+
         float v = model.getSpeed();
-        float R = getIcr();
+        float icr = getIcr();
         float r = model.params.wheelRadius;
 
+        float turnSign = (icr > 0 ? +1.0f : -1.0f);
+
+        float Omega = v / icr;
+
         // rovná jízda
-        if (fabs(R) < 0.0001f) {
-            float w = v / r; // rad/s
+        if (!std::isfinite(icr)) {
+            // rovná jízda
+            float w = v / r;
             wheelFrontLeft.doRoll(w * dt);
             wheelFrontRight.doRoll(w * dt);
             wheelBackLeft.doRoll(w * dt);
@@ -469,25 +476,19 @@ struct CarTransformation
             return;
         }
 
-        // poloměry jednotlivých kol
-        float R_backLeft = R - model.params.wheelTrack * 0.5f;
-        float R_backRight = R + model.params.wheelTrack * 0.5f;
 
-        float R_frontLeft = sqrtf(R_backLeft * R_backLeft + model.params.wheelBase * model.params.wheelBase);
-        float R_frontRight = sqrtf(R_backRight * R_backRight + model.params.wheelBase * model.params.wheelBase);
+        // poloměry jednotlivých kol (vždy kladné)
+        float R_BL = fabs(icr + model.params.wheelTrack * 0.5f);
+        float R_BR = fabs(icr - model.params.wheelTrack * 0.5f);
 
-        // úhlová rychlost auta
-        float Omega = v / R; // rad/s
-
-        std::cout << Omega << std::endl;
+        float R_FL = sqrtf(R_BL * R_BL + model.params.wheelBase * model.params.wheelBase);
+        float R_FR = sqrtf(R_BR * R_BR + model.params.wheelBase * model.params.wheelBase);
 
         // rychlosti kol
-        float v_FL = Omega * R_frontLeft;
-        float v_FR = Omega * R_frontRight;
-        float v_BL = Omega * R_backLeft;
-        float v_BR = Omega * R_backRight;
-
-        
+        float v_FL = turnSign * Omega * R_FL;
+        float v_FR = turnSign * Omega * R_FR;
+        float v_BL = turnSign * Omega * R_BL;
+        float v_BR = turnSign * Omega * R_BR;
 
         // úhlové rychlosti kol
         wheelFrontLeft.doRoll((v_FL / r) * dt);
@@ -495,6 +496,7 @@ struct CarTransformation
         wheelBackLeft.doRoll((v_BL / r) * dt);
         wheelBackRight.doRoll((v_BR / r) * dt);
     }
+
 
 
     void rollAllWheels(float dAngle)
