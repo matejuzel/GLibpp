@@ -43,7 +43,7 @@ namespace GLibpp::Physics {
 
         static BicycleModel Basic()
         {
-            return BicycleModel(0.3f, 2.0f, 1.0f, Math::deg2rad(35.0f));
+            return BicycleModel(0.3f, 3.0f, 3.0f, Math::deg2rad(75.0f));
         }
 
         float getIcr() const
@@ -303,6 +303,9 @@ struct CarTransformation__ {
         }
         
         object.translate(0.0f, 0.0f, speed * dt);
+
+
+
         rollAllWheels(speed * dt / wheelRadius);
     }
 
@@ -341,12 +344,6 @@ struct CarTransformation
     // fyzikální model – poloha = střed zadní nápravy
     GLibpp::Physics::BicycleModel model;
 
-    // vizuální parametry (API zachováno)
-    float speed = 0.0f;
-    float wheelRadius = 0.3f;
-    float wheelBase = 2.0f;
-    float wheelTrack = 1.0f;
-
     // wheel transformace
     WheelTransformation wheelFrontLeft;
     WheelTransformation wheelFrontRight;
@@ -369,18 +366,18 @@ struct CarTransformation
     {
     }
     */
-
+    
     CarTransformation()
         : model(GLibpp::Physics::BicycleModel::Basic())
-        , wheelFrontLeft(+wheelBase, -wheelTrack * 0.5f, wheelRadius)
-        , wheelFrontRight(+wheelBase, +wheelTrack * 0.5f, wheelRadius)
-        , wheelBackLeft(0, -wheelTrack * 0.5f, wheelRadius)
-        , wheelBackRight(0, +wheelTrack * 0.5f, wheelRadius)
+        , wheelFrontLeft(model.params.wheelBase, -model.params.wheelTrack * 0.5f, model.params.wheelRadius)
+        , wheelFrontRight(model.params.wheelBase, model.params.wheelTrack * 0.5f, model.params.wheelRadius)
+        , wheelBackLeft(0, -model.params.wheelTrack * 0.5f, model.params.wheelRadius)
+        , wheelBackRight(0, model.params.wheelTrack * 0.5f, model.params.wheelRadius)
         , object(Mtx4::Identity())
         , mesh(Mesh::Cylinder(1.0f, 6, 16).applyTransformation(Mtx4::RotationX(3.14159f / 2.0f)))
     {
     }
-
+    
     const Mesh& getMesh() const { return mesh; }
 
     // ------------------------------------------------------------
@@ -390,13 +387,11 @@ struct CarTransformation
     void speedUp(float dSpeed)
     {
         model.accelerate(dSpeed);
-        speed = model.getSpeed();
     }
 
     void speedDown(float faktor)
     {
         model.brake(faktor);
-        speed = model.getSpeed();
     }
 
     void steerFrontWheels(float dAngle)
@@ -425,8 +420,7 @@ struct CarTransformation
     Mtx4 getCarMatrix() const
     {
         return Mtx4::Identity()
-            .translate(model.getPosition().x, model.getPosition().y, model.getPosition().z) * model.getHeading().toMatrix()
-            .translate(0, 0, wheelBase * 0.5f);
+            .translate(model.getPosition().x, model.getPosition().y, model.getPosition().z) * model.getHeading().toMatrix();
     }
 
     Mtx4 getIcrTransformation() const {
@@ -449,13 +443,59 @@ struct CarTransformation
         object = Mtx4::Identity().translate(model.getPosition().x, model.getPosition().y, model.getPosition().z) * model.getHeading().toMatrix();
 
         // roll kol
-        float dRoll = (model.getSpeed() * dt) / wheelRadius;
-        rollAllWheels(dRoll);
+        float dRoll = (model.getSpeed() * dt) / model.params.wheelRadius;
+
+        //rollAllWheels(dRoll);
+        rollAllWheels2(dt);
 
         // vizuální steer kol
         wheelFrontLeft.steerAngle = model.getSteerLeft();
         wheelFrontRight.steerAngle = model.getSteerRight();
     }
+
+    void rollAllWheels2(float dt)
+    {
+        float v = model.getSpeed();
+        float R = getIcr();
+        float r = model.params.wheelRadius;
+
+        // rovná jízda
+        if (fabs(R) < 0.0001f) {
+            float w = v / r; // rad/s
+            wheelFrontLeft.doRoll(w * dt);
+            wheelFrontRight.doRoll(w * dt);
+            wheelBackLeft.doRoll(w * dt);
+            wheelBackRight.doRoll(w * dt);
+            return;
+        }
+
+        // poloměry jednotlivých kol
+        float R_backLeft = R - model.params.wheelTrack * 0.5f;
+        float R_backRight = R + model.params.wheelTrack * 0.5f;
+
+        float R_frontLeft = sqrtf(R_backLeft * R_backLeft + model.params.wheelBase * model.params.wheelBase);
+        float R_frontRight = sqrtf(R_backRight * R_backRight + model.params.wheelBase * model.params.wheelBase);
+
+        // úhlová rychlost auta
+        float Omega = v / R; // rad/s
+
+        std::cout << Omega << std::endl;
+
+        // rychlosti kol
+        float v_FL = Omega * R_frontLeft;
+        float v_FR = Omega * R_frontRight;
+        float v_BL = Omega * R_backLeft;
+        float v_BR = Omega * R_backRight;
+
+        
+
+        // úhlové rychlosti kol
+        wheelFrontLeft.doRoll((v_FL / r) * dt);
+        wheelFrontRight.doRoll((v_FR / r) * dt);
+        wheelBackLeft.doRoll((v_BL / r) * dt);
+        wheelBackRight.doRoll((v_BR / r) * dt);
+    }
+
 
     void rollAllWheels(float dAngle)
     {

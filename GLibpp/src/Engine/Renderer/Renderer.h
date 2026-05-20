@@ -142,7 +142,7 @@ namespace Render {
 
                 device.drawMesh(ctx
                     , Mesh::Cube(1.0f).applyTransformation(Mtx4::Scaling(12.0f, 0.01f, 0.01f))
-                    , scene.car.getBackRight()
+                    , scene.car.getCarMatrix()
                 );
 
                 device.drawMesh(ctx, Mesh::Cube(0.1f).applyTransformation(Mtx4::Scaling(0.01f, 8.0f, 0.01f)), scene.car.getIcrTransformation());
