@@ -42,6 +42,8 @@
     <ClInclude Include="src\Engine\Geometry\Material.h" />
     <ClInclude Include="src\Engine\Geometry\Mesh.h" />
     <ClInclude Include="src\Engine\Geometry\MeshInstance.h" />
+    <ClInclude Include="src\Engine\Physics\Bicycle\BicycleModel.h" />
+    <ClInclude Include="src\Engine\Physics\Bicycle\BicycleParams.h" />
     <ClInclude Include="src\Engine\Renderer\Backend\Common\DeviceContext.h" />
     <ClInclude Include="src\Engine\Renderer\Backend\Common\DeviceBase.h" />
     <ClInclude Include="src\Engine\Renderer\Backend\Common\DeviceTargetBase.h" />
@@ -156,7 +158,7 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>$(ProjectDir)src;$(ProjectDir)src\App;$(ProjectDir)src\Engine;$(ProjectDir)src\Math;$(ProjectDir)src\Platform;$(ProjectDir)src\Utility;$(ProjectDir)src\Engine\Core;$(ProjectDir)src\Engine\Renderer;$(ProjectDir)src\Engine\Core\Datastruct;$(ProjectDir)src\Engine\Renderer\Backend;$(ProjectDir)src\Engine\Renderer\Backend\Common;$(ProjectDir)src\Engine\Renderer\Backend\DIB;$(ProjectDir)src\Platform\Win32;$(ProjectDir)src\Engine\Renderer\Backend\RenderCommand;$(ProjectDir)src\Engine\Core\Input;$(ProjectDir)src\Engine\Renderer\Backend\Stencil;$(ProjectDir)src\Engine\Geometry</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ProjectDir)src;$(ProjectDir)src\App;$(ProjectDir)src\Engine;$(ProjectDir)src\Math;$(ProjectDir)src\Platform;$(ProjectDir)src\Utility;$(ProjectDir)src\Engine\Core;$(ProjectDir)src\Engine\Renderer;$(ProjectDir)src\Engine\Core\Datastruct;$(ProjectDir)src\Engine\Renderer\Backend;$(ProjectDir)src\Engine\Renderer\Backend\Common;$(ProjectDir)src\Engine\Renderer\Backend\DIB;$(ProjectDir)src\Platform\Win32;$(ProjectDir)src\Engine\Renderer\Backend\RenderCommand;$(ProjectDir)src\Engine\Core\Input;$(ProjectDir)src\Engine\Renderer\Backend\Stencil;$(ProjectDir)src\Engine\Geometry;$(ProjectDir)src\Engine\Physics\Bicycle;$(ProjectDir)src\Engine\Physics</AdditionalIncludeDirectories>
       <LanguageStandard>stdcpp20</LanguageStandard>
     </ClCompile>
     <Link>
@@ -172,7 +174,7 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>$(ProjectDir)src;$(ProjectDir)src\App;$(ProjectDir)src\Engine;$(ProjectDir)src\Math;$(ProjectDir)src\Platform;$(ProjectDir)src\Utility;$(ProjectDir)src\Engine\Core;$(ProjectDir)src\Engine\Renderer;$(ProjectDir)src\Engine\Core\Datastruct;$(ProjectDir)src\Engine\Renderer\Backend;$(ProjectDir)src\Engine\Renderer\Backend\Common;$(ProjectDir)src\Engine\Renderer\Backend\DIB;$(ProjectDir)src\Platform\Win32;$(ProjectDir)src\Engine\Renderer\Backend\RenderCommand;$(ProjectDir)src\Engine\Core\Input;$(ProjectDir)src\Engine\Renderer\Backend\Stencil</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ProjectDir)src;$(ProjectDir)src\App;$(ProjectDir)src\Engine;$(ProjectDir)src\Math;$(ProjectDir)src\Platform;$(ProjectDir)src\Utility;$(ProjectDir)src\Engine\Core;$(ProjectDir)src\Engine\Renderer;$(ProjectDir)src\Engine\Core\Datastruct;$(ProjectDir)src\Engine\Renderer\Backend;$(ProjectDir)src\Engine\Renderer\Backend\Common;$(ProjectDir)src\Engine\Renderer\Backend\DIB;$(ProjectDir)src\Platform\Win32;$(ProjectDir)src\Engine\Renderer\Backend\RenderCommand;$(ProjectDir)src\Engine\Core\Input;$(ProjectDir)src\Engine\Renderer\Backend\Stencil;;$(ProjectDir)src\Engine\Physics\Bicycle;$(ProjectDir)src\Engine\Physics</AdditionalIncludeDirectories>
       <LanguageStandard>stdcpp20</LanguageStandard>
     </ClCompile>
     <Link>

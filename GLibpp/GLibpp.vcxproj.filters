@@ -61,6 +61,12 @@
     <Filter Include="Zdrojové soubory\Engine\Geometry">
       <UniqueIdentifier>{c91b9ffa-7ea2-4392-bc47-0083ea158a51}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Zdrojové soubory\Engine\Physics">
+      <UniqueIdentifier>{a2e63ca8-8a0d-4c64-831d-acbdf8eb72ff}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Zdrojové soubory\Engine\Physics\Bicycle">
+      <UniqueIdentifier>{40bca156-2afa-46f7-ac10-e229de7c0ab5}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\main.cpp">
@@ -214,6 +220,12 @@
     </ClInclude>
     <ClInclude Include="src\Math\Quaternion.h">
       <Filter>Zdrojové soubory\Math</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Engine\Physics\Bicycle\BicycleModel.h">
+      <Filter>Zdrojové soubory\Engine\Physics\Bicycle</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Engine\Physics\Bicycle\BicycleParams.h">
+      <Filter>Zdrojové soubory\Engine\Physics\Bicycle</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>
