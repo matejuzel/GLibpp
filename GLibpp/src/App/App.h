@@ -57,7 +57,6 @@ struct CarTransformation
     WheelTransformation wheelBackRight;
 
     // transformace auta (původ = střed zadní nápravy)
-    Mtx4 object;
     Mesh mesh;
     
     CarTransformation()
@@ -66,10 +65,9 @@ struct CarTransformation
         , wheelFrontRight(model.params.wheelBase, model.params.wheelTrack * 0.5f, model.params.wheelRadius)
         , wheelBackLeft(0, -model.params.wheelTrack * 0.5f, model.params.wheelRadius)
         , wheelBackRight(0, model.params.wheelTrack * 0.5f, model.params.wheelRadius)
-        , object(Mtx4::Identity())
+        //, object(Mtx4::Identity())
         , mesh(Mesh::Cylinder(1.0f, 6, 16).applyTransformation(Mtx4::RotationX(3.14159f / 2.0f)*Mtx4::Translation(0.0f, model.params.wheelBase * 0.5, 0.0f)))
-    {
-    }
+    {}
     
     const Mesh& getMesh() const { return mesh; }
 
@@ -99,16 +97,14 @@ struct CarTransformation
 
     Mtx4 getCarMatrix() const
     {
-        return Mtx4::Identity()
-            .translate(model.getPosition().x, model.getPosition().y, model.getPosition().z) * model.getHeading().toMatrix();
+        return model.getTransformation();
     }
 
     Mtx4 getIcrTransformation() const {
 
         Mtx4 m = Mtx4::Identity();
         m.translate(model.getIcr(), 0.0f, 0.0f);
-
-        return object * m;
+        return model.getTransformation() * m;
     }
 
     void run(float dt)
@@ -116,7 +112,7 @@ struct CarTransformation
         // fyzika
         model.update(dt);
 
-        object = Mtx4::Identity().translate(model.getPosition().x, model.getPosition().y, model.getPosition().z) * model.getHeading().toMatrix();
+        Mtx4 object = Mtx4::Identity().translate(model.getPosition().x, model.getPosition().y, model.getPosition().z) * model.getHeading().toMatrix();
 
         // roll kol
         float dRoll = (model.getSpeed() * dt) / model.params.wheelRadius;
@@ -164,10 +160,10 @@ struct CarTransformation
         wheelBackRight.doRoll((v_BR / r) * dt);
     }
 
-    Mtx4 getFrontLeft()  const { return object * wheelFrontLeft.get(); }
-    Mtx4 getFrontRight() const { return object * wheelFrontRight.get(); }
-    Mtx4 getBackLeft()   const { return object * wheelBackLeft.get(); }
-    Mtx4 getBackRight()  const { return object * wheelBackRight.get(); }
+    Mtx4 getFrontLeft()  const { return getCarMatrix() * wheelFrontLeft.get(); }
+    Mtx4 getFrontRight() const { return getCarMatrix() * wheelFrontRight.get(); }
+    Mtx4 getBackLeft()   const { return getCarMatrix() * wheelBackLeft.get(); }
+    Mtx4 getBackRight()  const { return getCarMatrix() * wheelBackRight.get(); }
 };
 
 
@@ -376,6 +372,10 @@ public:
             scene.car.steerFrontWheels(-dt * 0.5);
 
             flagResetSteer = false;
+        }
+
+        if (input.keyboard.isDown(KeyMap::KEY_CTRL)) {
+            //scene.car.model.params.wheelRadius += 0.4 * dt;
         }
 
         if (flagResetSteer) scene.car.steerFrontWheelsReset(dt);

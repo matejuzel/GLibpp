@@ -142,7 +142,7 @@ namespace Render {
             return registry.targets.get(targetHandle);
 		}
 
-        void drawMeshImpl(const Context& ctx, const Mesh& mesh, const Mtx4& transform, const Color& color) noexcept
+        void drawMeshImpl(const Context& ctx, const Mesh& mesh, const Mtx4& transform, const Color& color, bool wiredFlag) noexcept
         {
             if (!registry.targets.isValid(ctx.framebufferHandle)) return;
 
@@ -279,7 +279,8 @@ namespace Render {
                     ax, ay,
                     bx, by,
                     cx, cy,
-                    shaded
+                    shaded,
+                    wiredFlag
                 );
             }
         }
@@ -342,10 +343,76 @@ namespace Render {
                     vax, vay,
                     vbx, vby,
                     vcx, vcy,
-                    color.toRGBA()
+                    color.toRGBA(),
+                    false
                 );
             }
         }
+
+        void drawAxisImpl(const Context& ctx, const Mtx4& transform)
+        {
+            if (!registry.targets.isValid(ctx.framebufferHandle))
+                return;
+
+            // MVP
+            Mtx4 mvp = ctx.projection * ctx.view * transform;
+
+            // Viewport
+            uint32_t x = ctx.viewport.x;
+            uint32_t y = ctx.viewport.y;
+            uint32_t width = ctx.viewport.width;
+            uint32_t height = ctx.viewport.height;
+
+            auto viewportTransform = [&](Vec4& v) {
+                v.x = (v.x * 0.5f + 0.5f) * width + x;
+                v.y = (-v.y * 0.5f + 0.5f) * height + y;
+                };
+
+            // 3 osy: každá má dva body
+            Vec4 axisVerts[6] = {
+                // X axis
+                {0,0,0,1}, {1,0,0,1},
+                // Y axis
+                {0,0,0,1}, {0,1,0,1},
+                // Z axis
+                {0,0,0,1}, {0,0,1,1}
+            };
+
+            // Transformace + viewport
+            for (int i = 0; i < 6; i++)
+            {
+                axisVerts[i] = mvp * axisVerts[i];
+                axisVerts[i].divideW();
+                viewportTransform(axisVerts[i]);
+            }
+
+            Target& target = registry.targets.get(ctx.framebufferHandle);
+
+            // X axis (red)
+            RasterizatorDIB::drawLine(
+                target,
+                (int)axisVerts[0].x, (int)axisVerts[0].y,
+                (int)axisVerts[1].x, (int)axisVerts[1].y,
+                0xFFFF0000
+            );
+
+            // Y axis (green)
+            RasterizatorDIB::drawLine(
+                target,
+                (int)axisVerts[2].x, (int)axisVerts[2].y,
+                (int)axisVerts[3].x, (int)axisVerts[3].y,
+                0xFF00FF00
+            );
+
+            // Z axis (blue)
+            RasterizatorDIB::drawLine(
+                target,
+                (int)axisVerts[4].x, (int)axisVerts[4].y,
+                (int)axisVerts[5].x, (int)axisVerts[5].y,
+                0xFF0000FF
+            );
+        }
+
 
         void drawStaticTestMeshImpl(const Context& ctx, float scaleFactor) noexcept
         {
@@ -399,7 +466,8 @@ namespace Render {
                 vb.x, vb.y,
                 vc.x, vc.y,
                 vd.x, vd.y,
-                Color::Grayscale(0.5f).toRGBA()
+                Color::Grayscale(0.5f).toRGBA(),
+                false
             );
         }
 

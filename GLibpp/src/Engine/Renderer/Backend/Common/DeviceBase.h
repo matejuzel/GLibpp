@@ -59,9 +59,14 @@ namespace Render {
             return static_cast<DerivedDevice*>(this)->targetGetImpl(targetHandle);
 		}
         
-        void drawMesh(const Context& ctx, const Mesh& mesh, const Mtx4& transform, const Color& color = Color::Grayscale(0.3f)) noexcept
+        void drawMesh(const Context& ctx, const Mesh& mesh, const Mtx4& transform, const Color& color = Color::Grayscale(0.3f), bool wiredFlag = false) noexcept
         {
-            static_cast<DerivedDevice*>(this)->drawMeshImpl(ctx, mesh, transform, color);
+            static_cast<DerivedDevice*>(this)->drawMeshImpl(ctx, mesh, transform, color, wiredFlag);
+        }
+
+        void drawAxis(const Context& ctx, const Mtx4& transform)
+        {
+            static_cast<DerivedDevice*>(this)->drawAxisImpl(ctx, transform);
         }
 
         void drawStaticTestMesh(const Context& ctx, float scaleFactor = 1.0f) noexcept

@@ -120,7 +120,10 @@ namespace Render {
 
             //device.drawMesh(ctx, Mesh::Cylinder(scene.car.wheelRadius, 0.3, segments).applyTransformation(Mtx4::RotationZ(3.14159f / 2.0f)), scene.car.object * scene.car.getFrontLeft());
 
-            device.drawMesh(ctx, scene.car.getMesh(), scene.car.object);
+            device.drawMesh(ctx, Mesh::Net(10).applyTransformation(Mtx4::Identity().rotateX(GLibpp::Math::deg2rad(90.0f)).translate(-1.0f, -1.0f, 0.0f)), Mtx4::Identity().scale(0.5f), Color::Grayscale(0.3f), true);
+            
+
+            device.drawMesh(ctx, scene.car.getMesh(), scene.car.getCarMatrix());
 
             {
                 uint32_t segments = 12;
@@ -128,7 +131,6 @@ namespace Render {
                 device.drawMesh(ctx, scene.car.wheelFrontRight.getMesh(), scene.car.getFrontRight());
                 device.drawMesh(ctx, scene.car.wheelBackLeft.getMesh(), scene.car.getBackLeft());
                 device.drawMesh(ctx, scene.car.wheelBackRight.getMesh(), scene.car.getBackRight());
-
 
                 device.drawMesh(ctx
                     , Mesh::Cube(1.0f).applyTransformation(Mtx4::Scaling(12.0f, 0.01f, 0.01f))
@@ -156,6 +158,12 @@ namespace Render {
                 ctx.model.rotateZ(GLibpp::Math::deg2rad(10.0f));
             }
             
+            device.drawAxis(ctx, scene.car.getCarMatrix());
+            device.drawAxis(ctx, Mtx4::Identity());
+            device.drawAxis(ctx, scene.car.getFrontLeft().scale(scene.car.model.params.wheelRadius));
+            device.drawAxis(ctx, scene.car.getFrontRight().scale(scene.car.model.params.wheelRadius));
+            device.drawAxis(ctx, scene.car.getBackLeft().scale(scene.car.model.params.wheelRadius));
+            device.drawAxis(ctx, scene.car.getBackRight().scale(scene.car.model.params.wheelRadius));
 
             device.present(resources.framebufferHandle);
         }

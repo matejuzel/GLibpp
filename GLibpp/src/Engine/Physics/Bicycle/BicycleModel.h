@@ -22,8 +22,9 @@ namespace GLibpp::Physics {
     public:
 
         BicycleModel(float wheelRadius, float wheelBase, float wheelTrack, float maxSteerAngle)
-            : params(wheelRadius, wheelBase, wheelTrack, maxSteerAngle),
-            heading(Quaternion::Identity()) // NEW
+            : params(wheelRadius, wheelBase, wheelTrack, maxSteerAngle)
+            , heading(Quaternion::Identity())
+            , position(0.0f, wheelRadius, 0.0f)
         {
         }
 
@@ -140,5 +141,11 @@ namespace GLibpp::Physics {
         Quaternion getHeading() const { return heading; }
 
         Vec4 getPosition() const { return position; }
+
+        Mtx4 getTransformation() const
+        {
+            return Mtx4::Identity().translate(getPosition().x, getPosition().y, getPosition().z) * getHeading().toMatrix();
+        }
+
     };
 }
