@@ -177,6 +177,34 @@ namespace Render {
 
             for (const auto& vertex : mesh.getVertexBuffer())
             {
+                // projekce + viewport
+                Vec4 v = mvp * vertex;
+                if (fabs(v.w) > 10e-6) 
+                {
+                    
+                    bool inside =
+                        v.x >= -v.w && v.x <= v.w &&
+                        v.y >= -v.w && v.y <= v.w &&
+                        v.z >= -v.w && v.z <= v.w;
+
+                    if (inside) {
+                        v.divideW();
+                        viewportTransform(v);
+                    }
+                    else {
+                        v.z = 0.0f;
+                    }
+                    
+                }
+                else 
+                {
+                    //v = Vec4(0.0f, 0.0f, 0.0f, 0.0f);
+                }
+
+                floatBuffer[offset++] = v.x;
+                floatBuffer[offset++] = v.y;
+                floatBuffer[offset++] = v.z;
+
                 // view-space pozice (pro normály)
                 Vec4 vView = mv * vertex;
                 vView.divideW();
@@ -184,15 +212,6 @@ namespace Render {
                 viewPos[offsetView++] = vView.x;
                 viewPos[offsetView++] = vView.y;
                 viewPos[offsetView++] = vView.z;
-
-                // projekce + viewport
-                Vec4 v = mvp * vertex;
-                v.divideW();
-                viewportTransform(v);
-
-                floatBuffer[offset++] = v.x;
-                floatBuffer[offset++] = v.y;
-                floatBuffer[offset++] = v.z;
             }
 
             Target& target = registry.targets.get(ctx.framebufferHandle);
@@ -267,13 +286,19 @@ namespace Render {
                 // --- screen-space pozice ---
                 float ax = floatBuffer[3 * ia];
                 float ay = floatBuffer[3 * ia + 1];
+                float az = floatBuffer[3 * ia + 2];
 
                 float bx = floatBuffer[3 * ibb];
                 float by = floatBuffer[3 * ibb + 1];
+                float bz = floatBuffer[3 * ibb + 2];
 
                 float cx = floatBuffer[3 * ic];
                 float cy = floatBuffer[3 * ic + 1];
+                float cz = floatBuffer[3 * ic + 2];
 
+                bool skip = fabs(az) < 10e-6 || fabs(bz) < 10e-6 || fabs(cz) < 10e-6;
+
+                if (!skip)
                 RasterizatorDIB::drawTriangle(
                     target,
                     ax, ay,

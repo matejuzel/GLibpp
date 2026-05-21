@@ -121,7 +121,7 @@ namespace Render {
                 // Drawing commands
 
                 // Ground - net
-                device.drawMesh(ctx, Mesh::Net(10).applyTransformation(Mtx4::Identity().rotateX(GLibpp::Math::deg2rad(90.0f)).translate(-1.0f, -1.0f, 0.0f)), Mtx4::Identity().scale(0.5f), Color::Grayscale(0.3f), true);
+                device.drawMesh(ctx, Mesh::Net(20).applyTransformation(Mtx4::Identity().rotateX(GLibpp::Math::deg2rad(90.0f)).translate(-1.0f, -1.0f, 0.0f)), Mtx4::Identity(), Color::Grayscale(0.3f), true);
 
                 // Car
                 device.drawMesh(ctx, scene.car.getMesh(), scene.car.getCarMatrix());
