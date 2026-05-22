@@ -110,7 +110,7 @@ namespace Render {
             ctx.frameIndex = frameIndex;
             ctx.clearColor = Color::Grayscale(0.4f);
 			ctx.model = scene.modelMatrix;
-            ctx.view = scene.camera.calculateView();
+            ctx.view = scene.camera.calculateViewMatrix();
             ctx.projection = Mtx4::Perspective(fovRad, aspect, nearZ, farZ);
             ctx.viewport = viewport;
             ctx.framebufferHandle = resources.framebufferHandle;

@@ -30,7 +30,7 @@ struct Camera {
     }
 
     // --- Klíèové API pro výpoèet View Matice ---
-    Mtx4 calculateView() const {
+    Mtx4 calculateViewMatrix() const {
         return Mtx4::LookAt(position, target, up);
     }
 
