@@ -142,6 +142,63 @@ namespace Render {
             return registry.targets.get(targetHandle);
 		}
 
+
+        static float intersection(float Ax, float Ay, float Az, float Aw, float Bx, float By, float Bz, float Bw, float a, float b, float c, float d, float& px, float& py, float& pz, float& pw) {
+            
+            // usecka (Ax,Ay,Az) (Bx,By,Bz)
+            // rovina a,b,c,d
+
+            auto r = [a,b,c,d](float x, float y, float z, float w) {
+                return a * x + b * y + c * z + d * w;
+            };
+
+            float ra = r(Ax, Ay, Az, Aw);
+            float rb = r(Bx, By, Bz, Bw);
+            float dr = rb - ra;
+            if (fabs(dr) < 10e-6f) {
+                px = py = pz = pw = 0.0f;
+                return -1.0f;
+            }
+
+            float t = - ra / dr;
+            
+            px = Ax + t * (Bx - Ax);
+            py = Ay + t * (By - Ay);
+            pz = Az + t * (Bz - Az);
+            pw = Aw + t * (Bw - Aw);
+
+            return t;
+        }
+
+        inline void clipSegmentWithPlane(Vec4& A, Vec4& B, const Vec4& plane)
+        {
+            // Hodnoty roviny v bodech
+            float ra = plane.x * A.x + plane.y * A.y + plane.z * A.z + plane.w * A.w;
+            float rb = plane.x * B.x + plane.y * B.y + plane.z * B.z + plane.w * B.w;
+
+            // Oba venku -> úseèka zmizí
+            if (ra < 0 && rb < 0) {
+                A = B = { 0,0,0,0 };
+                return;
+            }
+
+            // A venku, B uvnitr -> posun A
+            if (ra < 0 && rb >= 0) {
+                float px, py, pz, pw;
+                intersection(A.x, A.y, A.z, A.w, B.x, B.y, B.z, B.w, plane.x, plane.y, plane.z, plane.w, px, py, pz, pw);
+                A = { px, py, pz, pw };
+            }
+
+            // B venku, A uvnitr -> posun B
+            if (rb < 0 && ra >= 0) {
+                float px, py, pz, pw;
+                intersection(A.x, A.y, A.z, A.w, B.x, B.y, B.z, B.w, plane.x, plane.y, plane.z, plane.w, px, py, pz, pw);
+                B = { px, py, pz, pw };
+            }
+        }
+
+
+
         void drawMeshImpl(const Context& ctx, const Mesh& mesh, const Mtx4& transform, const Color& color, bool wiredFlag) noexcept
         {
             if (!registry.targets.isValid(ctx.framebufferHandle)) return;
@@ -403,14 +460,32 @@ namespace Render {
                 {0,0,0,1}, {0,0,1,1}
             };
 
+
             // Transformace + viewport
-            for (int i = 0; i < 6; i++)
+            // 1) MVP transform
+            for (int i = 0; i < 6; i++) 
             {
                 axisVerts[i] = mvp * axisVerts[i];
-                axisVerts[i].divideW();
-                viewportTransform(axisVerts[i]);
             }
 
+            // 2) Clipping (jen jednou!)
+            Vec4 planeX = { 1.0f, 0.0f, 0.0f, 0.5f };
+            clipSegmentWithPlane(axisVerts[0], axisVerts[1], planeX);
+            clipSegmentWithPlane(axisVerts[2], axisVerts[3], planeX);
+            clipSegmentWithPlane(axisVerts[4], axisVerts[5], planeX);
+
+            // 3) Divide W
+            for (int i = 0; i < 6; i++)
+            {
+                axisVerts[i].divideW();
+            }
+            
+            // 4) Viewport transform
+            for (int i = 0; i < 6; i++)
+            {
+                viewportTransform(axisVerts[i]);
+            }
+                
             Target& target = registry.targets.get(ctx.framebufferHandle);
 
             // X axis (red)
