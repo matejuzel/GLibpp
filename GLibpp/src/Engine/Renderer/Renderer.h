@@ -200,7 +200,7 @@ namespace Render {
                 renderFrame(logicStateInterpolated.scene, ++frameIndex);
 
                 timer1Hz.tickAndDispatchAction([&](double dt) {
-                    device.getWindow().setTitle(timer, frameIndex);
+                    device.getWindow().postMessageSetTitle(timer, frameIndex);
                 });
             }
 

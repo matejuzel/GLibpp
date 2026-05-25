@@ -4,6 +4,7 @@
 #endif
 #include <windows.h>
 #include <string>
+
 #include <iostream>
 #include <type_traits>
 #include <functional>
@@ -14,6 +15,9 @@
 #include "TimeManager.h"
 
 class WindowWin32;
+
+// tady moznost definovat vlastni Window Message zpravy
+constexpr UINT WM_CUSTOM_SET_TITLE = WM_APP + 1;
 
 LRESULT CALLBACK WindowProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam);
 
@@ -65,10 +69,15 @@ public:
 	}
 	
 	void setTitle(const std::string& title);
+	void setTitle(const std::wstring& title) {
+		SetWindowTextW(hwnd, title.c_str());
+	}
 
-	void setTitle(const TimeManager& timer, long frameIndex)
+	void postMessageSetTitle(const std::string& title);
+
+	void postMessageSetTitle(const TimeManager& timer, long frameIndex)
 	{
-		setTitle(std::format(
+		postMessageSetTitle(std::format(
 			"FPS: {:.0f} ||| 1% Low: {:.0f} ||| 0.1% Low: {:.0f} ||| Min/Max: {:.0f}/{:.0f} [Frame: {}]",
 			timer.getFps(),
 			timer.getLow1Percent(),
@@ -78,7 +87,6 @@ public:
 			frameIndex
 		));
 	}
-
 
 	void setFullscreenMode(bool fullscreen)
 	{

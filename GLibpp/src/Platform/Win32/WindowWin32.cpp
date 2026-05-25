@@ -95,6 +95,18 @@ LRESULT WindowWin32::handleMessage(UINT msg, WPARAM wParam, LPARAM lParam)
         }
         return 0;
 
+    case WM_CUSTOM_SET_TITLE:
+    {
+        std::wstring* wtitle = reinterpret_cast<std::wstring*>(lParam);
+        if (wtitle)
+        {
+            this->setTitle(wtitle->c_str());
+            //SetWindowTextW(hwnd, wtitle->c_str());
+            delete wtitle;
+        }
+        return 0;
+    }
+
     case WM_SIZE:
     {
         if (onResize)
@@ -142,6 +154,20 @@ bool WindowWin32::RegisterWindowClass(HINSTANCE hInstance) {
     registered = true;
 
     return true;
+}
+
+
+void WindowWin32::postMessageSetTitle(const std::string& title)
+{
+    if (!hwnd) return;
+
+    int sizeNeeded = MultiByteToWideChar(CP_UTF8, 0, title.c_str(), -1, nullptr, 0);
+    if (sizeNeeded <= 0) return;
+
+    auto wtitle = new std::wstring(sizeNeeded, 0);
+    MultiByteToWideChar(CP_UTF8, 0, title.c_str(), -1, &(*wtitle)[0], sizeNeeded);
+
+    PostMessage(hwnd, WM_CUSTOM_SET_TITLE, 0, reinterpret_cast<LPARAM>(wtitle));
 }
 
 void WindowWin32::setTitle(const std::string& title) {
