@@ -12,9 +12,11 @@ namespace GLibpp::Physics {
     public:
         BicycleParams params;
 
-    private:
         Vec4 position;        // svìtová pozice
         Quaternion heading;   // NEW – plná 3D orientace
+
+    private:
+        
 
         float speed = 0.0f;
         float steerAngle = 0.0f;

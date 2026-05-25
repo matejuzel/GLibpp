@@ -46,6 +46,42 @@ public:
     {
         return Vec4::cross(a, b);
     }
+
+    static Vec4 Slerp(const Vec4& a, const Vec4& b, float t)
+    {
+        // 1) Normalizace vstupù (pro jistotu)
+        Vec4 v0 = a.normalized();
+        Vec4 v1 = b.normalized();
+
+        // 2) Dot produkt
+        float dot = Vec4::dot(v0, v1);
+
+        // 3) Pokud jsou skoro rovnobìžné -> použij LERP
+        const float EPS = 1e-6f;
+        if (std::fabs(dot) > 1.0f - EPS)
+        {
+            // LERP + normalizace
+            return (v0 * (1.0f - t) + v1 * t).normalized();
+        }
+
+        // 4) Úhel mezi vektory
+        float theta = std::acos(dot);
+
+        // 5) Výpoèet vah
+        float sinTheta = std::sin(theta);
+        float w0 = std::sin((1.0f - t) * theta) / sinTheta;
+        float w1 = std::sin(t * theta) / sinTheta;
+
+        // 6) Výsledek
+        return v0 * w0 + v1 * w1;
+    }
+
+    static Vec4 Lerp(const Vec4& a, const Vec4& b, float t)
+    {
+        return a * (1.0f - t) + b * t;
+    }
+
+
 };
 
 

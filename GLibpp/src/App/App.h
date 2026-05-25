@@ -33,6 +33,16 @@ struct WheelTransformation {
 
     Mesh getMesh() const { return mesh; }
 
+    static WheelTransformation Lerp(const WheelTransformation& a, const WheelTransformation& b, float t) {
+    
+        auto interpolated = b;
+
+        interpolated.steerAngle = a.steerAngle + (b.steerAngle - a.steerAngle) * t;
+        interpolated.rollAngle = a.rollAngle + (b.rollAngle - a.rollAngle) * t;
+
+        return interpolated;
+    }
+
     float steerAngle = 0.0f; // rad 
     float rollAngle = 0.0f;
 private:
@@ -164,8 +174,22 @@ struct CarTransformation
     Mtx4 getFrontRight() const { return getCarMatrix() * wheelFrontRight.get(); }
     Mtx4 getBackLeft()   const { return getCarMatrix() * wheelBackLeft.get(); }
     Mtx4 getBackRight()  const { return getCarMatrix() * wheelBackRight.get(); }
-};
 
+
+    friend CarTransformation Slerp(const CarTransformation& a, const CarTransformation& b, float t) {
+
+        CarTransformation interpolated = a;
+
+        interpolated.model.heading = Quaternion::Slerp(a.model.heading, b.model.heading, t);
+        interpolated.model.position = Vec4::Lerp(a.model.position, b.model.position, t);
+        interpolated.wheelFrontLeft = WheelTransformation::Lerp(a.wheelFrontLeft, b.wheelFrontLeft, t);
+        interpolated.wheelFrontRight = WheelTransformation::Lerp(a.wheelFrontRight, b.wheelFrontRight, t);
+        interpolated.wheelBackLeft = WheelTransformation::Lerp(a.wheelBackLeft, b.wheelBackLeft, t);
+        interpolated.wheelBackRight = WheelTransformation::Lerp(a.wheelBackRight, b.wheelBackRight, t);
+
+        return interpolated;
+    }
+};
 
 
 #include "Scene.h"
@@ -212,7 +236,7 @@ private:
 
     GLibpp::Input input;
 
-    float logicHz = 120;
+    float logicHz = 30;
 
     bool checkWindowInitialized() const {
         if (window.get() == nullptr) {

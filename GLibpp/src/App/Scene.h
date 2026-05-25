@@ -39,6 +39,7 @@ struct Scene {
 		// volitelne jednotlive objekty interpolovat
 		sceneInterpolated.camera = Slerp(a.camera, b.camera, t);
 		sceneInterpolated.test = a.test + (b.test - a.test) * t;
+		sceneInterpolated.car = Slerp(a.car, b.car, t);
 
 		return sceneInterpolated;
 	}
