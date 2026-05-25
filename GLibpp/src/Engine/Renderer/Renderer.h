@@ -189,6 +189,8 @@ namespace Render {
 
                 double t = (timer.sinceStart() - logicStateCurrent.tickInfo.lastLogicTick) / timer.getFixedDelta();
 				double tClamped = std::clamp(t, 0.0, 1.0);
+
+                //if (t < 0.0f || t > 1.0f) std::cout << t << std::endl;
 				
                 logicStateInterpolated.scene = Slerp(
                     logicStatePrevious.scene,

@@ -88,6 +88,23 @@ public:
 		));
 	}
 
+	static std::wstring toWideString(const std::string& str)
+	{
+		if (str.empty()) return std::wstring();
+
+		int sizeNeeded = MultiByteToWideChar(CP_UTF8, 0, str.c_str(), -1, nullptr, 0);
+		if (sizeNeeded <= 0)
+			return std::wstring();
+
+		std::wstring wstr(sizeNeeded, 0);
+		MultiByteToWideChar(CP_UTF8, 0, str.c_str(), -1, &wstr[0], sizeNeeded);
+
+		// odstranit nulový terminátor, protože std::wstring ho nepotøebuje
+		if (!wstr.empty() && wstr.back() == L'\0') wstr.pop_back();
+
+		return wstr;
+	}
+
 	void setFullscreenMode(bool fullscreen)
 	{
 		if (fullscreen) {
