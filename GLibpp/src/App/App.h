@@ -442,6 +442,8 @@ public:
         LogicState logicState;
 
         logicState.scene.camera = Camera::Demo(45);
+
+
         logicState.scene.modelMatrix = Mtx4::Identity();
         logicState.scene.modelMatrix2 = Mtx4::Identity().translate(2.1f, 0.0f, 0.0f);
 
@@ -468,6 +470,8 @@ public:
 
             timer10Hz.tickAndDispatchAction([&](double dt) {
                 
+                
+
                 /*
                 // test jitteru App logiky
                 static std::mt19937 rng(std::random_device{}());

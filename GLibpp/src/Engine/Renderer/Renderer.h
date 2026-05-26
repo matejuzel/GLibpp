@@ -197,12 +197,19 @@ namespace Render {
                     logicStateCurrent.scene, 
                     static_cast<float>(tClamped)
                 );
-
+                std::cout << "Previous" << std::endl << logicStatePrevious.scene.camera.calculateViewMatrix().toString() << std::endl << std::endl;
+                std::cout << "Current" << std::endl << logicStateCurrent.scene.camera.calculateViewMatrix().toString() << std::endl << std::endl;
+                std::cout << "Interpolated (t: " << t << ")" << std::endl << logicStateInterpolated.scene.camera.calculateViewMatrix().toString() << std::endl << "============" << std::endl;
                 
                 renderFrame(logicStateInterpolated.scene, ++frameIndex);
 
                 timer1Hz.tickAndDispatchAction([&](double dt) {
                     device.getWindow().postMessageSetTitle(timer, frameIndex);
+
+
+                    
+                    
+
                 });
             }
 
