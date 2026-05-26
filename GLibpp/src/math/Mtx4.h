@@ -136,5 +136,11 @@ struct Mtx4 {
         return res;
     }
 
+    friend std::ostream& operator<<(std::ostream& os, const Mtx4& m)
+    {
+		os << m.toStringDetail();
+        return os;
+    }
+
 };
 

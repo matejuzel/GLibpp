@@ -24,7 +24,8 @@ struct Quaternion
     {
         float half = angle * 0.5f;
         float s = sin(half);
-        return Quaternion(axis.x * s, axis.y * s, axis.z * s, cos(half));
+        float c = cos(half);
+        return Quaternion(axis.x * s, axis.y * s, axis.z * s, c);
     }
 
     static Quaternion FromEuler(float yaw, float pitch, float roll) noexcept
@@ -188,6 +189,41 @@ struct Quaternion
         );
     }
 
+    static Quaternion RotationX(float angle) {
+        float h = angle * 0.5f;
+        return Quaternion(sinf(h), 0, 0, cosf(h));
+    }
+
+    static Quaternion RotationY(float angle) {
+        float h = angle * 0.5f;
+        return Quaternion(0, sinf(h), 0, cosf(h));
+    }
+
+    static Quaternion RotationZ(float angle) {
+        float h = angle * 0.5f;
+        return Quaternion(0, 0, sinf(h), cosf(h));
+    }
+
+    static Quaternion RotationAroundAxis(const Vec4& axis, float angle) {
+        return FromAxisAngle(axis, angle);
+    }
+
+    void rotate(const Quaternion& q) {
+        *this = q * (*this);
+    }
+
+    void rotateX(float angle) {
+        *this = RotationX(angle) * (*this);
+    }
+
+    void rotateY(float angle) {
+        *this = RotationY(angle) * (*this);
+    }
+
+    void rotateZ(float angle) {
+        *this = RotationZ(angle) * (*this);
+    }
+
 
     // pøevod na 4×4 matici
     Mtx4 toMatrix() const
@@ -209,4 +245,5 @@ struct Quaternion
             0, 0, 0, 1
         );
     }
+
 };

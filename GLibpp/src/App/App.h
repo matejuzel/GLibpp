@@ -260,6 +260,22 @@ public:
 
     void initialize(uint32_t width, uint32_t height, const std::wstring& preferedDisplayName = L"")
     {
+
+        if (false)
+        {
+			Quaternion q1 = Quaternion::FromEuler(0.0f, GLibpp::Math::deg2rad(45.0f), 0.0f);
+            auto q2 = q1;
+            q2.rotateX(0.5f);
+            
+            std::cout << q1.toMatrix() << std::endl;
+            std::cout << q2.toMatrix() << std::endl;
+
+            std::cout << Quaternion::Slerp(q1, q2, 0.5f).toMatrix() << std::endl;
+            
+            exit(0);
+        }
+
+
         {
             // WINDOW
             window = std::make_unique<WindowWin32>(width, height, false);

@@ -1,4 +1,5 @@
 #include "Mesh.h"
+#include "Mathematics.h"
 #include <algorithm> // std::min, std::max
 
 // ------------------------------------------------------------
@@ -61,6 +62,130 @@ Mesh& Mesh::addCube(float scale)
     return *this;
 }
 
+Mesh& Mesh::addSphere(float radius, uint32_t segments)
+{
+    vertexBuffer.clear();
+    indexBuffer.clear();
+
+    if (segments < 3)
+        return *this;
+
+    const uint32_t rings = segments;
+    const uint32_t sectors = segments;
+
+    vertexBuffer.reserve((rings + 1) * (sectors + 1));
+    indexBuffer.reserve(rings * sectors * 6);
+
+    const float R = 1.0f / float(rings);
+    const float S = 1.0f / float(sectors);
+
+    for (uint32_t r = 0; r <= rings; r++)
+    {
+        float v = r * R;
+        float phi = v * GLibpp::Math::pi;
+
+        float sinPhi = sinf(phi);
+        float cosPhi = cosf(phi);
+
+        for (uint32_t s = 0; s <= sectors; s++)
+        {
+            float u = s * S;
+            float theta = u * 2.0f * GLibpp::Math::pi; // 0..2PI
+
+            float sinTheta = sinf(theta);
+            float cosTheta = cosf(theta);
+
+            float x = cosTheta * sinPhi;
+            float y = cosPhi;
+            float z = sinTheta * sinPhi;
+
+            vertexBuffer.emplace_back(
+                x * radius,
+                y * radius,
+                z * radius,
+                1.0f
+            );
+        }
+    }
+
+    // --- indexy ---
+    for (uint32_t r = 0; r < rings; r++)
+    {
+        for (uint32_t s = 0; s < sectors; s++)
+        {
+            uint32_t i0 = r * (sectors + 1) + s;
+            uint32_t i1 = i0 + 1;
+            uint32_t i2 = i0 + (sectors + 1);
+            uint32_t i3 = i2 + 1;
+
+            // první trojúhelník
+            indexBuffer.push_back(i0);
+            indexBuffer.push_back(i2);
+            indexBuffer.push_back(i1);
+
+            // druhý trojúhelník
+            indexBuffer.push_back(i1);
+            indexBuffer.push_back(i2);
+            indexBuffer.push_back(i3);
+        }
+    }
+
+    return *this;
+}
+
+
+Mesh& Mesh::addIcosahedron(float radius)
+{
+    vertexBuffer.clear();
+    indexBuffer.clear();
+
+    const float t = (1.0f + sqrtf(5.0f)) * 0.5f;
+
+    // 12 vertexù icosahedronu
+    vertexBuffer = {
+        { -1.0f,  t,  0.0f, 1.0f },{ 1.0f,  t,  0.0f, 1.0f },{ -1.0f, -t,  0.0f, 1.0f },{ 1.0f, -t,  0.0f, 1.0f },
+        { 0.0f, -1.0f,  t, 1.0f },{ 0.0f,  1.0f,  t, 1.0f },{ 0.0f, -1.0f, -t, 1.0f },{ 0.0f,  1.0f, -t, 1.0f },
+        { t,  0.0f, -1.0f, 1.0f },{ t,  0.0f,  1.0f, 1.0f },{ -t,  0.0f, -1.0f, 1.0f },{ -t,  0.0f,  1.0f, 1.0f }
+    };
+
+    // normalizace na radius
+    for (auto& v : vertexBuffer) {
+        float len = sqrtf(v.x * v.x + v.y * v.y + v.z * v.z);
+        v.x = (v.x / len) * radius;
+        v.y = (v.y / len) * radius;
+        v.z = (v.z / len) * radius;
+    }
+
+    // 20 trojúhelníkù
+    indexBuffer = {
+        0,11,5,  0,5,1,  0,1,7,  0,7,10, 0,10,11,
+        1,5,9,   5,11,4, 11,10,2, 10,7,6, 7,1,8,
+        3,9,4,   3,4,2,  3,2,6,  3,6,8,  3,8,9,
+        4,9,5,   2,4,11, 6,2,10, 8,6,7,  9,8,1
+    };
+
+    return *this;
+}
+
+Mesh& Mesh::addIcosan(float radius, uint32_t subdivisions)
+{
+    // 1) vytvoøit základní icosahedron
+    addIcosahedron(radius);
+
+    // 2) aplikovat subdivize
+    for (uint32_t i = 0; i < subdivisions; i++)
+        subdivide();
+
+    // 3) normalizovat vertexy na radius
+    for (auto& v : vertexBuffer) {
+        float len = sqrtf(v.x * v.x + v.y * v.y + v.z * v.z);
+        v.x = (v.x / len) * radius;
+        v.y = (v.y / len) * radius;
+        v.z = (v.z / len) * radius;
+    }
+
+    return *this;
+}
 
 // ------------------------------------------------------------
 // addNet
