@@ -14,15 +14,22 @@ public:
 		return msh;
 	}
 
-	static Mesh Net(uint32_t size) {
-		Mesh msh;
-		msh.addNet(size);
-		return msh;
+    static Mesh Net(uint32_t size, float distort = 0.0f) {
+        Mesh msh;
+        msh.addNet(size, distort);
+        return msh;
+    }
+
+    static Mesh NetWave(uint32_t size, float waveHeight = 0.5f, float time = 0.0f, float speed = 1.0f) {
+        Mesh msh;
+        msh.addNetWave(size, waveHeight, time, speed);
+        return msh;
 	}
 
 	Mesh& addQuad(float scale);
 	Mesh& addCube(float scale);
-	Mesh& addNet(uint32_t size);
+	Mesh& addNet(uint32_t size, float distort = 0.0f);
+    Mesh& addNetWave(uint32_t size, float waveHeight = 0.5f, float time = 0.0f, float speed = 1.0f);
 
 
     static Mesh Cylinder(float radius, float height, uint32_t segments) {

@@ -65,7 +65,7 @@ Mesh& Mesh::addCube(float scale)
 // ------------------------------------------------------------
 // addNet
 // ------------------------------------------------------------
-Mesh& Mesh::addNet(uint32_t size)
+Mesh& Mesh::addNet(uint32_t size, float distort)
 {
     vertexBuffer.clear();
     indexBuffer.clear();
@@ -76,8 +76,8 @@ Mesh& Mesh::addNet(uint32_t size)
     for (uint32_t y = 0; y < size; ++y) {
         for (uint32_t x = 0; x < size; ++x) {
             vertexBuffer.emplace_back(
-                static_cast<float>(x),
-                static_cast<float>(y),
+                static_cast<float>(x) + distort * (static_cast<float>(rand()) / RAND_MAX - 0.5f),
+                static_cast<float>(y) + distort * (static_cast<float>(rand()) / RAND_MAX - 0.5f),
                 0.f,
                 1.f
             );
@@ -106,6 +106,63 @@ Mesh& Mesh::addNet(uint32_t size)
     //computeAABB();
     return *this;
 }
+
+Mesh& Mesh::addNetWave(uint32_t size, float waveHeight, float time, float speed) {
+    vertexBuffer.clear();
+    indexBuffer.clear();
+    vertexBuffer.reserve(size * size);
+
+    // Støed møížky
+    const float cx = (size - 1) * 0.5f;
+    const float cy = (size - 1) * 0.5f;
+
+    // Frekvence vlny (mùžeš si upravit)
+    const float frequency = 1.0f;
+
+    // --- Generování vertexù ---
+    for (uint32_t y = 0; y < size; ++y) {
+        for (uint32_t x = 0; x < size; ++x) {
+
+            float dx = float(x) - cx;
+            float dy = float(y) - cy;
+
+            // Vzdálenost od støedu
+            float dist = std::sqrt(dx * dx + dy * dy);
+
+            // Radiální vlna
+            float wave = std::sin(dist * frequency - time * speed);
+
+            vertexBuffer.emplace_back(
+                float(x),
+                float(y),
+                waveHeight * wave,
+                1.f
+            );
+        }
+    }
+
+    // --- Triangulace møížky ---
+    for (uint32_t y = 0; y < size - 1; ++y) {
+        for (uint32_t x = 0; x < size - 1; ++x) {
+            uint32_t i0 = y * size + x;
+            uint32_t i1 = i0 + 1;
+            uint32_t i2 = i0 + size;
+            uint32_t i3 = i2 + 1;
+
+            indexBuffer.push_back(i0);
+            indexBuffer.push_back(i1);
+            indexBuffer.push_back(i2);
+
+            indexBuffer.push_back(i1);
+            indexBuffer.push_back(i3);
+            indexBuffer.push_back(i2);
+        }
+    }
+
+    return *this;
+}
+
+
 
 const std::vector<Vec4>& Mesh::getVertexBuffer() const
 {

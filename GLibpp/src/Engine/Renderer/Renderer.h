@@ -82,6 +82,11 @@ namespace Render {
         ResourceManager::MeshInstanceHandle mshInstHandle01 = resources.meshInstanceRegister(mshHandle00, Mtx4::Identity().rotateY(0.3f));
         ResourceManager::MeshInstanceHandle mshInstHandle02 = resources.meshInstanceRegister(mshHandle00, Mtx4::Identity().rotateY(0.6f));
         ResourceManager::MeshInstanceHandle mshInstHandle03 = resources.meshInstanceRegister(mshHandle00, Mtx4::Identity().rotateY(0.9f));
+
+        // tmp
+
+        Mesh meshNet = Mesh::NetWave(80, 0.2f).applyTransformation(Mtx4::Identity().rotateX(GLibpp::Math::deg2rad(90.0f)).translate(-50.0f, -50.0f, 0.0f));
+
     public:
 
         Renderer(WindowWin32& window, LogicStateBuffered& logicStateBuffered, float logicHz)
@@ -121,7 +126,8 @@ namespace Render {
                 // Drawing commands
 
                 // Ground - net
-                device.drawMesh(ctx, Mesh::Net(20).applyTransformation(Mtx4::Identity().rotateX(GLibpp::Math::deg2rad(90.0f)).translate(-1.0f, -1.0f, 0.0f)), Mtx4::Identity(), Color::Grayscale(0.3f), true);
+                Mesh meshNetAnim = Mesh::NetWave(60, 0.2f, frameIndex, 0.05f).applyTransformation(Mtx4::Identity().rotateX(GLibpp::Math::deg2rad(90.0f)).translate(-25.0f, -25.0f, 0.0f).scale(0.5f));
+                device.drawMesh(ctx, meshNetAnim, Mtx4::Identity(), Color::Grayscale(0.3f), false);
 
                 // Car
                 device.drawMesh(ctx, scene.car.getMesh(), scene.car.getCarMatrix());
