@@ -178,10 +178,10 @@ Mesh& Mesh::addIcosan(float radius, uint32_t subdivisions)
 
     // 3) normalizovat vertexy na radius
     for (auto& v : vertexBuffer) {
-        float len = sqrtf(v.x * v.x + v.y * v.y + v.z * v.z);
-        v.x = (v.x / len) * radius;
-        v.y = (v.y / len) * radius;
-        v.z = (v.z / len) * radius;
+        float invLen = 1.0f / sqrtf(v.x * v.x + v.y * v.y + v.z * v.z);
+        v.x = (v.x * invLen) * radius;
+        v.y = (v.y * invLen) * radius;
+        v.z = (v.z * invLen) * radius;
     }
 
     return *this;

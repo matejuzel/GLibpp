@@ -219,6 +219,13 @@ using RenderDevice = RenderDeviceStencil;
 #error "Neni definovan backend!"
 #endif
 
+/*
+Implementovat nekdy v budoucnu:
+	Origin Rebasing
+        pri rozsahlem svete a velkym offsetu kamery se zacne projevovat snizujicici se presnost floatu. 
+        Resenim je Origin Rebasing, ktery pravidelne posouva svet tak aby kamera byla co nejblize k originu. 
+*/
+
 class App {
 private:
 
@@ -260,6 +267,16 @@ public:
 
     void initialize(uint32_t width, uint32_t height, const std::wstring& preferedDisplayName = L"")
     {
+
+        if (1) {
+        
+            float num = 0.5f;
+
+            std::cout << GLibpp::Math::reciprocal_debug(num, 8) << std::endl;
+            std::cout << 1.0f / num << std::endl;
+
+            exit(0);
+        }
 
         if (false)
         {

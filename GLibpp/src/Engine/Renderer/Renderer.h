@@ -133,7 +133,7 @@ namespace Render {
                 device.drawMesh(ctx, scene.car.getMesh(), scene.car.getCarMatrix());
 
                 // shpere
-                device.drawMesh(ctx, Mesh::Icosan(1.0f, 2), scene.car.model.getTransformation(), Color::Grayscale(0.7f), false);
+                device.drawMesh(ctx, Mesh::Icosan(1.0f, 4), scene.car.model.getTransformation(), Color::Grayscale(0.7f), true);
             
                 // ICR
                 device.drawMesh(ctx, Mesh::Cube(0.1f).applyTransformation(Mtx4::Scaling(0.01f, 8.0f, 0.01f)), scene.car.getIcrTransformation());
