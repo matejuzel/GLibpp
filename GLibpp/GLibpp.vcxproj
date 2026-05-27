@@ -21,6 +21,7 @@
   <ItemGroup>
     <ClCompile Include="src\Engine\Geometry\Material.cpp" />
     <ClCompile Include="src\Engine\Geometry\Mesh.cpp" />
+    <ClCompile Include="src\Engine\Geometry\MeshFactory.cpp" />
     <ClCompile Include="src\Engine\Geometry\MeshInstance.cpp" />
     <ClCompile Include="src\main.cpp" />
     <ClCompile Include="src\Math\Mtx4.cpp" />
@@ -41,7 +42,9 @@
     <ClInclude Include="src\Engine\Geometry\Camera.h" />
     <ClInclude Include="src\Engine\Geometry\Material.h" />
     <ClInclude Include="src\Engine\Geometry\Mesh.h" />
+    <ClInclude Include="src\Engine\Geometry\MeshFactory.h" />
     <ClInclude Include="src\Engine\Geometry\MeshInstance.h" />
+    <ClInclude Include="src\Engine\Geometry\MeshModifier.h" />
     <ClInclude Include="src\Engine\Physics\Bicycle\BicycleModel.h" />
     <ClInclude Include="src\Engine\Physics\Bicycle\BicycleParams.h" />
     <ClInclude Include="src\Engine\Renderer\Backend\Common\DeviceContext.h" />

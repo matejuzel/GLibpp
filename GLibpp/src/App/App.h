@@ -268,7 +268,7 @@ public:
     void initialize(uint32_t width, uint32_t height, const std::wstring& preferedDisplayName = L"")
     {
 
-        if (1) {
+        if (0) {
         
             float num = 0.5f;
 

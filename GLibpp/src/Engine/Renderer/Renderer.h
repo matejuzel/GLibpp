@@ -32,6 +32,7 @@
 #include "ZeroAllocStateHistory.h"
 #include <utility>
 #include "Mathematics.h"
+#include "MeshFactory.h"
 
 namespace Render {
 
@@ -77,7 +78,7 @@ namespace Render {
         RunState running;
 
         // docasne zatim takhle
-        ResourceManager::MeshHandle mshHandle00 = resources.meshRegister(Mesh::Cube(1.0f));
+        ResourceManager::MeshHandle mshHandle00 = resources.meshRegister(MeshFactory::CreateCube(1.0f));
         ResourceManager::MeshInstanceHandle mshInstHandle00 = resources.meshInstanceRegister(mshHandle00, Mtx4::Identity());
         ResourceManager::MeshInstanceHandle mshInstHandle01 = resources.meshInstanceRegister(mshHandle00, Mtx4::Identity().rotateY(0.3f));
         ResourceManager::MeshInstanceHandle mshInstHandle02 = resources.meshInstanceRegister(mshHandle00, Mtx4::Identity().rotateY(0.6f));
@@ -133,10 +134,10 @@ namespace Render {
                 device.drawMesh(ctx, scene.car.getMesh(), scene.car.getCarMatrix());
 
                 // shpere
-                device.drawMesh(ctx, Mesh::Icosan(1.0f, 4), scene.car.model.getTransformation(), Color::Grayscale(0.7f), true);
+                device.drawMesh(ctx, MeshFactory::CreateIcosphere(1.0f, 4), scene.car.model.getTransformation(), Color::Grayscale(0.7f), true);
             
                 // ICR
-                device.drawMesh(ctx, Mesh::Cube(0.1f).applyTransformation(Mtx4::Scaling(0.01f, 8.0f, 0.01f)), scene.car.getIcrTransformation());
+                device.drawMesh(ctx, MeshFactory::CreateCube(0.1f).applyTransformation(Mtx4::Scaling(0.01f, 8.0f, 0.01f)), scene.car.getIcrTransformation());
 
                 // wheels
                 device.drawMesh(ctx, scene.car.wheelFrontLeft.getMesh(), scene.car.getFrontLeft());
@@ -145,9 +146,9 @@ namespace Render {
                 device.drawMesh(ctx, scene.car.wheelBackRight.getMesh(), scene.car.getBackRight());
 
                 // wheel axis
-                device.drawMesh(ctx, Mesh::Cube(1.0f).applyTransformation(Mtx4::Scaling(12.0f, 0.01f, 0.01f)), scene.car.getFrontLeft());
-                device.drawMesh(ctx, Mesh::Cube(1.0f).applyTransformation(Mtx4::Scaling(12.0f, 0.01f, 0.01f)), scene.car.getFrontRight());
-                device.drawMesh(ctx, Mesh::Cube(1.0f).applyTransformation(Mtx4::Scaling(12.0f, 0.01f, 0.01f)), scene.car.getCarMatrix());
+                device.drawMesh(ctx, MeshFactory::CreateCube(1.0f).applyTransformation(Mtx4::Scaling(12.0f, 0.01f, 0.01f)), scene.car.getFrontLeft());
+                device.drawMesh(ctx, MeshFactory::CreateCube(1.0f).applyTransformation(Mtx4::Scaling(12.0f, 0.01f, 0.01f)), scene.car.getFrontRight());
+                device.drawMesh(ctx, MeshFactory::CreateCube(1.0f).applyTransformation(Mtx4::Scaling(12.0f, 0.01f, 0.01f)), scene.car.getCarMatrix());
 
                 // axis of local object spaces
                 device.drawAxis(ctx, scene.car.getCarMatrix());

@@ -90,6 +90,9 @@
     <ClCompile Include="src\Engine\Geometry\MeshInstance.cpp">
       <Filter>Zdrojové soubory\Engine\Geometry</Filter>
     </ClCompile>
+    <ClCompile Include="src\Engine\Geometry\MeshFactory.cpp">
+      <Filter>Zdrojové soubory\Engine\Geometry</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\App\App.h">
@@ -226,6 +229,12 @@
     </ClInclude>
     <ClInclude Include="src\Engine\Physics\Bicycle\BicycleParams.h">
       <Filter>Zdrojové soubory\Engine\Physics\Bicycle</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Engine\Geometry\MeshFactory.h">
+      <Filter>Zdrojové soubory\Engine\Geometry</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Engine\Geometry\MeshModifier.h">
+      <Filter>Zdrojové soubory\Engine\Geometry</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>
