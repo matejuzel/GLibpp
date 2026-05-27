@@ -6,7 +6,7 @@ class MeshFactory {
 
 public:
 	static Mesh CreateCube(float side);
-	static Mesh CreateSphere(float radius);
+	static Mesh CreateSphere(float radius, uint32_t segments = 16);
 	static Mesh CreateCylinder(float radius, float height, uint32_t segments);
 	static Mesh CreateIcosan(float radius);
 	static Mesh CreateIcosphere(float radius, uint32_t subdivisions);

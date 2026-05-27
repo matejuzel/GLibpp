@@ -86,7 +86,7 @@ namespace Render {
 
         // tmp
 
-        Mesh meshNet = Mesh::NetWave(80, 0.2f).applyTransformation(Mtx4::Identity().rotateX(GLibpp::Math::deg2rad(90.0f)).translate(-50.0f, -50.0f, 0.0f));
+        Mesh meshNet = MeshFactory::CreateNet(80, 0.2f).applyTransformation(Mtx4::Identity().rotateX(GLibpp::Math::deg2rad(90.0f)).translate(-50.0f, -50.0f, 0.0f));
 
     public:
 
@@ -127,7 +127,7 @@ namespace Render {
                 // Drawing commands
 
                 // Ground - net
-                Mesh meshNetAnim = Mesh::NetWave(60, 0.2f, frameIndex, 0.05f).applyTransformation(Mtx4::Identity().rotateX(GLibpp::Math::deg2rad(90.0f)).translate(-25.0f, -25.0f, 0.0f).scale(0.5f));
+                Mesh meshNetAnim = MeshFactory::CreateNetWave(60, 0.2f, frameIndex, 0.05f).applyTransformation(Mtx4::Identity().rotateX(GLibpp::Math::deg2rad(90.0f)).translate(-25.0f, -25.0f, 0.0f).scale(0.5f));
                 device.drawMesh(ctx, meshNetAnim, Mtx4::Identity(), Color::Grayscale(0.3f), false);
 
                 // Car
