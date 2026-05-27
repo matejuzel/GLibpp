@@ -105,7 +105,72 @@ Mesh MeshFactory::CreateSphere(float radius, uint32_t segments)
     }
 }
 
-Mesh MeshFactory::CreateCylinder(float radius, float height, uint32_t segments) { throw std::runtime_error("Not implemented"); }
+Mesh MeshFactory::CreateCylinder(float radius, float height, uint32_t segments) 
+{
+    Mesh msh;
+
+    const float halfH = height * 0.5f;
+    const uint32_t baseIndex = static_cast<uint32_t>(msh.vertexBuffer.size());
+
+    // --- Top + bottom center vertices ---
+    uint32_t topCenter = baseIndex + 0;
+    uint32_t bottomCenter = baseIndex + 1;
+
+    msh.vertexBuffer.emplace_back(0.0f, halfH, 0.0f, 1.0f);
+    msh.vertexBuffer.emplace_back(0.0f, -halfH, 0.0f, 1.0f);
+
+    // --- Ring vertices ---
+    for (uint32_t i = 0; i < segments; i++) {
+        float angle = (float)i / segments * 2.0f * 3.1415926535f;
+        float x = std::cos(angle) * radius;
+        float z = std::sin(angle) * radius;
+
+        // top ring
+        msh.vertexBuffer.emplace_back(x, halfH, z, 1.0f);
+        // bottom ring
+        msh.vertexBuffer.emplace_back(x, -halfH, z, 1.0f);
+    }
+
+    // --- Indices ---
+    // Top cap
+    for (uint32_t i = 0; i < segments; i++) {
+        uint32_t a = topCenter;
+        uint32_t b = baseIndex + 2 + (i * 2);
+        uint32_t c = baseIndex + 2 + ((i * 2 + 2) % (segments * 2));
+        msh.indexBuffer.push_back(a);
+        msh.indexBuffer.push_back(b);
+        msh.indexBuffer.push_back(c);
+    }
+
+    // Bottom cap
+    for (uint32_t i = 0; i < segments; i++) {
+        uint32_t a = bottomCenter;
+        uint32_t b = baseIndex + 3 + ((i * 2 + 2) % (segments * 2));
+        uint32_t c = baseIndex + 3 + (i * 2);
+        msh.indexBuffer.push_back(a);
+        msh.indexBuffer.push_back(b);
+        msh.indexBuffer.push_back(c);
+    }
+
+    // Side walls
+    for (uint32_t i = 0; i < segments; i++) {
+        uint32_t topA = baseIndex + 2 + (i * 2);
+        uint32_t botA = baseIndex + 3 + (i * 2);
+        uint32_t topB = baseIndex + 2 + ((i * 2 + 2) % (segments * 2));
+        uint32_t botB = baseIndex + 3 + ((i * 2 + 2) % (segments * 2));
+
+        // quad = two triangles
+        msh.indexBuffer.push_back(topA);
+        msh.indexBuffer.push_back(botA);
+        msh.indexBuffer.push_back(topB);
+
+        msh.indexBuffer.push_back(topB);
+        msh.indexBuffer.push_back(botA);
+        msh.indexBuffer.push_back(botB);
+    }
+
+    return msh;
+}
 
 
 Mesh MeshFactory::CreateIcosan(float radius)

@@ -9,12 +9,13 @@
 #include "Mesh.h"
 #include "Quaternion.h"
 #include "BicycleModel.h"
+#include "MeshFactory.h"
 
 struct WheelTransformation {
 
     WheelTransformation(float zPos, float xPos, float radius)
         : position(Vec4(xPos, 0.0f, zPos, 1.0f))
-        , mesh(Mesh::Cylinder(radius, 0.4, 12).applyTransformation(Mtx4::RotationZ(3.14159f / 2.0f)))
+        , mesh(MeshFactory::CreateCylinder(radius, 0.4, 12).applyTransformation(Mtx4::RotationZ(3.14159f / 2.0f)))
     {
     }
 
@@ -76,7 +77,7 @@ struct CarTransformation
         , wheelBackLeft(0, -model.params.wheelTrack * 0.5f, model.params.wheelRadius)
         , wheelBackRight(0, model.params.wheelTrack * 0.5f, model.params.wheelRadius)
         //, object(Mtx4::Identity())
-        , mesh(Mesh::Cylinder(1.0f, 6, 16).applyTransformation(Mtx4::RotationX(3.14159f / 2.0f)*Mtx4::Translation(0.0f, model.params.wheelBase * 0.5, 0.0f)))
+        , mesh(MeshFactory::CreateCylinder(1.0f, 6, 16).applyTransformation(Mtx4::RotationX(3.14159f / 2.0f)*Mtx4::Translation(0.0f, model.params.wheelBase * 0.5, 0.0f)))
     {}
     
     const Mesh& getMesh() const { return mesh; }
