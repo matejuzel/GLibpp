@@ -115,10 +115,9 @@ namespace Render {
 
             ctx.frameIndex = frameIndex;
             ctx.clearColor = Color::Grayscale(0.4f);
-			ctx.model = scene.modelMatrix;
-            ctx.view = scene.camera.calculateViewMatrix();
-            ctx.projection = Mtx4::Perspective(fovRad, aspect, nearZ, farZ);
-            ctx.viewport = viewport;
+            ctx.setView(scene.camera.calculateViewMatrix());
+            ctx.setProjection(Mtx4::Perspective(fovRad, aspect, nearZ, farZ));
+            ctx.setViewport(viewport);
             ctx.framebufferHandle = resources.framebufferHandle;
                 
             device.clear(ctx);
@@ -128,7 +127,7 @@ namespace Render {
 
                 // Ground - net
                 Mesh meshGridAnim = MeshFactory::CreateGridWave(60, 0.2f, frameIndex, 0.05f).applyTransformation(Mtx4::Identity().rotateX(GLibpp::Math::deg2rad(90.0f)).translate(-25.0f, -25.0f, 0.0f).scale(0.5f));
-                device.drawMesh(ctx, meshGridAnim, Mtx4::Identity(), Color::Grayscale(0.3f), false);
+                device.drawMesh(ctx, meshGridAnim, Mtx4::Identity(), Color::Grayscale(0.3f), true);
 
                 // Car
                 device.drawMesh(ctx, scene.car.getMesh(), scene.car.getCarMatrix());
@@ -207,9 +206,9 @@ namespace Render {
                     logicStateCurrent.scene, 
                     static_cast<float>(tClamped)
                 );
-                std::cout << "Previous" << std::endl << logicStatePrevious.scene.camera.calculateViewMatrix().toString() << std::endl << std::endl;
-                std::cout << "Current" << std::endl << logicStateCurrent.scene.camera.calculateViewMatrix().toString() << std::endl << std::endl;
-                std::cout << "Interpolated (t: " << t << ")" << std::endl << logicStateInterpolated.scene.camera.calculateViewMatrix().toString() << std::endl << "============" << std::endl;
+                //std::cout << "Previous" << std::endl << logicStatePrevious.scene.camera.calculateViewMatrix().toString() << std::endl << std::endl;
+                //std::cout << "Current" << std::endl << logicStateCurrent.scene.camera.calculateViewMatrix().toString() << std::endl << std::endl;
+                //std::cout << "Interpolated (t: " << t << ")" << std::endl << logicStateInterpolated.scene.camera.calculateViewMatrix().toString() << std::endl << "============" << std::endl;
                 
                 renderFrame(logicStateInterpolated.scene, ++frameIndex);
 

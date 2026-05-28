@@ -244,7 +244,7 @@ private:
 
     GLibpp::Input input;
 
-    float logicHz = 30;
+    float logicHz = 60;
 
     bool checkWindowInitialized() const {
         if (window.get() == nullptr) {

@@ -204,13 +204,13 @@ namespace Render {
             if (!registry.targets.isValid(ctx.framebufferHandle)) return;
 
             // --- 1) Matice ---
-            Mtx4 mv = ctx.view * transform;          // model-view
-            Mtx4 mvp = ctx.projection * mv;           // model-view-projection
+            Mtx4 mv = ctx.getModelView(transform);
+			Mtx4 mvp = ctx.getModelViewProjection(transform);
 
-            uint32_t x = ctx.viewport.x;
-            uint32_t y = ctx.viewport.y;
-            uint32_t width = ctx.viewport.width;
-            uint32_t height = ctx.viewport.height;
+            uint32_t x = ctx.getViewport().x;
+            uint32_t y = ctx.getViewport().y;
+            uint32_t width = ctx.getViewport().width;
+            uint32_t height = ctx.getViewport().height;
 
             auto viewportTransform = [&](Vec4& v) {
                 v.x = (v.x * 0.5f + 0.5f) * width + x;
@@ -373,12 +373,12 @@ namespace Render {
         {
             if (!registry.targets.isValid(ctx.framebufferHandle)) return;
 
-            Mtx4 mvp = ctx.projection * ctx.view * transform;
+            Mtx4 mvp = ctx.getModelViewProjection(transform);
 
-            uint32_t x = ctx.viewport.x;
-            uint32_t y = ctx.viewport.y;
-            uint32_t width = ctx.viewport.width;
-            uint32_t height = ctx.viewport.height;
+            uint32_t x = ctx.getViewport().x;
+            uint32_t y = ctx.getViewport().y;
+            uint32_t width = ctx.getViewport().width;
+            uint32_t height = ctx.getViewport().height;
 
             auto viewportTransform = [&](Vec4& v) {
                 v.x = (v.x * 0.5f + 0.5f) * width + x;
@@ -437,13 +437,13 @@ namespace Render {
                 return;
 
             // MVP
-            Mtx4 mvp = ctx.projection * ctx.view * transform;
+            Mtx4 mv = ctx.getModelView(transform);
+            Mtx4 mvp = ctx.getModelViewProjection(transform);
 
-            // Viewport
-            uint32_t x = ctx.viewport.x;
-            uint32_t y = ctx.viewport.y;
-            uint32_t width = ctx.viewport.width;
-            uint32_t height = ctx.viewport.height;
+            uint32_t x = ctx.getViewport().x;
+            uint32_t y = ctx.getViewport().y;
+            uint32_t width = ctx.getViewport().width;
+            uint32_t height = ctx.getViewport().height;
 
             auto viewportTransform = [&](Vec4& v) {
                 v.x = (v.x * 0.5f + 0.5f) * width + x;
@@ -519,6 +519,14 @@ namespace Render {
             
             if (!registry.targets.isValid(ctx.framebufferHandle)) return;
 
+            Mtx4 mv = ctx.getModelView(Mtx4::Identity());
+            Mtx4 mvp = ctx.getModelViewProjection(Mtx4::Identity());
+
+            uint32_t x = ctx.getViewport().x;
+            uint32_t y = ctx.getViewport().y;
+            uint32_t width = ctx.getViewport().width;
+            uint32_t height = ctx.getViewport().height;
+
             Target& target = registry.targets.get(ctx.framebufferHandle);
 
             int verts[4][2] = {
@@ -533,8 +541,6 @@ namespace Render {
             Vec4 vc(verts[2][0], verts[2][1], 0, 1);
             Vec4 vd(verts[3][0], verts[3][1], 0, 1);
 
-            Mtx4 mvp = ctx.projection * ctx.view * ctx.model * Mtx4::Scaling(scaleFactor);
-
             va = mvp * va;
             vb = mvp * vb;
             vc = mvp * vc;
@@ -544,11 +550,6 @@ namespace Render {
             vb.divideW();
             vc.divideW();
             vd.divideW();
-
-            uint32_t x = ctx.viewport.x;
-            uint32_t y = ctx.viewport.y;
-            uint32_t width = ctx.viewport.width;
-            uint32_t height = ctx.viewport.height;
 
             auto viewportTransform = [&](Vec4& v) {
                 v.x = (v.x * 0.5f + 0.5f) * width + x;
