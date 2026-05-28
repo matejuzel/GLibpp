@@ -220,7 +220,42 @@ public:
         return m_accumulator; 
     }
 
-    void waitUntilNextStep(double slack = 0.0005) {
+    // Vložit nahoru pro _mm_pause()
+#include <immintrin.h> 
+
+    void waitUntilNextStep(double slack = 0.002) { // Zvednutý slack na 2 ms!
+        static bool precisionSet = false;
+        if (!precisionSet) {
+            timeBeginPeriod(1);
+            precisionSet = true;
+        }
+
+        double timeToWait = m_fixedDelta - m_accumulator;
+
+        // 1. FÁZE: OS Sleep (uvolnìní CPU pro ostatní procesy)
+        // Pokud máme k dobru více než 2 ms, mùžeme si dovolit riskantní usnutí
+        if (timeToWait > slack) {
+            double sleepTime = timeToWait - slack;
+            std::this_thread::sleep_for(
+                std::chrono::microseconds(static_cast<long long>(sleepTime * 1000000.0))
+            );
+
+            // Po probuzení zjistíme, kde pøesnì jsme
+            updateAccumulatorOnly();
+        }
+
+        // 2. FÁZE: Spin-lock (Absolutní pøesnost na mikrosekundy)
+        // Tady už nesmíme usnout, zbytek èasu "protopíme" aktivním èekáním
+        while (m_accumulator < m_fixedDelta) {
+            // _mm_pause() øekne procesoru, že jde o spin-lock. 
+            // Drasticky to snižuje spotøebu a zahøívání CPU bìhem prázdné smyèky.
+            _mm_pause();
+
+            updateAccumulatorOnly();
+        }
+    }
+
+    void waitUntilNextStep__(double slack = 0.0005) {
         // 1. Nastavíme Windows scheduler na vysokou pøesnost (pokud už není)
         // Ideálnì volat jednou globálnì, ale pro jistotu:
         static bool precisionSet = false;

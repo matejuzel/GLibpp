@@ -97,7 +97,6 @@ namespace Render {
             , logicStateBuffered(logicStateBuffered)
             , logicHz(logicHz)
         {
-            setupRendererPriority();
 			resize(window.getClientWidth(), window.getClientHeight());
 
             std::cout << "frame buffer: " << resources.framebufferHandle << std::endl;
@@ -168,7 +167,7 @@ namespace Render {
 
             TimeManager timer(logicHz, true);
             TimeManager timer1Hz(1.0); // pro výpoèet FPS každou sekundu
-			TimeManager timerSyncV(60.0);
+			TimeManager timerSyncV(35.0);
 
 			uint32_t frameIndex = 0;            
 
@@ -196,30 +195,54 @@ namespace Render {
 
                 timer.tickAndFlush();
 
-                double t = (timer.sinceStart() - logicStateCurrent.tickInfo.lastLogicTick) / timer.getFixedDelta();
-				double tClamped = std::clamp(t, 0.0, 1.0);
+                double t;
+                if (false) 
+                {
+                    t = (timer.sinceStart() - logicStateCurrent.tickInfo.lastLogicTick) / timer.getFixedDelta();
+                }
+                else
+                {
+                    // 1. Zjistíme pøesné èasové znaèky obou stavù z Triple Bufferu
+                    double timePrev = logicStatePrevious.tickInfo.lastLogicTick;
+                    double timeCurr = logicStateCurrent.tickInfo.lastLogicTick;
 
-                //if (t < 0.0f || t > 1.0f) std::cout << t << std::endl;
-				
+                    // 2. Skuteèný èasový rozdíl mezi stavy (chráníme proti dìlení nulou)
+                    double stateDelta = timeCurr - timePrev;
+                    if (stateDelta <= 0.0001) {
+                        stateDelta = timer.getFixedDelta(); // fallback
+                    }
+
+                    // 3. Vypoèítáme Vizuální Èas = aktuální èas mínus jedno logické okno
+                    // Tím se vždy držíme bezpeènì MEZI timePrev a timeCurr
+                    double visualTime = timer.sinceStart() - timer.getFixedDelta() *1.5;
+
+                    // 4. Výpoèet alfa na základì skuteèného rozpìtí
+                    t = (visualTime - timePrev) / stateDelta;
+                }
+                if (t >= 1.0) std::cout << "Zaskub: t = " << t << std::endl;
+                double tClamped = std::clamp(t, 0.0, 1.0);
+
                 logicStateInterpolated.scene = Slerp(
                     logicStatePrevious.scene,
-                    logicStateCurrent.scene, 
+                    logicStateCurrent.scene,
                     static_cast<float>(tClamped)
                 );
-                //std::cout << "Previous" << std::endl << logicStatePrevious.scene.camera.calculateViewMatrix().toString() << std::endl << std::endl;
-                //std::cout << "Current" << std::endl << logicStateCurrent.scene.camera.calculateViewMatrix().toString() << std::endl << std::endl;
-                //std::cout << "Interpolated (t: " << t << ")" << std::endl << logicStateInterpolated.scene.camera.calculateViewMatrix().toString() << std::endl << "============" << std::endl;
-                
+
                 renderFrame(logicStateInterpolated.scene, ++frameIndex);
 
                 timer1Hz.tickAndDispatchAction([&](double dt) {
                     device.getWindow().postMessageSetTitle(timer, frameIndex);
-
-
-                    
-                    
-
                 });
+
+                // 1. Zmìøíme èas, který zabral rendering (pøidá se do m_accumulator)
+                timerSyncV.tick();
+
+                // 2. Uspíme vlákno, dokud m_accumulator nedosáhne hodnoty m_fixedDelta (napø. 33.3 ms)
+                timerSyncV.waitUntilNextStep();
+
+                // 3. Odeèteme m_fixedDelta z akumulátoru, aby byl pøipraven na další snímek
+                // Prázdná lambda funkce funguje jako "èistiè"
+                timerSyncV.dispatchAction([](double dt) {});
             }
 
         }
@@ -248,19 +271,6 @@ namespace Render {
             resources.framebufferHandle = device.targetResize(resources.framebufferHandle, width, height);
             resources.depthbufferHandle = device.targetResize(resources.depthbufferHandle, width, height);
             viewport.resize(width, height);
-        }
-
-        void setupRendererPriority()
-        {
-            // Zvedneme prioritu JEN aktuálního vlákna renderu
-            // z NORMAL na ABOVE_NORMAL.
-            // To typicky zlepší stabilitu frameratu, aniž by to nièilo systém.
-            HANDLE thread = GetCurrentThread();
-
-            if (!SetThreadPriority(thread, THREAD_PRIORITY_ABOVE_NORMAL)) {
-                // Volitelné: lognout chybu, ale nepanikaøit.
-                // std::cerr << "Failed to set thread priority\n";
-            }
         }
 
     };

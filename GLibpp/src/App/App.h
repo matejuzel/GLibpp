@@ -256,6 +256,20 @@ private:
 
     LogicStateBuffered logicStateBuffered;
 
+
+    void setupThreadPriority()
+    {
+        // Zvedneme prioritu JEN aktuálního vlákna renderu
+        // z NORMAL na ABOVE_NORMAL.
+        // To typicky zlepší stabilitu frameratu, aniž by to ničilo systém.
+        HANDLE thread = GetCurrentThread();
+
+        if (!SetThreadPriority(thread, THREAD_PRIORITY_HIGHEST)) {
+            // Volitelné: lognout chybu, ale nepanikařit.
+            // std::cerr << "Failed to set thread priority\n";
+        }
+    }
+
 public:
 
     App() = default;
@@ -458,14 +472,21 @@ public:
         logicStateBuffered.publish();
 	}
 
+    static void setupThreadPriority(int32_t priority)
+    {
+        // Zvedneme prioritu JEN aktuálního vlákna renderu
+        // z NORMAL na ABOVE_NORMAL.
+        // To typicky zlepší stabilitu frameratu, aniž by to ničilo systém.
+        HANDLE thread = GetCurrentThread();
+
+        if (!SetThreadPriority(thread, priority)) {
+            // Volitelné: lognout chybu, ale nepanikařit.
+            // std::cerr << "Failed to set thread priority\n";
+        }
+    }
+
     void run()
     {
-
-        {
-            //auto& rm = renderer->getResourceManager();
-            //auto texHandle = rm.targetCreate(Render::RenderTargetDescriptor::FramebufferRGBA32bit(window->getClientWidth(), window->getClientHeight()));
-            //auto meshInstHandle = rm.meshRegister(MeshInstance());
-        }
 
 		// logic scheduler - bude volat updateLogic() s pevnou frekvenci, nezavisle na renderovani
         TimeManager timer(logicHz, true);
@@ -488,9 +509,12 @@ public:
 
         logicStateBuffered.publish();
 
+		setupThreadPriority(THREAD_PRIORITY_HIGHEST);
+
         std::thread renderThread([this]() {
+            setupThreadPriority(THREAD_PRIORITY_ABOVE_NORMAL);
             renderer->runLoop();
-            });
+        });
 
         while (running.isRunning())
         {
@@ -515,22 +539,7 @@ public:
                 */
 			});
 
-
-            /*
-            if (false) {
-                timerOneSecond.tickAndDispatchAction([&](double dt) {
-                    double fps = timer.getFps();
-                    double low1 = timer.getLow1Percent();
-                    double low01 = timer.getLowPoint1Percent();
-                    window->setTitle(std::format(
-                        "FPS: {:.2f}, 1% Low: {:.2f}, 0.1% Low: {:.2f}",
-                        fps, low1, low01
-                    ));
-                    });
-            }
-            */
-
-            //timer.waitUntilNextStep(); // to ted delat nebudeme
+            timer.waitUntilNextStep();
         }
 
         renderer->stop();
