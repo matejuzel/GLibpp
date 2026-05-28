@@ -4,6 +4,43 @@
 #include "MeshModifier.h"
 #include "Mathematics.h"
 
+Mesh MeshFactory::CreateQuad(float size)
+{
+    Mesh msh;
+    msh.vertexBuffer.clear();
+    msh.indexBuffer.clear();
+
+    float s = size * 0.5f;
+
+    // Simple quad in XY plane
+    msh.vertexBuffer.emplace_back(-s, -s, 0.f, 1.f);
+    msh.vertexBuffer.emplace_back(s, -s, 0.f, 1.f);
+    msh.vertexBuffer.emplace_back(s, s, 0.f, 1.f);
+    msh.vertexBuffer.emplace_back(-s, s, 0.f, 1.f);
+
+    msh.indexBuffer = {
+        0, 1, 2,
+        2, 3, 0
+    };
+    return msh;
+}
+
+Mesh MeshFactory::CreateTriangle(float size) 
+{
+    Mesh msh;
+    msh.vertexBuffer.clear();
+    msh.indexBuffer.clear();
+
+    float h = size * sqrtf(3.f) * 0.5f; // výška rovnostranného trojúhelníku
+
+    // Rovnostranný trojúhelník v XY rovinì
+    msh.vertexBuffer.emplace_back(-size * 0.5f, -h / 3.f, 0.f, 1.f);
+    msh.vertexBuffer.emplace_back(size * 0.5f, -h / 3.f, 0.f, 1.f);
+    msh.vertexBuffer.emplace_back(0.f, h * 2.f / 3.f, 0.f, 1.f);
+    msh.indexBuffer = { 0, 1, 2 };
+    return msh;
+}
+
 Mesh MeshFactory::CreateCube(float side) {
 	
     Mesh msh;
@@ -228,7 +265,7 @@ Mesh MeshFactory::CreateIcosphere(float radius, uint32_t subdivisions)
     return msh;
 }
 
-Mesh MeshFactory::CreateNet(uint32_t size, float distort) 
+Mesh MeshFactory::CreateGrid(uint32_t size, float distort) 
 {
     Mesh msh;
 
@@ -271,7 +308,7 @@ Mesh MeshFactory::CreateNet(uint32_t size, float distort)
     return msh;
 }
 
-Mesh MeshFactory::CreateNetWave(uint32_t size, float waveHeight, float time, float speed) 
+Mesh MeshFactory::CreateGridWave(uint32_t size, float waveHeight, float time, float speed) 
 {
     Mesh msh;
 
@@ -328,24 +365,4 @@ Mesh MeshFactory::CreateNetWave(uint32_t size, float waveHeight, float time, flo
     return msh;
 }
 
-Mesh MeshFactory::CreateQuad(float size) 
-{
-    Mesh msh;
-    msh.vertexBuffer.clear();
-    msh.indexBuffer.clear();
-
-    float s = size * 0.5f;
-
-    // Simple quad in XY plane
-    msh.vertexBuffer.emplace_back(-s, -s, 0.f, 1.f);
-    msh.vertexBuffer.emplace_back(s, -s, 0.f, 1.f);
-    msh.vertexBuffer.emplace_back(s, s, 0.f, 1.f);
-    msh.vertexBuffer.emplace_back(-s, s, 0.f, 1.f);
-
-    msh.indexBuffer = {
-        0, 1, 2,
-        2, 3, 0
-    };
-    return msh;
-}
 
