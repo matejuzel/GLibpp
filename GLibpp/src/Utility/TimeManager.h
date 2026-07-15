@@ -120,11 +120,29 @@ public:
         }
     }
 
+    // Druhy parametr callbacku je IDEALNI casova znacka logickeho kroku - rovnomerna,
+    // bez jitteru scheduleru, ve stejne epose jakou pouziva sinceStart().
+    //
+    // Invariant: S = wallAt(m_prev) - m_accumulator  ("simulovany wall-clock cas").
+    //   - tick() i updateAccumulatorOnly() posunou m_prev i m_accumulator o stejne dt,
+    //     takze S zachovaji presne -> jitter scheduleru do S nepronikne.
+    //   - kazdy zkonzumovany krok posune S presne o m_fixedDelta.
+    //   - clamp v tick() posune S dopredu o zahozeny cas. To je zamer: S musi zustat
+    //     ukotvene na wall clocku, jinak by se logicke hodiny po zaseku uz nedotahly.
+    //
+    // Kotva musi byt m_prev, NE cerstve sinceStart(). sinceStart() = wallAt(m_prev)
+    // + cas uplynuly od ticku, a prave ten druhy clen je ten jitter.
     void dispatchAction(const std::function<void(double, double)>& stepCallback)
     {
+        const double wallAtAccumulator = wallAt(m_prev);
+
         while (m_accumulator >= m_fixedDelta) {
-            stepCallback(m_fixedDelta, sinceStart());
+            // Odecist PRED callbackem. Pak (wallAtAccumulator - m_accumulator) == S po kroku,
+            // tedy cas stavu, ktery callback prave vyrobil a publikuje. Poradi je nosne:
+            // pri odecteni az za callbackem by znacka patrila stavu PRED krokem a renderer
+            // by dostaval t v [1,2) -> vzdy clampnute na 1 -> interpolace tise vypnuta.
             m_accumulator -= m_fixedDelta;
+            stepCallback(m_fixedDelta, wallAtAccumulator - m_accumulator);
         }
     }
 
@@ -193,7 +211,7 @@ public:
     double sinceStart() const {
         LARGE_INTEGER now;
         QueryPerformanceCounter(&now);
-        return double(now.QuadPart - m_absoluteStart.QuadPart) / double(m_freq.QuadPart);
+        return wallAt(now);
     }
 
     void reset() {
@@ -326,6 +344,13 @@ public:
     }
 
 private:
+
+    // Wall-clock cas (v sekundach) daneho QPC razitka, ve stejne epose jakou pouziva
+    // sinceStart(). Producent razitek (dispatchAction) i konzument (renderer pres
+    // sinceStart()) musi pocitat stejnym vzorcem, jinak se epochy tise rozejdou.
+    double wallAt(LARGE_INTEGER qpc) const {
+        return double(qpc.QuadPart - m_absoluteStart.QuadPart) / double(m_freq.QuadPart);
+    }
 
     // Pomocná metoda pro aktualizaci vnitøního èasu bez ovlivnìní FPS historie
     void updateAccumulatorOnly() {

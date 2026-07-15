@@ -169,7 +169,16 @@ namespace Render {
             TimeManager timer1Hz(1.0); // pro výpoèet FPS každou sekundu
 			TimeManager timerSyncV(35.0);
 
-			uint32_t frameIndex = 0;            
+			uint32_t frameIndex = 0;
+
+            // --- jitter detektor (agregovany, vypis 1x za sekundu) ---
+            // Zamerne se NEvypisuje na kazdy snimek: pri stovkach FPS je std::cout
+            // s endl (flush + zamek) sam o sobe zdroj zaseku a rusil by prave to,
+            // co ma merit.
+            uint32_t statesSeen = 0;           // warm-up: prvni 2 stavy nediagnostikovat
+            uint32_t alphaOutOfRange = 0;
+            uint32_t stateDeltaFallbacks = 0;
+            double   alphaWorst = 0.0;
 
             running.start();
 
@@ -188,6 +197,7 @@ namespace Render {
                     // z tripple bufferu (App -> Renderer) si vezmeme posledni neprecteny stav a 
                     // ulozime ho do logicStateFramePair (aktualizace puvodni current posuneme na previous a ulozime novy current)
                     logicStateFramePair.advance_and_load_current(logicStateBuffered.get_read_buffer());
+                    if (statesSeen < 2) ++statesSeen;
                 }
 
                 auto& logicStateCurrent = logicStateFramePair.get_current();
@@ -208,18 +218,34 @@ namespace Render {
 
                     // 2. Skuteèný èasový rozdíl mezi stavy (chráníme proti dìlení nulou)
                     double stateDelta = timeCurr - timePrev;
-                    if (stateDelta <= 0.0001) {
-                        stateDelta = timer.getFixedDelta(); // fallback
+                    // Znacky jsou nove presne k*fixedDelta, takze stateDelta je vzdy
+                    // >= fixedDelta (nebo nasobek, kdyz renderer stav preskoci).
+                    // Puvodni prah 0.0001 uz nema co chytat - je z nej detektor chyby.
+                    if (stateDelta <= 0.0) {
+                        stateDelta = timer.getFixedDelta(); // po fixu uz nesmi nastat
+                        if (statesSeen >= 2) ++stateDeltaFallbacks;
                     }
 
                     // 3. Vypoèítáme Vizuální Èas = aktuální èas mínus jedno logické okno
                     // Tím se vždy držíme bezpeènì MEZI timePrev a timeCurr
-                    double visualTime = timer.sinceStart() - timer.getFixedDelta() *1.5;
+                    // Koeficient 1.0 neni ladici knoflik, ale JEDINA vyhovujici hodnota:
+                    // nejnovejsi viditelny stav ma znacku now - r, kde r je v [L, delta+L)
+                    // (L = publish latence). Aby visualTime padlo mezi timePrev a timeCurr
+                    // pro cele rozpeti r, musi byt koeficient presne 1 + L/delta, tedy ~1.0.
+                    // Puvodnich 1.5 davalo t = r/delta - 0.5, tedy pulku casu zaporne
+                    // -> clamp na 0 -> stav zamrzne na pul cyklu a pak skoci.
+                    double visualTime = timer.sinceStart() - timer.getFixedDelta() * 1.0;
 
                     // 4. Výpoèet alfa na základì skuteèného rozpìtí
                     t = (visualTime - timePrev) / stateDelta;
                 }
-                if (t >= 1.0) std::cout << "Zaskub: t = " << t << std::endl;
+                // Po fixu ma t vyjet do [0, 1 + L/delta), kde L je publish latence.
+                // Cokoli mimo (s rezervou na L) znamena navrat jitteru do znacek.
+                constexpr double kAlphaEps = 0.02; // 2 % kroku ~ 0.33 ms pri 60 Hz
+                if (statesSeen >= 2 && (t < -kAlphaEps || t > 1.0 + kAlphaEps)) {
+                    ++alphaOutOfRange;
+                    alphaWorst = std::max(alphaWorst, std::max(-t, t - 1.0));
+                }
                 double tClamped = std::clamp(t, 0.0, 1.0);
 
                 logicStateInterpolated.scene = Slerp(
@@ -232,13 +258,25 @@ namespace Render {
 
                 timer1Hz.tickAndDispatchAction([&](double dt) {
                     device.getWindow().postMessageSetTitle(timer, frameIndex);
+
+                    if (alphaOutOfRange || stateDeltaFallbacks) {
+                        std::cout << "Zaskub: alpha mimo rozsah " << alphaOutOfRange
+                                  << "x (nejhorsi pretah " << alphaWorst
+                                  << "), stateDelta fallback " << stateDeltaFallbacks << "x"
+                                  << std::endl;
+                        alphaOutOfRange = 0;
+                        stateDeltaFallbacks = 0;
+                        alphaWorst = 0.0;
+                    }
                 });
 
                 // 1. Zmìøíme èas, který zabral rendering (pøidá se do m_accumulator)
                 timerSyncV.tick();
 
                 // 2. Uspíme vlákno, dokud m_accumulator nedosáhne hodnoty m_fixedDelta (napø. 33.3 ms)
-                timerSyncV.waitUntilNextStep();
+                // Frame limiter zamerne vypnuty: render bezi naplno, aby byl pripadny
+                // mikro-stutter z interpolace co nejlepe videt.
+                //timerSyncV.waitUntilNextStep();
 
                 // 3. Odeèteme m_fixedDelta z akumulátoru, aby byl pøipraven na další snímek
                 // Prázdná lambda funkce funguje jako "èistiè"

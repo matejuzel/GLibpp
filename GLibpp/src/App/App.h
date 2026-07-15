@@ -507,7 +507,11 @@ public:
 
         running.start();
 
-        logicStateBuffered.publish();
+        // Pozor: holy publish() by odeslal buffers[0], do ktereho se nikdy nezapsalo,
+        // takze renderer by si jako prvni precetl default Scene (vcetne default Camery),
+        // ne tu nakonfigurovanou vyse. Publikujeme tedy realny vychozi stav.
+        // Znacka 0.0 da prvnimu skutecnemu stavu velke stateDelta -> t ~ 1, bez fallbacku.
+        scenePublish(logicState, 0.0);
 
 		setupThreadPriority(THREAD_PRIORITY_HIGHEST);
 

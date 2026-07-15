@@ -48,7 +48,11 @@ struct Scene {
 
 
 struct LogicTickInfo {
-	double lastLogicTick;
+	// Inicializator je nutny: ZeroAllocTripleBuffer ma `std::array<T,3> buffers;` bez
+	// NSDMI a mimo mem-init-list ctoru, takze se default-inicializuje. Bez teto nuly
+	// by prvni publish() (jeste pred prvnim tickem) poslal neurcity double - cteni
+	// takove hodnoty je UB a NaN by se pres std::clamp propagoval do Slerp.
+	double lastLogicTick = 0.0;
 };
 
 struct LogicState {
