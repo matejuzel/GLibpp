@@ -88,6 +88,11 @@ namespace Render {
 
         Mesh meshGrid = MeshFactory::CreateGrid(80, 0.2f).applyTransformation(Mtx4::Identity().rotateX(GLibpp::Math::deg2rad(90.0f)).translate(-50.0f, -50.0f, 0.0f));
 
+        // staticke meshe stavene jednou (drive se tvorily kazdy frame)
+        Mesh meshIcosphere = MeshFactory::CreateIcosphere(1.0f, 4);
+        Mesh meshIcrMarker = MeshFactory::CreateCube(0.1f).applyTransformation(Mtx4::Scaling(0.01f, 8.0f, 0.01f));
+        Mesh meshAxisBar   = MeshFactory::CreateCube(1.0f).applyTransformation(Mtx4::Scaling(12.0f, 0.01f, 0.01f));
+
     public:
 
         Renderer(WindowWin32& window, LogicStateBuffered& logicStateBuffered, float logicHz)
@@ -132,10 +137,10 @@ namespace Render {
                 device.drawMesh(ctx, scene.car.getMesh(), scene.car.getCarMatrix());
 
                 // shpere
-                device.drawMesh(ctx, MeshFactory::CreateIcosphere(1.0f, 4), scene.car.model.getTransformation(), Color::Grayscale(0.7f), true);
-            
+                device.drawMesh(ctx, meshIcosphere, scene.car.model.getTransformation(), Color::Grayscale(0.7f), true);
+
                 // ICR
-                device.drawMesh(ctx, MeshFactory::CreateCube(0.1f).applyTransformation(Mtx4::Scaling(0.01f, 8.0f, 0.01f)), scene.car.getIcrTransformation());
+                device.drawMesh(ctx, meshIcrMarker, scene.car.getIcrTransformation());
 
                 // wheels
                 device.drawMesh(ctx, scene.car.wheelFrontLeft.getMesh(), scene.car.getFrontLeft());
@@ -144,9 +149,9 @@ namespace Render {
                 device.drawMesh(ctx, scene.car.wheelBackRight.getMesh(), scene.car.getBackRight());
 
                 // wheel axis
-                device.drawMesh(ctx, MeshFactory::CreateCube(1.0f).applyTransformation(Mtx4::Scaling(12.0f, 0.01f, 0.01f)), scene.car.getFrontLeft());
-                device.drawMesh(ctx, MeshFactory::CreateCube(1.0f).applyTransformation(Mtx4::Scaling(12.0f, 0.01f, 0.01f)), scene.car.getFrontRight());
-                device.drawMesh(ctx, MeshFactory::CreateCube(1.0f).applyTransformation(Mtx4::Scaling(12.0f, 0.01f, 0.01f)), scene.car.getCarMatrix());
+                device.drawMesh(ctx, meshAxisBar, scene.car.getFrontLeft());
+                device.drawMesh(ctx, meshAxisBar, scene.car.getFrontRight());
+                device.drawMesh(ctx, meshAxisBar, scene.car.getCarMatrix());
 
                 // axis of local object spaces
                 device.drawAxis(ctx, scene.car.getCarMatrix());
@@ -166,7 +171,7 @@ namespace Render {
             LogicStateFramePair logicStateFramePair;
 
             TimeManager timer(logicHz, true);
-            TimeManager timer1Hz(1.0); // pro výpoèet FPS každou sekundu
+            TimeManager timer1Hz(1.0); // pro vï¿½poï¿½et FPS kaï¿½dou sekundu
 			TimeManager timerSyncV(35.0);
 
 			uint32_t frameIndex = 0;
@@ -212,11 +217,11 @@ namespace Render {
                 }
                 else
                 {
-                    // 1. Zjistíme pøesné èasové znaèky obou stavù z Triple Bufferu
+                    // 1. Zjistï¿½me pï¿½esnï¿½ ï¿½asovï¿½ znaï¿½ky obou stavï¿½ z Triple Bufferu
                     double timePrev = logicStatePrevious.tickInfo.lastLogicTick;
                     double timeCurr = logicStateCurrent.tickInfo.lastLogicTick;
 
-                    // 2. Skuteèný èasový rozdíl mezi stavy (chráníme proti dìlení nulou)
+                    // 2. Skuteï¿½nï¿½ ï¿½asovï¿½ rozdï¿½l mezi stavy (chrï¿½nï¿½me proti dï¿½lenï¿½ nulou)
                     double stateDelta = timeCurr - timePrev;
                     // Znacky jsou nove presne k*fixedDelta, takze stateDelta je vzdy
                     // >= fixedDelta (nebo nasobek, kdyz renderer stav preskoci).
@@ -226,8 +231,8 @@ namespace Render {
                         if (statesSeen >= 2) ++stateDeltaFallbacks;
                     }
 
-                    // 3. Vypoèítáme Vizuální Èas = aktuální èas mínus jedno logické okno
-                    // Tím se vždy držíme bezpeènì MEZI timePrev a timeCurr
+                    // 3. Vypoï¿½ï¿½tï¿½me Vizuï¿½lnï¿½ ï¿½as = aktuï¿½lnï¿½ ï¿½as mï¿½nus jedno logickï¿½ okno
+                    // Tï¿½m se vï¿½dy drï¿½ï¿½me bezpeï¿½nï¿½ MEZI timePrev a timeCurr
                     // Koeficient 1.0 neni ladici knoflik, ale JEDINA vyhovujici hodnota:
                     // nejnovejsi viditelny stav ma znacku now - r, kde r je v [L, delta+L)
                     // (L = publish latence). Aby visualTime padlo mezi timePrev a timeCurr
@@ -236,7 +241,7 @@ namespace Render {
                     // -> clamp na 0 -> stav zamrzne na pul cyklu a pak skoci.
                     double visualTime = timer.sinceStart() - timer.getFixedDelta() * 1.0;
 
-                    // 4. Výpoèet alfa na základì skuteèného rozpìtí
+                    // 4. Vï¿½poï¿½et alfa na zï¿½kladï¿½ skuteï¿½nï¿½ho rozpï¿½tï¿½
                     t = (visualTime - timePrev) / stateDelta;
                 }
                 // Po fixu ma t vyjet do [0, 1 + L/delta), kde L je publish latence.
@@ -270,16 +275,16 @@ namespace Render {
                     }
                 });
 
-                // 1. Zmìøíme èas, který zabral rendering (pøidá se do m_accumulator)
+                // 1. Zmï¿½ï¿½ï¿½me ï¿½as, kterï¿½ zabral rendering (pï¿½idï¿½ se do m_accumulator)
                 timerSyncV.tick();
 
-                // 2. Uspíme vlákno, dokud m_accumulator nedosáhne hodnoty m_fixedDelta (napø. 33.3 ms)
+                // 2. Uspï¿½me vlï¿½kno, dokud m_accumulator nedosï¿½hne hodnoty m_fixedDelta (napï¿½. 33.3 ms)
                 // Frame limiter zamerne vypnuty: render bezi naplno, aby byl pripadny
                 // mikro-stutter z interpolace co nejlepe videt.
                 //timerSyncV.waitUntilNextStep();
 
-                // 3. Odeèteme m_fixedDelta z akumulátoru, aby byl pøipraven na další snímek
-                // Prázdná lambda funkce funguje jako "èistiè"
+                // 3. Odeï¿½teme m_fixedDelta z akumulï¿½toru, aby byl pï¿½ipraven na dalï¿½ï¿½ snï¿½mek
+                // Prï¿½zdnï¿½ lambda funkce funguje jako "ï¿½istiï¿½"
                 timerSyncV.dispatchAction([](double dt) {});
             }
 

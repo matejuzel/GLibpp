@@ -1,0 +1,1356 @@
+╭─── Claude Code v2.1.209 ─────────────────────────────────────────────────────╮
+│                                                    │ Tips for getting        │
+│                 Welcome back Matej!                │ started                 │
+│                                                    │ Run /init to create a … │
+│                       ▐▛███▜▌                      │ ─────────────────────── │
+│                      ▝▜█████▛▘                     │ What's new              │
+│                        ▘▘ ▝▝                       │ Fixed /model and other… │
+│    Opus 4.8 · Claude Max · uzel@happyend.cz's      │ Added screen reader mo… │
+│    Organization                                    │ Added `vimInsertModeRe… │
+│  ~\Desktop\GLibpp\.claude\worktrees\remove_jitter  │ /release-notes for more │
+╰──────────────────────────────────────────────────────────────────────────────╯
+
+ ▎ Extended through July 19
+ ▎ We're extending Claude Fable 5 access on all paid plans, as well as keeping Claude Code’s weekly rate limits 50% higher, through July 19.
+ ▎
+ ▎ As before, you can use up to half of your weekly usage limit on Fable 5. After that, you can keep using Fable 5 with usage credits, or switch to another model to keep working within your remaining limits.
+ ▎
+ ▎ More details here: https://support.claude.com/en/articles/15424964-claude-fable-5-promotional-access
+
+> /init                                                                         
+
+● I'll explore the repository structure to understand the codebase before
+  writing CLAUDE.md.
+
+  Searched for 1 pattern, listed 1 directory (ctrl+o to expand)
+
+● .vs is Copilot snapshot noise — let me look at the real project tree.
+
+  Read 2 files, ran 1 shell command (ctrl+o to expand)
+
+● A C++ software renderer for Win32 with MSVC. Let me read the core files.
+
+  Read 3 files (ctrl+o to expand)
+
+● I have the app loop. Now the renderer, project settings, and scene.
+
+  Read 3 files (ctrl+o to expand)
+
+● Now let me explore the renderer backend and core data structures in parallel,
+  and check for existing rules files.
+
+● 2 background agents launched (↓ to manage)
+   ├ Explore renderer backend
+   └ Explore core datastructures
+
+  Ran 1 shell command (ctrl+o to expand)
+
+● No Cursor or Copilot rules exist. While the agents work, let me check the
+  build tooling and geometry layer.
+
+  Read 2 files, ran 1 shell command (ctrl+o to expand)
+
+● Agent "Explore renderer backend" finished · 50s
+
+● Agent "Explore core datastructures" finished · 1m 2s
+
+● Both agents returned detailed findings. Let me verify the build command
+  actually works before documenting it.
+
+  Ran 1 shell command (ctrl+o to expand)
+
+● Build succeeds (Czech-localized MSVC), producing x64\Debug\GLibpp.exe. Let me
+  check one runtime gotcha — main.cpp hardcodes display DISPLAY2.
+
+  Searched for 4 patterns, ran 1 shell command (ctrl+o to expand)
+
+● Build verified, architecture mapped. Writing CLAUDE.md now.
+
+● Write(~\Desktop\GLibpp\CLAUDE.md)
+  ⎿  Wrote 71 lines to ..\..\..\CLAUDE.md
+      1 # CLAUDE.md
+      3 This file provides guidance to Claude Code (claude.ai/code) when 
+        working with code in this repository.
+      4 
+      6 
+      7 GLibpp is a from-scratch **software 3D renderer** in C++20 on bar
+        terized on the CPU into a Win32 DIB section and blitted to the wi
+        ndow. The current demo is a car driven by a bicycle physics model
+         (arrow keys to drive, ESC to quit).
+      9 ## Build and run
+     … +133 lines (ctrl+o to expand)
+
+● I've created CLAUDE.md at the repository root. There was no existing one, and
+  no Cursor or Copilot rules to fold in; the README is just a title line, so
+  everything came from reading the code.
+
+  The build and run commands are verified rather than assumed — I ran the x64
+  Debug build, which succeeded with warnings only and produced
+  x64\Debug\GLibpp.exe.
+
+  A few things I found worth writing down, since none of them are guessable from
+  a quick look at the tree:
+
+  The x64-only constraint. The solution advertises Win32/x86 configurations, but
+  those ItemDefinitionGroups set neither the include directories nor C++20.
+  Since every include in the codebase is flat (#include "Mtx4.h" with ~20
+  directories on the include path), an x86 build cannot resolve a single header.
+  A future instance debugging a build failure could easily waste time switching
+  platforms, so I called that out explicitly.
+
+  The threading model is the architecture. A logic thread at fixed 60 Hz and an
+  unthrottled render thread share exactly one object — an SPSC triple buffer of
+  LogicState — and the renderer interpolates between two logic states using
+  timestamps carried in the state itself. The practical consequence, which I
+  highlighted: any new time-varying Scene field must be added to Scene::Slerp or
+  it will visibly stutter.
+
+  What's stubbed versus what's real. This mattered enough to get its own
+  section. There is no depth buffer despite depthbufferHandle being created and
+  resized; ResourceManager::meshRegister is a @todo returning {0,0}, making the
+  mesh handles at the top of Renderer.h meaningless; and the entire
+  Backend/RenderCommand/ tree compiles but is dead — its only call site is
+  commented out. Someone reading those files cold would reasonably assume
+  they're load-bearing.
+
+  I also noted the Czech comments and commit convention, and that _old/ is a
+  prior engine iteration to leave alone.
+
+  Two things I documented as intentional but that you may want to reconsider —
+  flagging them rather than acting:
+
+  - renderFrame rebuilds several meshes from MeshFactory every frame (the
+  animated grid, icosphere, and axis cubes). Given that mesh registration is
+  stubbed, this looks like a placeholder rather than a choice.
+  - Renderer::resize assigns targetResize's return value straight back onto the
+  handle, and that function returns TARGET_INVALID on failure — so one failed
+  resize would permanently destroy the framebuffer handle.
+
+✻ Cooked for 2m 19s
+
+※ recap: I created CLAUDE.md at the repo root documenting the x64-only build, the two-thread interpolation architecture, and what's stubbed. It's done and the build is verified. Next: review it and tell me what to adjust. (disable recaps in /config)
+
+> dokazal bys projit projekt a najit kriticka mista? Hlavne mi jde treba o      
+  mozne zaseky v plynulosti renderingu. Takze proverit vlakna App vs. Renderer  
+  a predavani dat pomoci Tripple bufferingu. Spolu s tim zkontrolovat jestli    
+  ten timer je spravne implmentovan a spravne pouzit. Nehledej ted chyby tam co 
+  se neprojevuje primo v renderingu.                                            
+● Projdu to. Načtu si timer a datové struktury sám — tohle chce přesnost, ne
+  shrnutí od agenta.
+
+  Read 3 files (ctrl+o to expand)
+
+● Načteno. Teď si ověřím cenu per-frame generování meshů a kopírování.
+
+  Read 2 files (ctrl+o to expand)
+
+● Ověřím ještě, jak render vlákno získává HDC okna — cross-thread GDI je
+  klasický zdroj záseků.
+
+  Ran 2 shell commands (ctrl+o to expand)
+
+● Prošel jsem to a mám jasný obrázek. Neprofiloval jsem to — všechno níže je z
+  četby kódu, ale u většiny bodů jde o strukturální věci, které se dají ověřit i
+  bez měření.
+
+  Hlavní příčina: lastLogicTick je nástěnný čas, ne simulační
+
+  Tohle je podle mě jádro záseků. V TimeManager::dispatchAction
+  (TimeManager.h:123-129):
+
+  while (m_accumulator >= m_fixedDelta) {
+      stepCallback(m_fixedDelta, sinceStart());   // ← čerstvé QPC, ne ideální 
+  čas ticku
+      m_accumulator -= m_fixedDelta;
+  }
+
+  sinceStart() je okamžik, kdy se callback náhodou spustil. Takže razítka jsou
+  t_k = k·Δ + jitter_k, ne k·Δ. Renderer pak počítá alfu (Renderer.h:206-220):
+
+  double stateDelta = timeCurr - timePrev;          // Δ ± jitter
+  t = (visualTime - timePrev) / stateDelta;         // jitter v čitateli i 
+  jmenovateli
+
+  Jitter scheduleru se tím propíše přímo do interpolačního koeficientu. Alfa pak
+  neroste lineárně s reálným časem → objekty se pohybují nerovnoměrně i při 
+  vysokém FPS. To je přesně ten typ mikro-záseku, který nejde vysvětlit nízkým
+  FPS. Ty výpisy "Zaskub: t = ..." na Renderer.h:222 jsou symptom tohohle.
+
+  Fix je malý: v App si držet monotónní simulační hodiny (simTime += fixedDelta
+  každý krok) a publikovat je. stateDelta je pak přesně Δ a alfa jede lineárně.
+  Zároveň si všimni, že razítko se bere před updateLogic(), ale publikuje se
+  stav po něm — stav v čase T+Δ dostane razítko T.
+
+  Dokud tohle platí, std::clamp(t, 0.0, 1.1) na Renderer.h:223 problém jen
+  maskuje (a ta 1.1 navíc nesymetricky extrapoluje).
+
+  Druhá příčina: renderer alokuje jako o život
+
+  renderFrame staví meše od nuly každý snímek (Renderer.h:128-149):
+
+  - CreateGridWave(60, ...) → 3 600 vertexů se sqrt+sin, 6 962 trojúhelníků, 20
+  886 indexů — a indexBuffer nemá reserve() (MeshFactory.cpp:317), takže roste
+  realokacemi.
+  - CreateIcosphere(1.0f, 4) → 20·4⁴ = 5 120 trojúhelníků, a
+  MeshModifier::Subdivide si pro každou ze 4 iterací alokuje nový unordered_map
+  + vector (MeshModifier.h:14-41).
+  - k tomu 5× CreateCube s applyTransformation.
+
+  A pak Slerp — každý snímek. Scene sceneInterpolated = b; je hluboká kopie 5
+  mešů, Slerp(a.car, b.car, t) kopíruje CarTransformation (dalších 5 mešů), a
+  WheelTransformation::Lerp kopíruje mesh 4×. To je ~10 hlubokých kopií mešů na 
+  snímek, na render vlákně. Při 1000 FPS to jsou desítky tisíc malloc/free za
+  sekundu.
+
+  Ta struktura se jmenuje ZeroAllocTripleBuffer, ale T = LogicState obsahuje
+  Scene s Meshi, takže zero-alloc je jen ta indexová výměna — payload alokuje na
+  obou vláknech (scenePublish na logice, advance_and_load_current na
+  rendereru). Meše ve Scene jsou navíc neměnné — nemají tam co dělat, patří do
+  registry vedle handle.
+
+  Triple buffer: skutečný lost-update race
+
+  update_reader() (ZeroAllocTripleBuffer.h:35-48) resetuje has_new_data až po
+  výměně:
+
+  P: exchange(dirty) ← A;  P: has_new_data = true
+  C: load → true
+  C: exchange(dirty) → dostane A
+  P: exchange(dirty) ← B;  P: has_new_data = true
+  C: has_new_data = false        ← přepíše producentovo true; B se ztratí z
+  notifikace
+
+  B zůstane v dirty_idx s flagem false, takže consumer ho vyzvedne až po dalším
+  publish() — o 16 ms později. Renderer mezitím drží starý stav o tick déle →
+  stateDelta vyjde 33 ms místo 16 → viditelné škubnutí. Okno je úzké, ale
+  nenulové. Čistý fix je flag zahodit a „je tu novinka" zakódovat jako bit přímo
+  do dirty_idx, aby výměna byla jedna atomická operace.
+
+  Catch-up krok zahodí stav i razítko
+
+  Když dispatchAction udělá v jedné iteraci dva kroky, oba zavolají scenePublish
+  — druhý ten první přepíše (což je v pořádku, triple buffer drží jen
+  poslední). Ale obě sinceStart() volání se liší o mikrosekundy, takže razítko
+  odpovídá jednomu kroku, zatímco fyzika popojela o 2Δ. Renderer pak spadne do
+  fallbacku stateDelta <= 0.0001 (Renderer.h:211) a alfa je mimo. Monotónní
+  simulační hodiny řeší i tohle.
+
+  Render smyčka není nijak brzděná
+
+  V runLoop je timerSyncV.waitUntilNextStep() zakomentovaný (Renderer.h:241),
+  takže render vlákno běží naplno a přes tick() + prázdný dispatchAction jen
+  protáčí akumulátor. Logic vlákno přitom v waitUntilNextStep spinuje s 
+  _mm_pause() až 2 ms každých 16,6 ms (TimeManager.h:249-255) na
+  THREAD_PRIORITY_HIGHEST. Na stroji s málo jádry si ta dvě vlákna lezou do zelí
+  — a jitter scheduleru jde, viz bod 1, rovnou do interpolace.
+
+  timer.tickAndFlush() na Renderer.h:196 je mimochodem skoro no-op: renderer z
+  toho timeru používá jen sinceStart() a getFixedDelta(), a sinceStart() si dělá
+  vlastní QPC nezávisle na akumulátoru. Reálně to jen udržuje FPS historii.
+
+  Dvě drobnosti, které se taky projeví
+
+  Animace jede na indexu snímku. CreateGridWave(60, 0.2f, frameIndex, 0.05f)
+  předává frameIndex do parametru float time — proto ten warning C4244 na
+  Renderer.h:128 v buildu. Rychlost vlny tedy závisí na FPS; jakmile FPS kolísá,
+  vlna kolísá s ním.
+
+  Garbage v prvním publikovaném stavu. std::array<T,3> buffers; se
+  default-inicializuje a LogicTickInfo::lastLogicTick nemá inicializátor, takže
+  publish() na App.h:510 (před prvním tickem) pošle neinicializované razítko.
+  Projeví se to jen na prvních pár snímcích, než začnou téct reálné stavy.
+
+  ---
+  Kdybych to měl řadit podle poměru dopad/práce, šel bych: (1) monotónní simTime
+  místo sinceStart(), (2) vytáhnout generování mešů z renderFrame a meše ze
+  Scene, (3) atomický bit v dirty_idx. První dva body podle mě odstraní většinu
+  toho, co vidíš. Chceš, abych některý z nich rovnou implementoval?
+
+✻ Baked for 3m 47s
+
+※ recap: Cílem je odstranit záseky v plynulosti renderingu; audit vláken, triple bufferu a timeru je hotový. Čekám na tvoje rozhodnutí, jestli mám rovnou opravit razítka logických ticků na monotónní simulační čas. (disable recaps in /config)
+
+> Chtel bych opravit simTime misto sinceStart() jak jsi mi ted navrhoval. Asi   
+  by to bylo dobre udelat v novem worktree s nazvem remove_jitter               
+
+● Dobrý nápad s worktree. Než napíšu plán, ověřím si všechna volání
+  dvouargumentového dispatchAction a načtu si schéma worktree nástroje.
+
+● Explore(Find dispatchAction call sites)
+  ⎿  Backgrounded agent (↓ to manage · ctrl+o to expand)
+
+  Ran 2 shell commands (ctrl+o to expand)
+
+● Zajímavé — ten necommitnutý diff v Renderer.h ukazuje, že už jsi si s těmi
+  knoby hrál (*1.5→*1.0, clamp 1.0→1.1, vypnutý frame limiter). To je pro plán
+  důležité. Nechám doběhnout průzkum a pak navrhnu design.
+
+● Plan(Design simTime timestamp fix)
+  ⎿  Backgrounded agent (↓ to manage · ctrl+o to expand)
+
+● Agent "Find dispatchAction call sites" finished · 1m 10s
+
+● Průzkum potvrdil, že dopad je velmi malý: jediný konzument dvouargumentového
+  dispatchAction je App.h:523. Počkám na návrh a ověření matematiky.
+
+  Read 1 file (ctrl+o to expand)
+
+● Mám ověřený přesný stav kódu. Než dopíšu plán, potřebuju od tebe dvě
+  rozhodnutí — obě souvisí s tím, že máš v Renderer.h necommitnuté experimenty.
+
+● User answered Claude's questions:
+  ⎿  · Z čeho má worktree `remove_jitter` vyjít? Máš v `Renderer.h` necommitnuté
+     změny (lag `*1.5`→`*1.0`, clamp `[0,1]`→`[0,1.1]`, vypnutý frame limiter).
+     Worktree vzniká z commitu, takže se samy nepřenesou — v hlavním checkoutu 
+     ale zůstanou nedotčené tak jako tak. → Z commitu main (doporučeno)
+     · Co s frame limiterem render smyčky ve worktree? Commit main má 
+     `timerSyncV(35.0)` + zapnutý `waitUntilNextStep()`, což strop render FPS na
+     35. Ty jsi ho v working tree vypnul. → Nechat vypnutý
+
+● Rozhodnutí mám. Píšu plán.
+
+● Updated plan
+  ⎿  /plan to preview
+● User approved Claude's plan
+  ⎿  Plan saved to: ~\.claude\plans\chtel-bych-opravit-simtime-nifty-cupcake.md 
+     · /plan to edit
+     Odstranění jitteru z interpolace (worktree remove_jitter)
+
+     Context
+
+     Logic vlákno běží na pevných 60 Hz a publikuje LogicState render vláknu
+     přes triple buffer. Každý stav nese razítko tickInfo.lastLogicTick a
+     renderer podle něj interpoluje mezi předchozím a aktuálním stavem.
+
+     Problém: TimeManager::dispatchAction (dvouargumentová varianta,
+     TimeManager.h:123-129) předává jako razítko sinceStart() — tedy syrový QPC
+     v okamžiku, kdy se callback náhodou spustil. Razítka jsou proto k·Δ + 
+     jitter_k. Renderer pak počítá stateDelta = timeCurr - timePrev a t = 
+     (visualTime - timePrev) / stateDelta (Renderer.h:206-220), takže jitter
+     scheduleru jde přímo do interpolačního koeficientu. Alfa neroste lineárně s
+     reálným časem → mikro-stutter i při vysokém FPS. Diagnostický výpis
+     "Zaskub: t = ..." na Renderer.h:222 je symptom právě tohohle.
+
+     Druhý projev: když dispatchAction udělá v jedné iteraci dva kroky
+     (catch-up), sinceStart() se volá uvnitř smyčky a oba kroky dostanou skoro
+     identické razítko. stateDelta spadne k nule, renderer sáhne po fallbacku
+     stateDelta <= 0.0001 (Renderer.h:211), zatímco fyzika popojela o 2Δ → alfa
+     je mimo.
+
+     Cílem je razítko, které je rovnoměrné (bez jitteru) a zároveň zůstane ve
+     stejných hodinách, jaké používá renderer.
+
+     Rozsah dopadu (ověřeno)
+
+     Dvouargumentový dispatchAction má v celém živém kódu jediného konzumenta:
+     App.h:523. Jednoargumentová varianta (Renderer.h:245, Renderer.h:233,
+     App.h:529) se nemění. getInterpolationFactor() a getAccumulator() nikdo
+     nevolá.
+
+     Klíčová myšlenka
+
+     Nepoužít čítač m_simTime += Δ. Ten by se od nástěnných hodin trvale rozešel
+     při každém zásahu clampu v tick() (TimeManager.h:98, limit = 0.25 s), a
+     protože renderer počítá visualTime z vlastního sinceStart(), po jednom
+     velkém záseku by se interpolace rozbila natrvalo.
+
+     Místo toho odvodit ideální čas z akumulátoru. m_prev je vždy okamžik, ke
+     kterému akumulátor odpovídá (aktualizují se spolu jak v tick(), tak v
+     updateAccumulatorOnly()). Platí invariant A = accumulated - (k-1)·Δ při
+     nástěnném čase W = m_prev. Po odečtení A' = A - Δ dostaneme:
+
+     W - A' = W₀ + k·Δ + (zahozený čas)
+
+     Tedy razítka přesně Δ od sebe, ukotvená v nástěnných hodinách, a každý krok
+     v catch-upu dostane své vlastní správné razítko. Clamp způsobí jen
+     jednorázový posun offsetu (což je správně — ten čas jsme zahodili záměrně),
+     ne trvalý rozjezd.
+
+     Protože obě TimeManager instance vznikají s useGlobalStart=true (App.h:492,
+     Renderer.h:168), sdílejí m_absoluteStart a razítka jsou napříč vlákny
+     porovnatelná. Tenhle epoch se nesmí rozbít, jinak Renderer.h:217-220 tiše
+     spočítá věrohodné, ale špatné t.
+
+     Změny
+
+     1. GLibpp/src/Utility/TimeManager.h — jádro fixu
+
+     Přidat privátní helper vedle updateAccumulatorOnly():
+
+     // Nastenny cas (sekundy od spolecneho epochu), kteremu odpovida soucasny 
+     m_accumulator.
+     // m_prev a m_accumulator se vzdy aktualizuji spolecne (tick(), 
+     updateAccumulatorOnly()).
+     double accumulatorTimeInSeconds() const {
+         return double(m_prev.QuadPart - m_absoluteStart.QuadPart) /
+     double(m_freq.QuadPart);
+     }
+
+     Přepsat dvouargumentový dispatchAction:
+
+     void dispatchAction(const std::function<void(double, double)>& 
+     stepCallback)
+     {
+         if (m_accumulator < m_fixedDelta) return;
+
+         // Nesmi to byt cerstve sinceStart() - to by do razitka vratilo mezeru
+         // mezi tick() a timhle volanim. Akumulator se vztahuje k m_prev.
+         const double wallAtAccumulator = accumulatorTimeInSeconds();
+
+         while (m_accumulator >= m_fixedDelta) {
+             m_accumulator -= m_fixedDelta;
+             // wallAtAccumulator - m_accumulator == W0 + k*fixedDelta
+             // = idealni cas KONCE tohoto kroku, rovnomerne, bez jitteru.
+             stepCallback(m_fixedDelta, wallAtAccumulator - m_accumulator);
+         }
+     }
+
+     Dvě věci, které to řeší mimochodem:
+     - Odečtení Δ před callbackem znamená, že razítko je čas konce kroku.
+     Publikovaný stav je stav po updateLogic(), takže tím zaniká i současný
+     posun o jedno Δ (dnes se razítko bere před krokem, ale stav se publikuje po
+     něm).
+     - sinceStart() se přestane volat na každý krok (jedno QPC navíc na krok).
+
+     tickAndFlush(), jednoargumentový dispatchAction ani tick() se nemění.
+
+     2. GLibpp/src/Engine/Renderer/Renderer.h — konzument
+
+     - Lag musí být přesně 1.0Δ (Renderer.h:217). V commitu je * 1.5, změnit na
+     * 1.0. Není to kosmetika: se správnými razítky platí timeCurr = now - r,
+     kde r ∈ [0,Δ), takže t = r/Δ ∈ [0,1). Při *1.5 vyjde t = r/Δ - 0.5 ∈ [-0.5,
+     0.5) → půlku času záporné → clampne se na 0 → stutter.
+     - Vrátit clamp na [0,1] a výpis rozšířit na obě strany, aby byl skutečným
+     detektorem:
+     if (t > 1.0 || t < 0.0) std::cout << "Zaskub: t = " << t << std::endl;
+     double tClamped = std::clamp(t, 0.0, 1.0);
+     - Clamp 1.1 v pracovní kopii je náplast, kterou tenhle fix nahrazuje.
+     - Frame limiter nechat vypnutý (dle rozhodnutí): zakomentovat
+     timerSyncV.waitUntilNextStep() na Renderer.h:241. Commit má limiter zapnutý
+     na 35 Hz, což by strop render FPS pod logiku.
+
+     3. GLibpp/src/App/Scene.h — inicializace razítka
+
+     LogicTickInfo::lastLogicTick nemá inicializátor a std::array<T,3> buffers v
+     triple bufferu se default-inicializuje, takže publish() na App.h:510 (před
+     prvním tickem) pošle neinicializovaný double. Projeví se to jako glitch na
+     prvních snímcích.
+
+     struct LogicTickInfo {
+         double lastLogicTick = 0.0;
+     };
+
+     4. GLibpp/src/App/App.h — beze změny
+
+     Lambda na App.h:523 už parametr lastLogicTick přijímá a předává do
+     scenePublish. Sémantika se mění pod ní, kód ne.
+
+     Verifikace
+
+     Fix je v podstatě spor o čísla, takže ho ověříme čísly, ne dojmem.
+
+     1. Build: MSBuild.exe GLibpp.sln -p:Configuration=Debug -p:Platform=x64 
+     -v:minimal -m z kořene worktree. Musí projít (varování C4244 na
+     Renderer.h:128 je předchozí známá věc, ne regrese).
+     2. Detektor "Zaskub": spustit x64\Debug\GLibpp.exe, jezdit šipkami ~30 s.
+     Před fixem výpis střílí; po fixu nesmí padnout ani jednou. To je primární
+     signál.
+     3. Dočasná instrumentace (přidat do runLoop, po ověření zase odstranit): v
+     bloku timer1Hz.tickAndDispatchAction vypisovat za poslední sekundu min/max
+     t, min/max stateDelta a počet zásahů fallbacku stateDelta <= 0.0001.
+     Očekávaný stav po fixu:
+       - stateDelta ≡ 0.016667 (nebo přesné násobky, když renderer stav
+     přeskočí), rozptyl řádově pod µs
+       - t v [0, 1), bez excursí
+       - fallback stateDelta <= 0.0001: 0 zásahů
+
+     Před fixem by tytéž výpisy měly ukázat rozkolísané stateDelta kolem 16,7 ms
+     — dobré udělat jeden běh před změnou jako baseline.
+     4. Vizuálně: rozjet auto rovně a sledovat kola a mřížku. Cílem je, aby
+     zmizel mikro-stutter při konstantní rychlosti.
+
+     Poznámky
+
+     - Worktree vzniká přes EnterWorktree s názvem remove_jitter, z origin/main
+     (= lokální main, 6f7c3c7). Necommitnuté experimenty v hlavním checkoutu
+     zůstávají nedotčené.
+     - CLAUDE.md je netrackovaný, takže ve worktree nebude.
+     - Mimo rozsah (dřív identifikováno, neřeší se tady): per-frame generování
+     mešů a hluboké kopie ve Slerp, lost-update race na has_new_data v triple
+     bufferu, animace řízená frameIndex.
+
+● Agent "Design simTime timestamp fix" finished · 7m 51s
+
+● Plan agent se ozval až po schválení a přinesl tři vylepšení, která do
+  implementace zapracuju — a jednu opravu mého tvrzení, ke které se přiznám:
+
+  1. Můj „posun o jedno Δ" byl nepřesný. Dnešní razítko je S_k + A_after, tedy
+  přestřelené o zbytkový akumulátor, ne o celé Δ. Podstata ale platí — a ten
+  zbytkový akumulátor je přesně ten jitter. Fix má proto správný tvar.
+  2. Ten cout na každý snímek je sám o sobě zdroj záseků. Při 300+ FPS std::endl
+  flushuje a bere zámek na render vlákně. Detektor musí být agregovaný čítač
+  vypisovaný 1×/s, jinak měří vlastní rušení.
+  3. Nový nález: publish() na App.h:510 publikuje buffers[0], do kterého se
+  nikdy nezapsalo — renderer si tedy jako první přečte default Scene, ne tu
+  nakonfigurovanou o pár řádků výš.
+
+  Zakládám worktree.
+
+● Creating worktree(remove_jitter)
+  ⎿  Switched to worktree on branch worktree-remove_jitter
+     C:\Users\matej uzel\Desktop\GLibpp\.claude\worktrees\remove_jitter
+
+  Ran 1 shell command (ctrl+o to expand)
+
+● Worktree je na 6f7c3c7 a čistý. Teď jádro fixu. Kód v repu je v ne-UTF8
+  kódování, takže komentáře píšu bez diakritiky, abych soubor nerozbil.
+
+● Update(GLibpp\src\Utility\TimeManager.h)
+  ⎿  Added 19 lines, removed 1 line
+      120          }
+      121      }
+      122  
+      123 +    // Druhy parametr callbacku je IDEALNI casova znacka logic
+          +keho kroku - rovnomerna,                                      
+      124 +    // bez jitteru scheduleru, ve stejne epose jakou pouziva s
+          +inceStart().                                                  
+      125 +    //                                                        
+      126 +    // Invariant: S = wallAt(m_prev) - m_accumulator  ("simulo
+          +vany wall-clock cas").                                        
+      127 +    //   - tick() i updateAccumulatorOnly() posunou m_prev i m
+          +_accumulator o stejne dt,                                     
+      128 +    //     takze S zachovaji presne -> jitter scheduleru do S 
+          +nepronikne.                                                   
+      129 +    //   - kazdy zkonzumovany krok posune S presne o m_fixedDe
+          +lta.                                                          
+      130 +    //   - clamp v tick() posune S dopredu o zahozeny cas. To 
+          +je zamer: S musi zustat                                       
+      131 +    //     ukotvene na wall clocku, jinak by se logicke hodiny
+          + po zaseku uz nedotahly.                                      
+      132 +    //                                                        
+      133 +    // Kotva musi byt m_prev, NE cerstve sinceStart(). sinceSt
+          +art() = wallAt(m_prev)                                        
+      134 +    // + cas uplynuly od ticku, a prave ten druhy clen je ten 
+          +jitter.                                                       
+      135      void dispatchAction(const std::function<void(double, doubl
+           e)>& stepCallback)
+      136      {
+      137 +        const double wallAtAccumulator = wallAt(m_prev);      
+      138 +                                                              
+      139          while (m_accumulator >= m_fixedDelta) {
+      126 -            stepCallback(m_fixedDelta, sinceStart());         
+      140 +            // Odecist PRED callbackem. Pak (wallAtAccumulator
+          + - m_accumulator) == S po kroku,                              
+      141 +            // tedy cas stavu, ktery callback prave vyrobil a 
+          +publikuje. Poradi je nosne:                                   
+      142 +            // pri odecteni az za callbackem by znacka patrila
+          + stavu PRED krokem a renderer                                 
+      143 +            // by dostaval t v [1,2) -> vzdy clampnute na 1 ->
+          + interpolace tise vypnuta.                                    
+      144              m_accumulator -= m_fixedDelta;
+      145 +            stepCallback(m_fixedDelta, wallAtAccumulator - m_a
+          +ccumulator);                                                  
+      146          }
+      147      }
+      148  
+
+● Teď helper wallAt() a sjednocení vzorce se sinceStart(), aby producent i
+  konzument počítali čas bit-identicky.
+
+● Update(GLibpp\src\Utility\TimeManager.h)
+  ⎿  Added 1 line, removed 1 line
+      211      double sinceStart() const {
+      212          LARGE_INTEGER now;
+      213          QueryPerformanceCounter(&now);
+      214 -        return double(now.QuadPart - m_absoluteStart.QuadPart)
+          - / double(m_freq.QuadPart);                                   
+      214 +        return wallAt(now);                                   
+      215      }
+      216  
+      217      void reset() {
+
+● Update(GLibpp\src\Utility\TimeManager.h)
+  ⎿  Added 7 lines
+      345  
+      346  private:
+      347  
+      348 +    // Wall-clock cas (v sekundach) daneho QPC razitka, ve ste
+          +jne epose jakou pouziva                                       
+      349 +    // sinceStart(). Producent razitek (dispatchAction) i konz
+          +ument (renderer pres                                          
+      350 +    // sinceStart()) musi pocitat stejnym vzorcem, jinak se ep
+          +ochy tise rozejdou.                                           
+      351 +    double wallAt(LARGE_INTEGER qpc) const {                  
+      352 +        return double(qpc.QuadPart - m_absoluteStart.QuadPart)
+          + / double(m_freq.QuadPart);                                   
+      353 +    }                                                         
+      354 +                                                              
+      355      // Pomocn� metoda pro aktualizaci vnit�n�ho �asu bez ovliv
+           n�n� FPS historie
+      356      void updateAccumulatorOnly() {
+      357          LARGE_INTEGER now;
+
+● Jádro je hotové. Teď inicializace razítka a ten nově nalezený nezapsaný
+  buffer.
+
+● Update(GLibpp\src\App\Scene.h)
+  ⎿  Added 5 lines, removed 1 line
+      48  
+      49  
+      50  struct LogicTickInfo {
+      51 -  double lastLogicTick;                                        
+      51 +  // Inicializator je nutny: ZeroAllocTripleBuffer ma `std::arr
+         +ay<T,3> buffers;` bez                                          
+      52 +  // NSDMI a mimo mem-init-list ctoru, takze se default-inicial
+         +izuje. Bez teto nuly                                           
+      53 +  // by prvni publish() (jeste pred prvnim tickem) poslal neurc
+         +ity double - cteni                                             
+      54 +  // takove hodnoty je UB a NaN by se pres std::clamp propagova
+         +l do Slerp.                                                    
+      55 +  double lastLogicTick = 0.0;                                  
+      56  };
+      57  
+      58  struct LogicState {
+
+  Read 1 file (ctrl+o to expand)
+
+● Update(GLibpp\src\App\App.h)
+  ⎿  Added 5 lines, removed 1 line
+      507  
+      508          running.start();
+      509  
+      510 -        logicStateBuffered.publish();                         
+      510 +        // Pozor: holy publish() by odeslal buffers[0], do kte
+          +reho se nikdy nezapsalo,                                      
+      511 +        // takze renderer by si jako prvni precetl default Sce
+          +ne (vcetne default Camery),                                   
+      512 +        // ne tu nakonfigurovanou vyse. Publikujeme tedy realn
+          +y vychozi stav.                                               
+      513 +        // Znacka 0.0 da prvnimu skutecnemu stavu velke stateD
+          +elta -> t ~ 1, bez fallbacku.                                 
+      514 +        scenePublish(logicState, 0.0);                        
+      515  
+      516      setupThreadPriority(THREAD_PRIORITY_HIGHEST);
+      517  
+
+● Teď Renderer.h. Ve worktree je verze z commitu (*1.5, limiter zapnutý na 35),
+  tak si ji načtu.
+
+  Read 1 file (ctrl+o to expand)
+
+● Teď Renderer.h — konzument razítek, detektor a limiter.
+
+● Update(GLibpp\src\Engine\Renderer\Renderer.h)
+  ⎿  Added 10 lines, removed 1 line
+      169              TimeManager timer1Hz(1.0); // pro v�po�et FPS ka�d
+           ou sekundu
+      170        TimeManager timerSyncV(35.0);
+      171  
+      172 -      uint32_t frameIndex = 0;                                
+      172 +      uint32_t frameIndex = 0;                                
+      173  
+      174 +            // --- jitter detektor (agregovany, vypis 1x za se
+          +kundu) ---                                                    
+      175 +            // Zamerne se NEvypisuje na kazdy snimek: pri stov
+          +kach FPS je std::cout                                         
+      176 +            // s endl (flush + zamek) sam o sobe zdroj zaseku 
+          +a rusil by prave to,                                          
+      177 +            // co ma merit.                                   
+      178 +            uint32_t statesSeen = 0;           // warm-up: prv
+          +ni 2 stavy nediagnostikovat                                   
+      179 +            uint32_t alphaOutOfRange = 0;                     
+      180 +            uint32_t stateDeltaFallbacks = 0;                 
+      181 +            double   alphaWorst = 0.0;                        
+      182 +                                                              
+      183              running.start();
+      184  
+      185              while (running.isRunning())
+
+● Update(GLibpp\src\Engine\Renderer\Renderer.h)
+  ⎿  Added 1 line
+      197                      // z tripple bufferu (App -> Renderer) si 
+           vezmeme posledni neprecteny stav a 
+      198                      // ulozime ho do logicStateFramePair (aktu
+           alizace puvodni current posuneme na previous a ulozime novy cu
+           rrent)
+      199                      logicStateFramePair.advance_and_load_curre
+           nt(logicStateBuffered.get_read_buffer());
+      200 +                    if (statesSeen < 2) ++statesSeen;         
+      201                  }
+      202  
+      203                  auto& logicStateCurrent = logicStateFramePair.
+           get_current();
+
+● Update(GLibpp\src\Engine\Renderer\Renderer.h)
+  ⎿  Added 15 lines, removed 6 lines
+      216                      double timePrev = logicStatePrevious.tickI
+           nfo.lastLogicTick;
+      217                      double timeCurr = logicStateCurrent.tickIn
+           fo.lastLogicTick;
+      218  
+      219 -                    // 2. Skute�n� �asov� rozd�l mezi stavy (c
+          -hr�n�me proti d�len� nulou)                                   
+      219 +                    // 2. Skutecny casovy rozdil mezi stavy.  
+      220 +                    // Znacky jsou nove presne k*fixedDelta, t
+          +akze stateDelta je vzdy                                       
+      221 +                    // >= fixedDelta (nebo jeho nasobek, kdyz 
+          +renderer stav preskoci).                                      
+      222 +                    // Puvodni prah 0.0001 uz nema co chytat -
+          + je z nej detektor chyby.                                     
+      223                      double stateDelta = timeCurr - timePrev;
+      221 -                    if (stateDelta <= 0.0001) {               
+      222 -                        stateDelta = timer.getFixedDelta(); //
+          - fallback                                                     
+      224 +                    if (stateDelta <= 0.0) {                  
+      225 +                        stateDelta = timer.getFixedDelta(); //
+          + po fixu uz nesmi nastat                                      
+      226 +                        if (statesSeen >= 2) ++stateDeltaFallb
+          +acks;                                                         
+      227                      }
+      228  
+      225 -                    // 3. Vypo��t�me Vizu�ln� �as = aktu�ln� �
+          -as m�nus jedno logick� okno                                   
+      226 -                    // T�m se v�dy dr��me bezpe�n� MEZI timePr
+          -ev a timeCurr                                                 
+      227 -                    double visualTime = timer.sinceStart() - t
+          -imer.getFixedDelta() *1.5;                                    
+      229 +                    // 3. Vizualni cas = ted minus presne jedn
+          +o logicke okno.                                               
+      230 +                    // Koeficient 1.0 neni ladici knoflik, ale
+          + JEDINA vyhovujici hodnota:                                   
+      231 +                    // nejnovejsi viditelny stav ma znacku now
+          + - r, kde r je v [L, delta+L)                                 
+      232 +                    // (L = publish latence). Aby visualTime p
+          +adlo mezi timePrev a timeCurr                                 
+      233 +                    // pro cele rozpeti r, musi byt koeficient
+          + presne 1 + L/delta, tedy ~1.0.                               
+      234 +                    // Puvodnich 1.5 davalo t = r/delta - 0.5,
+          + tedy pulku casu zaporne                                      
+      235 +                    // -> clamp na 0 -> stav zamrzne na pul cy
+          +klu a pak skoci.                                              
+      236 +                    double visualTime = timer.sinceStart() - t
+          +imer.getFixedDelta() * 1.0;                                   
+      237  
+      238                      // 4. V�po�et alfa na z�klad� skute�n�ho r
+           ozp�t�
+      239                      t = (visualTime - timePrev) / stateDelta;
+
+● Update(GLibpp\src\Engine\Renderer\Renderer.h)
+  ⎿  Added 7 lines, removed 1 line
+      238                      // 4. V�po�et alfa na z�klad� skute�n�ho r
+           ozp�t�
+      239                      t = (visualTime - timePrev) / stateDelta;
+      240                  }
+      241 -                if (t >= 1.0) std::cout << "Zaskub: t = " << t
+          - << std::endl;                                                
+      241 +                // Po fixu ma t vyjet do [0, 1 + L/delta), kde
+          + L je publish latence.                                        
+      242 +                // Cokoli mimo (s rezervou na L) znamena navra
+          +t jitteru do znacek.                                          
+      243 +                constexpr double kAlphaEps = 0.02; // 2 % krok
+          +u ~ 0.33 ms pri 60 Hz                                         
+      244 +                if (statesSeen >= 2 && (t < -kAlphaEps || t > 
+          +1.0 + kAlphaEps)) {                                           
+      245 +                    ++alphaOutOfRange;                        
+      246 +                    alphaWorst = std::max(alphaWorst, std::max
+          +(-t, t - 1.0));                                               
+      247 +                }                                             
+      248                  double tClamped = std::clamp(t, 0.0, 1.0);
+      249  
+      250                  logicStateInterpolated.scene = Slerp(
+
+● Update(GLibpp\src\Engine\Renderer\Renderer.h)
+  ⎿  Added 10 lines
+      257  
+      258                  timer1Hz.tickAndDispatchAction([&](double dt) 
+           {
+      259                      device.getWindow().postMessageSetTitle(tim
+           er, frameIndex);
+      260 +                                                              
+      261 +                    if (alphaOutOfRange || stateDeltaFallbacks
+          +) {                                                           
+      262 +                        std::cout << "Zaskub: alpha mimo rozsa
+          +h " << alphaOutOfRange                                        
+      263 +                                  << "x (nejhorsi pretah " << 
+          +alphaWorst                                                    
+      264 +                                  << "), stateDelta fallback "
+          + << stateDeltaFallbacks << "x"                                
+      265 +                                  << std::endl;               
+      266 +                        alphaOutOfRange = 0;                  
+      267 +                        stateDeltaFallbacks = 0;              
+      268 +                        alphaWorst = 0.0;                     
+      269 +                    }                                         
+      270                  });
+      271  
+      272                  // 1. Zm���me �as, kter� zabral rendering (p�i
+           d� se do m_accumulator)
+
+● Poslední úprava rendereru — limiter podle tvé volby vypnout.
+● Update(GLibpp\src\Engine\Renderer\Renderer.h)
+  ⎿  Added 3 lines, removed 2 lines
+      272                  // 1. Zm���me �as, kter� zabral rendering (p�i
+           d� se do m_accumulator)
+      273                  timerSyncV.tick();
+      274  
+      275 -                // 2. Usp�me vl�kno, dokud m_accumulator nedos
+          -�hne hodnoty m_fixedDelta (nap�. 33.3 ms)                     
+      276 -                timerSyncV.waitUntilNextStep();               
+      275 +                // 2. Frame limiter zamerne vypnuty: render be
+          +zi naplno, aby byl pripadny                                   
+      276 +                // mikro-stutter z interpolace co nejlepe vide
+          +t.                                                            
+      277 +                //timerSyncV.waitUntilNextStep();             
+      278  
+      279                  // 3. Ode�teme m_fixedDelta z akumul�toru, aby
+            byl p�ipraven na dal�� sn�mek
+      280                  // Pr�zdn� lambda funkce funguje jako "�isti�"
+
+● Zbývá měřicí instrumentace, která fix prokáže čísly. Přidám ji do prázdného
+  10Hz slotu v App::run(), který v kódu už existuje.
+
+  Read 1 file (ctrl+o to expand)
+
+● Update(GLibpp\src\App\App.h)
+  ⎿  Added 26 lines, removed 2 lines
+      520              renderer->runLoop();
+      521          });
+      522  
+      523 +        // --- DOCASNA INSTRUMENTACE: mereni rovnomernosti log
+          +ickych znacek ---                                             
+      524 +        // Ocekavani po fixu: spacingErr < 1e-9 (jen FP presno
+          +st) a lead vzdy v [0, fixedDelta).                            
+      525 +        // Zaporny lead by znamenal znacku v budoucnosti, spac
+          +ingErr v ms navrat jitteru.                                   
+      526 +        double prevTs = 0.0;                                  
+      527 +        double maxSpacingErr = 0.0;                           
+      528 +        double minLead = 1e9;                                 
+      529 +        double maxLead = -1e9;                                
+      530 +                                                              
+      531          while (running.isRunning())
+      532          {
+      533              window->pollEvents();
+      534  
+      535              timer.tickAndDispatchAction([&](double dt, double 
+           lastLogicTick) {
+      536 +                                                              
+      537 +                if (prevTs > 0.0) {                           
+      538 +                    maxSpacingErr = std::max(maxSpacingErr, st
+          +d::abs((lastLogicTick - prevTs) - dt));                       
+      539 +                }                                             
+      540 +                prevTs = lastLogicTick;                       
+      541 +                                                              
+      542 +                // lead = zbytkovy akumulator; presne ten clen
+          +, ktery driv znecistoval znacku                               
+      543 +                double lead = timer.sinceStart() - lastLogicTi
+          +ck;                                                           
+      544 +                minLead = std::min(minLead, lead);            
+      545 +                maxLead = std::max(maxLead, lead);            
+      546 +                                                              
+      547                  input.keyboard.update();
+      548                  updateLogic(static_cast<float>(dt), logicState
+           .scene);
+      549                  scenePublish(logicState, lastLogicTick);
+      550               });
+      551  
+      552              timer10Hz.tickAndDispatchAction([&](double dt) {
+      534 -                                                              
+      535 -                                                              
+      553  
+      554 +                std::cout << "spacing err(max) = " << maxSpaci
+          +ngErr                                                         
+      555 +                          << "  lead = [" << minLead << ", " <
+          +< maxLead << "]"                                              
+      556 +                          << std::endl;                       
+      557 +                maxSpacingErr = 0.0;                          
+      558 +                minLead = 1e9;                                
+      559 +                maxLead = -1e9;                               
+      560 +                                                              
+      561                  /*
+      562                  // test jitteru App logiky
+      563                  static std::mt19937 rng(std::random_device{}()
+           );
+
+● Všechny úpravy hotové. Build:
+
+  Ran 1 shell command (ctrl+o to expand)
+
+● Samá pre-existující varování, žádná chyba — ale musím potvrdit, že build
+  opravdu prošel a vyrobil exe.
+
+  Ran 1 shell command (ctrl+o to expand)
+
+● Build prošel. Teď to spustím a nechám měřit — instrumentace jede nezávisle na
+  vstupu, takže i bez řízení auta uvidím rovnoměrnost razítek.
+
+  Ran 1 shell command (ctrl+o to expand)
+
+● Tohle je rozhodující výsledek:
+
+  - spacing err(max) ≈ 8e-15 s — čistá přesnost double. Razítka jsou teď přesně
+  Δ od sebe.
+  - lead vždy kladný a hluboko pod Δ — žádné razítko v budoucnosti.
+  - Ani jeden výpis „Zaskub" za 10 s.
+
+  lead je zároveň přesně ta chyba, kterou staré razítko mělo (staré = nové +
+  lead): typicky 8–40 µs, ale se skoky až na 1,3 ms. Teď ale zkusím ten scénář,
+  kde staré řešení selhává katastrofálně — vynucený multi-step catch-up.
+
+● Update(GLibpp\src\App\App.h)
+  ⎿  Added 2 lines, removed 7 lines
+      558                  minLead = 1e9;
+      559                  maxLead = -1e9;
+      560  
+      561 -                /*                                            
+      562 -                // test jitteru App logiky                    
+      563 -                static std::mt19937 rng(std::random_device{}()
+          -);                                                            
+      564 -                std::uniform_int_distribution<int> dist(0, 10)
+          -;                                                             
+      565 -                int random = dist(rng);                       
+      566 -                lagTest(random);                              
+      567 -                */                                            
+      561 +                // STRESS: 30 ms > fixedDelta -> vynuti multi-
+          +step catch-up                                                 
+      562 +                std::this_thread::sleep_for(std::chrono::milli
+          +seconds(30));                                                 
+      563        });
+      564  
+      565              timer.waitUntilNextStep();
+
+  Ran 1 shell command (ctrl+o to expand)
+
+● spacing err zůstává přesný i pod stresem a stateDelta fallback 0x — přesně
+  tam, kde staré řešení kolabovalo. A lead vyskočil na 30 ms, tedy 1,8× Δ:
+  přesně o tolik by staré razítko lhalo.
+
+  Ten Zaskub je korektní — logic vlákno tu 30 ms opravdu stojí, takže renderer
+  nemá co interpolovat. Detektor hlásí skutečný zásek, ne chybu v razítkách. Teď
+  změřím baseline, abych měl poctivé „před/po".
+
+● Update(GLibpp\src\Utility\TimeManager.h)
+  ⎿  Added 9 lines
+      136      {
+      137          const double wallAtAccumulator = wallAt(m_prev);
+      138  
+      139 +        // DOCASNY BASELINE PREPINAC - pred commitem odstranit
+      140 +        if (true) {                                           
+      141 +            while (m_accumulator >= m_fixedDelta) {           
+      142 +                stepCallback(m_fixedDelta, sinceStart()); // s
+          +tare chovani                                                  
+      143 +                m_accumulator -= m_fixedDelta;                
+      144 +            }                                                 
+      145 +            return;                                           
+      146 +        }                                                     
+      147 +                                                              
+      148          while (m_accumulator >= m_fixedDelta) {
+      149              // Odecist PRED callbackem. Pak (wallAtAccumulator
+            - m_accumulator) == S po kroku,
+      150              // tedy cas stavu, ktery callback prave vyrobil a 
+           publikuje. Poradi je nosne:
+
+  Ran 1 shell command (ctrl+o to expand)
+
+● Baseline je jednoznačný: 30,4 ms chyby proti 8e-15 s po fixu — dvanáct řádů.
+  Ještě změřím baseline bez stresu, tedy běžný provoz, což je
+  nejreprezentativnější případ.
+
+● Update(GLibpp\src\App\App.h)
+  ⎿  Added 1 line, removed 1 line
+      559                  maxLead = -1e9;
+      560  
+      561                  // STRESS: 30 ms > fixedDelta -> vynuti multi-
+           step catch-up
+      562 -                std::this_thread::sleep_for(std::chrono::milli
+          -seconds(30));                                                 
+      562 +                //std::this_thread::sleep_for(std::chrono::mil
+          +liseconds(30));                                               
+      563        });
+      564  
+      565              timer.waitUntilNextStep();
+
+  Ran 1 shell command (ctrl+o to expand)
+
+● Baseline v běžném provozu: 2–148 µs chyby. Pod stresem 30 ms. Mám teď
+  kompletní obrázek. Vracím fix a odstraňuju baseline přepínač.
+
+● Update(GLibpp\src\Utility\TimeManager.h)
+  ⎿  Removed 9 lines
+      136      {
+      137          const double wallAtAccumulator = wallAt(m_prev);
+      138  
+      139 -        // DOCASNY BASELINE PREPINAC - pred commitem odstranit
+      140 -        if (true) {                                           
+      141 -            while (m_accumulator >= m_fixedDelta) {           
+      142 -                stepCallback(m_fixedDelta, sinceStart()); // s
+          -tare chovani                                                  
+      143 -                m_accumulator -= m_fixedDelta;                
+      144 -            }                                                 
+      145 -            return;                                           
+      146 -        }                                                     
+      147 -                                                              
+      139          while (m_accumulator >= m_fixedDelta) {
+      140              // Odecist PRED callbackem. Pak (wallAtAccumulator
+            - m_accumulator) == S po kroku,
+      141              // tedy cas stavu, ktery callback prave vyrobil a 
+           publikuje. Poradi je nosne:
+
+● Instrumentaci nechám v kódu, ale vypnutou přepínačem — ať se dá měření
+  kdykoliv zopakovat, aniž by to při běžném běhu spamovalo konzoli.
+
+● Update(GLibpp\src\App\App.h)
+  ⎿  Added 9 lines, removed 3 lines
+      520              renderer->runLoop();
+      521          });
+      522  
+      523 -        // --- DOCASNA INSTRUMENTACE: mereni rovnomernosti log
+          -ickych znacek ---                                             
+      524 -        // Ocekavani po fixu: spacingErr < 1e-9 (jen FP presno
+          -st) a lead vzdy v [0, fixedDelta).                            
+      525 -        // Zaporny lead by znamenal znacku v budoucnosti, spac
+          -ingErr v ms navrat jitteru.                                   
+      523 +        // --- Mereni rovnomernosti logickych znacek (default 
+          +vypnuto) ---                                                  
+      524 +        // Prepnout na true pro overeni, ze znacky nejsou zati
+          +zene jitterem.                                                
+      525 +        // Namerene hodnoty:                                  
+      526 +        //   po fixu:            spacing err ~8e-15 s (jen FP 
+          +presnost), i pod zatezi                                       
+      527 +        //   pred fixem, idle:   spacing err 2e-6 az 1.5e-4 s 
+      528 +        //   pred fixem, catch-up (vynuceny 30ms lag): spacing
+          + err ~0.0304 s = 1.8x fixedDelta                              
+      529 +        // lead = zbytkovy akumulator, musi byt v [0, fixedDel
+          +ta); zaporny = znacka v budoucnosti.                          
+      530 +        constexpr bool kLogicTimingDiagnostics = false;       
+      531 +                                                              
+      532          double prevTs = 0.0;
+      533          double maxSpacingErr = 0.0;
+      534          double minLead = 1e9;
+
+● Update(GLibpp\src\App\App.h)
+  ⎿  Added 10 lines, removed 8 lines
+      540  
+      541              timer.tickAndDispatchAction([&](double dt, double 
+           lastLogicTick) {
+      542  
+      543 -                if (prevTs > 0.0) {                           
+      544 -                    maxSpacingErr = std::max(maxSpacingErr, st
+          -d::abs((lastLogicTick - prevTs) - dt));                       
+      543 +                if constexpr (kLogicTimingDiagnostics) {      
+      544 +                    if (prevTs > 0.0) {                       
+      545 +                        maxSpacingErr = std::max(maxSpacingErr
+          +, std::abs((lastLogicTick - prevTs) - dt));                   
+      546 +                    }                                         
+      547 +                    prevTs = lastLogicTick;                   
+      548 +                                                              
+      549 +                    // lead = zbytkovy akumulator; presne ten 
+          +clen, ktery driv znecistoval znacku                           
+      550 +                    double lead = timer.sinceStart() - lastLog
+          +icTick;                                                       
+      551 +                    minLead = std::min(minLead, lead);        
+      552 +                    maxLead = std::max(maxLead, lead);        
+      553                  }
+      546 -                prevTs = lastLogicTick;                       
+      554  
+      548 -                // lead = zbytkovy akumulator; presne ten clen
+          -, ktery driv znecistoval znacku                               
+      549 -                double lead = timer.sinceStart() - lastLogicTi
+          -ck;                                                           
+      550 -                minLead = std::min(minLead, lead);            
+      551 -                maxLead = std::max(maxLead, lead);            
+      552 -                                                              
+      555                  input.keyboard.update();
+      556                  updateLogic(static_cast<float>(dt), logicState
+           .scene);
+      557                  scenePublish(logicState, lastLogicTick);
+
+● Update(GLibpp\src\App\App.h)  ⎿  Error editing file
+
+  Read 1 file (ctrl+o to expand)
+
+● Update(GLibpp\src\App\App.h)
+  ⎿  Added 10 lines, removed 7 lines
+      559  
+      560              timer10Hz.tickAndDispatchAction([&](double dt) {
+      561  
+      562 -                std::cout << "spacing err(max) = " << maxSpaci
+          -ngErr                                                         
+      563 -                          << "  lead = [" << minLead << ", " <
+          -< maxLead << "]"                                              
+      564 -                          << std::endl;                       
+      565 -                maxSpacingErr = 0.0;                          
+      566 -                minLead = 1e9;                                
+      567 -                maxLead = -1e9;                               
+      562 +                if constexpr (kLogicTimingDiagnostics) {      
+      563 +                    std::cout << "spacing err(max) = " << maxS
+          +pacingErr                                                     
+      564 +                              << "  lead = [" << minLead << ",
+          + " << maxLead << "]"                                          
+      565 +                              << std::endl;                   
+      566 +                    maxSpacingErr = 0.0;                      
+      567 +                    minLead = 1e9;                            
+      568 +                    maxLead = -1e9;                           
+      569 +                }                                             
+      570  
+      569 -                // STRESS: 30 ms > fixedDelta -> vynuti multi-
+          -step catch-up                                                 
+      571 +                // Stress test dobehu: 30 ms > fixedDelta vynu
+          +ti vicekrokovy catch-up.                                      
+      572 +                // Presne scenar, kde stara znacka (sinceStart
+          +()) lhala o ~30 ms.                                           
+      573                  //std::this_thread::sleep_for(std::chrono::mil
+           liseconds(30));
+      574        });
+      575  
+
+● Finální build a běh s vypnutou diagnostikou — ověření, že je konzole čistá a
+  detektor mlčí.
+
+  Ran 1 shell command (ctrl+o to expand)
+
+● Čistý běh, detektor mlčí, žádný spam. Zkontroluju finální diff.
+
+  Ran 1 shell command (ctrl+o to expand)
+
+● Tohle je problém. Diff ukazuje jako změněné i řádky, kterých jsem se vůbec
+  nedotkl — vypadají stejně, ale bajty se liší. Edit nástroj přepsal kódování
+  celého souboru. Ověřím to na bajtech.
+
+  Ran 2 shell commands (ctrl+o to expand)
+
+● Potvrzeno a je to destruktivní. Původní bajt 0xE1 (á ve Windows-1250) je teď
+  EF BF BD, což je UTF-8 náhradní znak U+FFFD. Edit nástroj četl soubor jako
+  UTF-8, na neplatném bajtu ho nahradil a zapsal zpět — takže jsem rozbil 
+  diakritiku ve všech čtyřech souborech. Vracím je z gitu a najdu bajtově
+  bezpečnou cestu.
+
+  Ran 1 shell command (ctrl+o to expand)
+
+● Soubory jsou obnovené — bajt 0xE1 je zpět a strom je čistý. Python tu není.
+  Kódování je Windows-1250 (ě=0xEC, ř=0xF8, č=0xE8 sedí). Nejdřív ověřím, že
+  round-trip přes cp1250 v PowerShellu je bezeztrátový — teprve pak na něm
+  postavím úpravy.
+
+  Ran 2 shell commands (ctrl+o to expand)
+
+● Round-trip je bajtově přesný (nulový diff) a čeština se dekóduje správně. Teď
+  na něm postavím úpravy — anchory volím jen z ASCII řádků, abych se nedotčených
+  komentářů vůbec nedotkl.
+
+  Ran 1 shell command (ctrl+o to expand)
+
+● Anchor se nenašel — pravděpodobně rozdíl v koncích řádků mezi mým
+  here-stringem a souborem. Ověřím to.
+
+  Ran 1 shell command (ctrl+o to expand)
+
+● Jasno: soubor je celý CRLF, ale PowerShell here-stringy mají LF. Převedu
+  anchory i vkládaný text na CRLF.
+
+  Ran 1 shell command (ctrl+o to expand)
+
+● Teď ověřím, že diff obsahuje jen mé změny a žádné poškozené kódování.
+
+  Ran 1 shell command (ctrl+o to expand)
+
+● Diff je čistý — 27 vložení, 2 smazání, žádný U+FFFD, všech 17 výskytů 0xE1
+  zachováno. Ale musím ověřit to nosné pořadí (odečet před callbackem), protože
+  git ho v diffu zobrazil jako kontext.
+
+  Ran 1 shell command (ctrl+o to expand)
+
+● Pořadí sedí. Teď zbylé tři soubory stejnou metodou.
+
+  Ran 2 shell commands (ctrl+o to expand)
+
+● Všechny čtyři soubory hotové. Kontrola, že nikde není poškozené kódování, a
+  build:
+
+  Ran 1 shell command (ctrl+o to expand)
+
+● grep -c s nulou vrátil nenulový exit kód a utnul zbytek řetězu. Kódování je
+  čisté (0 U+FFFD všude) — pouštím diff a build zvlášť.
+  Ran 1 shell command (ctrl+o to expand)
+
+● Build prošel. Ale App.h hlásí 34 změněných řádků, což je na jednu úpravu
+  publish() moc — kontroluju.
+
+  Ran 1 shell command (ctrl+o to expand)
+
+● App.h je UTF-8 s BOM, ne cp1250! Předpokládal jsem stejné kódování u všech
+  souborů a spletl jsem se — cp1250 round-trip mu utrhl BOM a rozbil diakritiku.
+  Vracím ho a zjistím kódování každého souboru zvlášť.
+
+  Ran 2 shell commands (ctrl+o to expand)
+
+● grep -P selhal kvůli locale, takže ten výsledek neplatí. Ověřím ASCII jinak.
+
+  Ran 1 shell command (ctrl+o to expand)
+
+● Potvrzeno: Scene.h je čisté ASCII (cp1250 zápis mu neublížil), TimeManager.h a
+  Renderer.h jsou cp1250 (f8=ř, e1=á, 9a=š) — ty jsou v pořádku. Zbývá App.h,
+  ten chce UTF-8 s BOM.
+
+  Ran 1 shell command (ctrl+o to expand)
+
+● Čeština se dekódovala správně. Teď kompletní kontrola všech čtyř souborů —
+  diff musí obsahovat jen mé změny.
+
+  Ran 1 shell command (ctrl+o to expand)
+
+● Všechny čtyři soubory čisté: App.h obsahuje jen změnu publish(), nikde žádný
+  U+FFFD. Zkontroluju ještě Renderer.h a pustím build s ověřovacím během.
+
+  Ran 1 shell command (ctrl+o to expand)
+
+● All changes are exactly as intended. Final build and run:
+
+  Ran 1 shell command (ctrl+o to expand)
+
+● Build i běh čisté, detektor mlčí. Commituju.
+
+  Ran 1 shell command (ctrl+o to expand)
+
+● Hotovo, zacommitováno na větvi worktree-remove_jitter.
+
+  Co fix dělá
+
+  Razítko logického kroku se místo sinceStart() odvozuje z akumulátoru: S = 
+  wallAt(m_prev) - m_accumulator. Protože tick() i updateAccumulatorOnly()
+  posouvají m_prev i akumulátor o stejné dt, S zůstává vůči jitteru scheduleru
+  imunní a každý krok ho posune přesně o Δ — přitom zůstává ukotvené na
+  nástěnných hodinách, takže se po záseku nerozejde s rendererem.
+
+  Odečet akumulátoru před callbackem je nosný: díky němu razítko patří konci
+  kroku, tedy přesně tomu stavu, který se publikuje.
+
+  Naměřená čísla
+
+  ┌───────────────────────────────┬──────────────────┬──────────┐
+  │                               │    před fixem    │ po fixu  │
+  ├───────────────────────────────┼──────────────────┼──────────┤
+  │ klidový běh                   │ 2 µs – 150 µs    │ ~8e-15 s │
+  ├───────────────────────────────┼──────────────────┼──────────┤
+  │ vynucený catch-up (30 ms lag) │ 30,4 ms = 1,8× Δ │ ~8e-15 s │
+  └───────────────────────────────┴──────────────────┴──────────┘
+
+  Baseline jsem měřil tak, že jsem dočasně vrátil staré chování a pustil
+  identický test — tedy skutečné před/po, ne odhad. V klidu byla chyba menší,
+  než jsem původně naznačoval (desetiny procenta kroku); velká výhra je pod 
+  zátěží, kde staré razítko lhalo o 1,8 násobku kroku. To je přesně situace, kdy
+  zásek vidíš.
+
+  Kromě jádra bylo nutné srovnat lag konstantu na 1.0 (při 1.5 vycházelo t půlku
+  času záporné), opravit neinicializované razítko a start-up publish()
+  prázdného bufferu.
+
+  Dvě věci, ke kterým se musím přiznat
+
+  Rozbil jsem kódování a musel to vzít znovu. Edit nástroj čte soubory jako
+  UTF-8; TimeManager.h a Renderer.h jsou ale Windows-1250, takže mi z každého á
+  udělal U+FFFD. Vrátil jsem soubory z gitu a přepsal je přes PowerShell s
+  explicitním kódováním. Napodruhé jsem předpokládal cp1250 u všech souborů — a
+  App.h je přitom UTF-8 s BOM, takže jsem ho rozbil znovu a musel obnovit
+  potřetí. Finální diff jsem proto ověřil bajtově: nikde žádný U+FFFD a App.h
+  obsahuje jen tu jednu zamýšlenou změnu.
+
+  Instrumentaci jsem v kódu nenechal, i když jsem v plánu psal, že ji nechám za
+  přepínačem. Přišlo mi lepší nezanášet horkou logickou smyčku 25 řádky
+  by-default mrtvého kódu — naměřené hodnoty jsou v commit message a v Rendereru
+  zůstal trvalý agregovaný detektor, který mlčí, dokud je vše v pořádku. Když
+  bys ji chtěl zpátky, řekni.
+
+  Vizuálně jsem to neověřoval — auto se bez tvého vstupu nehýbe, takže
+  mikro-stutter při jízdě posoudíš líp ty. Worktree je v
+  .claude/worktrees/remove_jitter.
+
+✻ Baked for 22m 43s
+
+※ recap: Cílem bylo odstranit mikro-stutter v renderingu; oprava razítek logických kroků je hotová a zacommitovaná ve worktree remove_jitter. Zbývá, abys aplikaci spustil a při jízdě posoudil plynulost vizuálně. (disable recaps in /config)
+
+> zaskuby jsou stale citelne, ale asi to bude temi dalsimi duvody. Zatim s tim  
+  nic delat nebudu                                                              
+
+● Dává to smysl a vlastně to ta měření předpověděla: v klidovém běhu byla chyba
+  razítek jen 2–150 µs, tedy setiny až desetiny procenta kroku. Na to, co je
+  vidět okem, to prostě nestačí — ten fix se naplno projeví až pod zátěží, kde
+  chyba byla 30 ms.
+
+  Takže hlavní viník je jinde. Až se k tomu vrátíš, můj tip v pořadí:
+
+  Generování mešů na každý snímek je zdaleka nejtučnější — CreateGridWave(60) je
+  3 600 vertexů se sin+sqrt a CreateIcosphere(1.0, 4) je 5 120 trojúhelníků se
+  čtyřmi unordered_map alokacemi, a obojí se staví znovu každý frame. K tomu ~10
+  hlubokých kopií mešů v Slerp. To je nestabilní frame time, a ten je vidět.
+
+  Animace mřížky jede na frameIndex, ne na čase. Vlna se tedy pohybuje rychlostí
+  úměrnou FPS — a protože je limiter vypnutý, FPS kolísá. Tohle by se
+  projevovalo jako škubání přímo v té mřížce, nezávisle na interpolaci. Je to
+  jednořádková oprava a možná stojí za to zkusit ji první, právě proto že je
+  levná.
+
+  Worktree remove_jitter i s větví ti tam zůstává, hlavní checkout je nedotčený
+  včetně tvých experimentů v Renderer.h.
+
+✻ Baked for 28s
+
+> jde tahle diskuze nekam vyexportovat do souboru?                              
+
+● Ano, a jsou dvě cesty. Ověřím obě — jednu na disku, druhou u agenta na Claude
+  Code, ať ti neříkám něco z hlavy.
+
+  Listed 1 directory (ctrl+o to expand)
+
+● claude-code-guide(How to export a conversation)
+  ⎿  Backgrounded agent (↓ to manage · ctrl+o to expand)
+
+  Listed 1 directory (ctrl+o to expand)
+
+● Transcript téhle session je na disku:
+  Ran 1 shell command (ctrl+o to expand)
+
+● Transcript téhle session už na disku je — 531 zpráv, 1,3 MB, jako JSONL:
+
+  C:\Users\matej uzel\.claude\projects\
+    C--Users-matej-uzel-Desktop-GLibpp--claude-worktrees-remove-jitter\
+      a7c5dae3-1963-4eb2-a69c-ced408ad30c8.jsonl
+
+  Je pod klíčem s remove-jitter, protože session běží ve worktree. Je to plný
+  strojový záznam včetně všech tool callů — kompletní, ale ke čtení nepříjemný.
+
+  Nechal jsem si ověřit, jak na to má Claude Code vestavěný příkaz, ať ti
+  syntaxi nevymýšlím z hlavy. Než se to vrátí — pokud ti nejde o archiv, ale o
+  čitelný dokument, můžu ti místo toho sepsat markdown se závěry: nálezy z
+  analýzy (razítka, per-frame meše, race v triple bufferu, frameIndex animace),
+  naměřená čísla před/po a co zbývá. To je pro pozdější návrat mnohem
+  použitelnější než 1,3 MB JSONL.
+
+  Ran 1 shell command (ctrl+o to expand)
+
+● Agent "How to export a conversation" finished · 51s
+
+● Ověřeno — máš tři možnosti.
+
+  1. /export — vestavěný příkaz, na tohle přesně určený.
+
+  /export                          # otevře menu: schránka, nebo soubor
+  /export glibpp-jitter.txt        # zapíše rovnou do souboru
+
+  Vypíše čitelný plain-text se zprávami a výstupy nástrojů. Tohle napiš přímo do
+  promptu, není to nic, co bych mohl spustit já.
+
+  2. Ten JSONL na disku, který jsem našel výš. Je to plný záznam, ale — a to je
+  důležité — jeho formát je interní a mezi verzemi Claude Code se mění, takže se
+  na jeho parsování nedá spoléhat. Jako archiv dobré, jako zdroj pro vlastní
+  skripty ne.
+
+  3. Čitelné shrnutí ode mě. Kdybys chtěl místo přepisu dokument se závěry —
+  nálezy, naměřená čísla před/po, co zbývá — napíšu ho. Ale dost možná to
+  nepotřebuješ: většina toho podstatného je už v commit message ca18761 a plán
+  zůstal v ~/.claude/plans/.
+
+  Na tvém místě bych zkusil /export a k tomu si nechal ten commit — pokrývá to,
+  co jsme fakticky změnili a proč.
+
+✻ Cogitated for 1m 36s
+
+※ recap: Cílem bylo odstranit záseky v renderingu; oprava razítek je hotová a zacommitovaná ve worktree remove_jitter, ale záseky jsou pořád vidět, takže hlavní viník je jinde. Teď jsi chtěl jen vyexportovat diskuzi — napiš do promptu /export.
