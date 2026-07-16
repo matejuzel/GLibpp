@@ -25,11 +25,14 @@ ipch/
 *.lib
 *.exp
 
-# CMake (pokud nìkdy použiješ)
+# CMake (pokud nï¿½kdy pouï¿½ijeï¿½)
 CMakeFiles/
 CMakeCache.txt
 cmake_install.cmake
 Makefile
+
+# Claude Code worktrees (samostatne working trees, nepatri do main)
+.claude/worktrees/
 
 # Others
 *.tmp
