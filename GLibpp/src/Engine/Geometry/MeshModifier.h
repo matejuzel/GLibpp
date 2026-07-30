@@ -32,7 +32,7 @@ public:
                 );
 
                 msh.vertexBuffer.push_back(m);
-                uint32_t idx = msh.vertexBuffer.size() - 1;
+                uint32_t idx = static_cast<uint32_t>(msh.vertexBuffer.size() - 1);
                 midpointCache[key] = idx;
                 return idx;
             };

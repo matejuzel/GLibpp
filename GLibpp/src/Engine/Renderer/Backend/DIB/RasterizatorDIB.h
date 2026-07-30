@@ -156,6 +156,27 @@ namespace Render {
             }
         }
 
+        static void inline drawTriangle(
+            DeviceTargetDIB& target,
+            float x0, float y0,
+            float x1, float y1,
+            float x2, float y2,
+            uint32_t color,
+            bool wireframe
+        ) noexcept
+        {
+            drawTriangle(target,
+                static_cast<int>(x0),
+                static_cast<int>(y0),
+                static_cast<int>(x1),
+                static_cast<int>(y1),
+                static_cast<int>(x2),
+                static_cast<int>(y2),
+                color,
+                wireframe
+            );
+        }
+
         static void inline drawQuad(DeviceTargetDIB& target, int x0, int y0, int x1, int y1, int x2, int y2, int x3, int y3, uint32_t color, bool wired) noexcept
         {
             drawTriangle(target, x0, y0, x1, y1, x2, y2, color, wired);

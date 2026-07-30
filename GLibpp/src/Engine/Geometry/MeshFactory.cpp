@@ -93,7 +93,7 @@ Mesh MeshFactory::CreateSphere(float radius, uint32_t segments)
     for (uint32_t r = 0; r <= rings; r++)
     {
         float v = r * R;
-        float phi = v * GLibpp::Math::pi;
+        float phi = v * static_cast<float>(GLibpp::Math::pi);
 
         float sinPhi = sinf(phi);
         float cosPhi = cosf(phi);
@@ -101,7 +101,7 @@ Mesh MeshFactory::CreateSphere(float radius, uint32_t segments)
         for (uint32_t s = 0; s <= sectors; s++)
         {
             float u = s * S;
-            float theta = u * 2.0f * GLibpp::Math::pi; // 0..2PI
+            float theta = u * 2.0f * static_cast<float>(GLibpp::Math::pi); // 0..2PI
 
             float sinTheta = sinf(theta);
             float cosTheta = cosf(theta);
