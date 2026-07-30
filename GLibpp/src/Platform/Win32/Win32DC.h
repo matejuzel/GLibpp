@@ -1,4 +1,4 @@
-
+Ôªø
 #pragma once
 
 #include <windows.h>
@@ -24,12 +24,12 @@ public:
         return hdc;
     }
 
-    // implicitnÌ konverze (volitelnÈ, ale praktickÈ)
+    // implicitn√≠ konverze (voliteln√©, ale praktick√©)
     operator HDC() const {
         return hdc;
     }
 
-    // zak·zat kopÌrov·nÌ
+    // zak√°zat kop√≠rov√°n√≠
     Win32DC(const Win32DC&) = delete;
     Win32DC& operator=(const Win32DC&) = delete;
 

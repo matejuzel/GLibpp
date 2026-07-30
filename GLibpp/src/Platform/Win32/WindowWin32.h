@@ -1,4 +1,4 @@
-#pragma once
+Ôªø#pragma once
 #ifndef NOMINMAX
 #define NOMINMAX
 #endif
@@ -99,7 +99,7 @@ public:
 		std::wstring wstr(sizeNeeded, 0);
 		MultiByteToWideChar(CP_UTF8, 0, str.c_str(), -1, &wstr[0], sizeNeeded);
 
-		// odstranit nulov˝ termin·tor, protoûe std::wstring ho nepot¯ebuje
+		// odstranit nulov√Ω termin√°tor, proto≈æe std::wstring ho nepot≈ôebuje
 		if (!wstr.empty() && wstr.back() == L'\0') wstr.pop_back();
 
 		return wstr;
@@ -146,11 +146,11 @@ public:
 	}
 
 	struct MonitorData {
-		HMONITOR handle;      // Unik·tnÌ identifik·tor ve Win32
-		std::wstring name;    // SystÈmov˝ n·zev (nap¯. pro ukl·d·nÌ do configu)
+		HMONITOR handle;      // Unik√°tn√≠ identifik√°tor ve Win32
+		std::wstring name;    // Syst√©mov√Ω n√°zev (nap≈ô. pro ukl√°d√°n√≠ do configu)
 		int width;
 		int height;
-		int x;                // Sou¯adnice v r·mci virtu·lnÌ plochy
+		int x;                // Sou≈ôadnice v r√°mci virtu√°ln√≠ plochy
 		int y;
 		bool isPrimary;
 
@@ -194,11 +194,11 @@ public:
 		MONITORINFO mi;
 		mi.cbSize = sizeof(MONITORINFO);
 
-		// ZÌsk·me informace o monitoru na z·kladÏ jeho identifik·toru (handle)
+		// Z√≠sk√°me informace o monitoru na z√°kladƒõ jeho identifik√°toru (handle)
 		if (GetMonitorInfo(hMonitor, &mi)) {
-			// mi.rcMonitor obsahuje sou¯adnice celÈho monitoru ve virtu·lnÌ ploöe
+			// mi.rcMonitor obsahuje sou≈ôadnice cel√©ho monitoru ve virtu√°ln√≠ plo≈°e
 			SetWindowPos(hwnd, NULL,
-				mi.rcMonitor.left,  // Toto definuje, na kterÈm monitoru okno skonËÌ
+				mi.rcMonitor.left,  // Toto definuje, na kter√©m monitoru okno skonƒç√≠
 				mi.rcMonitor.top,
 				0, 0,
 				SWP_NOSIZE | SWP_NOZORDER | SWP_NOACTIVATE);

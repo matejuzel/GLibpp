@@ -1,4 +1,4 @@
-#pragma once
+Ôªø#pragma once
 #include <string>
 #include <cstring>
 #include <cmath>
@@ -23,7 +23,7 @@ struct Mtx4 {
         float m30, float m31, float m32, float m33
     );
 
-    // special member functions ó all defaulted
+    // special member functions ‚Äî all defaulted
     Mtx4(const Mtx4&) = default;
     Mtx4(Mtx4&&) = default;
     Mtx4& operator=(const Mtx4&) = default;
@@ -105,15 +105,15 @@ struct Mtx4 {
         Vec4 upB(b.data[1], b.data[5], b.data[9], 0.0f);
         Vec4 fwdB(b.data[2], b.data[6], b.data[10], 0.0f);
 
-        // 2. INTERPOLACE SMÃRŸ
+        // 2. INTERPOLACE SMƒöR≈Æ
         Vec4 fwd = slerpVec(fwdA.normalized(), fwdB.normalized(), t);
         Vec4 up = slerpVec(upA.normalized(), upB.normalized(), t);
 
-        // 3. ORTONORMALIZACE (K¯Ìûov˝ souËin pro pravotoËivou soustavu)
+        // 3. ORTONORMALIZACE (K≈ô√≠≈æov√Ω souƒçin pro pravotoƒçivou soustavu)
         Vec4 right = up.cross(fwd).normalized();
         up = fwd.cross(right).normalized();
 
-        // 4. INTERPOLACE POZICE (Row-Major: translace je obvykle v poslednÌm sloupci 3,7,11)
+        // 4. INTERPOLACE POZICE (Row-Major: translace je obvykle v posledn√≠m sloupci 3,7,11)
         float om = 1.0f - t;
         Vec4 pos(
             a.data[3] * om + b.data[3] * t,
@@ -122,15 +122,15 @@ struct Mtx4 {
             1.0f
         );
 
-        // 5. SESTAVENÕ (ZpÏt do Row-Major layoutu)
+        // 5. SESTAVEN√ç (Zpƒõt do Row-Major layoutu)
         Mtx4 res;
-        // ÿ·dek 0
+        // ≈ò√°dek 0
         res.data[0] = right.x; res.data[1] = up.x;   res.data[2] = fwd.x;  res.data[3] = pos.x;
-        // ÿ·dek 1
+        // ≈ò√°dek 1
         res.data[4] = right.y; res.data[5] = up.y;   res.data[6] = fwd.y;  res.data[7] = pos.y;
-        // ÿ·dek 2
+        // ≈ò√°dek 2
         res.data[8] = right.z; res.data[9] = up.z;   res.data[10] = fwd.z; res.data[11] = pos.z;
-        // ÿ·dek 3
+        // ≈ò√°dek 3
         res.data[12] = 0.0f;    res.data[13] = 0.0f;  res.data[14] = 0.0f;  res.data[15] = 1.0f;
 
         return res;

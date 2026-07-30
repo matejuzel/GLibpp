@@ -1,4 +1,4 @@
-#pragma once
+ï»¿#pragma once
 
 #include <cstdint>
 #include <algorithm>
@@ -59,7 +59,7 @@ namespace Render {
                 return;
             }
 
-            // Seøadíme vrcholy podle Y (od nejnižšího)
+            // SeÅ™adÃ­me vrcholy podle Y (od nejniÅ¾Å¡Ã­ho)
             if (y1 < y0) { std::swap(y0, y1); std::swap(x0, x1); }
             if (y2 < y0) { std::swap(y0, y2); std::swap(x0, x2); }
             if (y2 < y1) { std::swap(y1, y2); std::swap(x1, x2); }
@@ -88,7 +88,7 @@ namespace Render {
                     return x0 + (x1 - x0) * (y - y0) / (y1 - y0);
                 };
 
-            // Horní èást (od y0 do y1)
+            // HornÃ­ ÄÃ¡st (od y0 do y1)
             for (int y = y0; y <= y1; y++)
             {
                 int xa = edgeInterp(y, x0, y0, x2, y2);
@@ -96,7 +96,7 @@ namespace Render {
                 drawSpan(y, xa, xb);
             }
 
-            // Dolní èást (od y1 do y2)
+            // DolnÃ­ ÄÃ¡st (od y1 do y2)
             for (int y = y1; y <= y2; y++)
             {
                 int xa = edgeInterp(y, x0, y0, x2, y2);
@@ -110,7 +110,7 @@ namespace Render {
         {
             //std::cout << "triangle([" << x0 << "," << y0 << "] [" << x1 << "," << y1 << "][" << x2 << "," << y2 << "])" << std::endl;
 
-            // Seøadíme vrcholy podle Y (od nejnižšího)
+            // SeÅ™adÃ­me vrcholy podle Y (od nejniÅ¾Å¡Ã­ho)
             if (y1 < y0) { std::swap(y0, y1); std::swap(x0, x1); }
             if (y2 < y0) { std::swap(y0, y2); std::swap(x0, x2); }
             if (y2 < y1) { std::swap(y1, y2); std::swap(x1, x2); }
@@ -139,7 +139,7 @@ namespace Render {
                     return x0 + (x1 - x0) * (y - y0) / (y1 - y0);
                 };
 
-            // Horní èást (od y0 do y1)
+            // HornÃ­ ÄÃ¡st (od y0 do y1)
             for (int y = y0; y <= y1; y++)
             {
                 int xa = edgeInterp(y, x0, y0, x2, y2);
@@ -147,7 +147,7 @@ namespace Render {
                 drawSpan(y, xa, xb);
             }
 
-            // Dolní èást (od y1 do y2)
+            // DolnÃ­ ÄÃ¡st (od y1 do y2)
             for (int y = y1; y <= y2; y++)
             {
                 int xa = edgeInterp(y, x0, y0, x2, y2);

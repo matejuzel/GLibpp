@@ -1,4 +1,4 @@
-#pragma once
+ï»¿#pragma once
 
 #include "Vec4.h"
 #include "Mtx4.h"
@@ -97,7 +97,7 @@ struct Quaternion
         // rotated = p + w * t + cross(q.xyz, t)
         Vec4 r = p + t * w + cross(qv, t);
 
-        return Vec4(r.x, r.y, r.z, v.w); // w se nemìní
+        return Vec4(r.x, r.y, r.z, v.w); // w se nemÄ›nÃ­
     }
 
 
@@ -128,17 +128,17 @@ struct Quaternion
 
     Quaternion invert() const
     {
-        // spoèítáme |q|^2
+        // spoÄÃ­tÃ¡me |q|^2
         float len2 = lengthSquared();
 
-        // pokud je quaternion témìø normalizovanı
+        // pokud je quaternion tÃ©mÄ›Å™ normalizovanÃ½
         if (fabs(len2 - 1.0f) < 1e-3f)
         {
-            // rychlá inverze = konjugace
+            // rychlÃ¡ inverze = konjugace
             return Quaternion(-x, -y, -z, w);
         }
 
-        // jinak bezpeèná inverze
+        // jinak bezpeÄnÃ¡ inverze
         if (len2 == 0.0f)
             return Quaternion(0, 0, 0, 1); // fallback
 
@@ -151,7 +151,7 @@ struct Quaternion
         // dot product
         float dot = a.x * b.x + a.y * b.y + a.z * b.z + a.w * b.w;
 
-        // pokud je dot < 0 -> invertujeme b, aby interpolace šla nejkratší cestou
+        // pokud je dot < 0 -> invertujeme b, aby interpolace Å¡la nejkratÅ¡Ã­ cestou
         Quaternion bb = b;
         if (dot < 0.0f) {
             dot = -dot;
@@ -161,9 +161,9 @@ struct Quaternion
             bb.w = -bb.w;
         }
 
-        // pokud jsou quaterniony velmi blízko -> pouijeme LERP
+        // pokud jsou quaterniony velmi blÃ­zko -> pouÅ¾ijeme LERP
         if (dot > 0.9995f) {
-            // lineární interpolace + normalizace
+            // lineÃ¡rnÃ­ interpolace + normalizace
             Quaternion r(
                 a.x + t * (bb.x - a.x),
                 a.y + t * (bb.y - a.y),
@@ -225,7 +225,7 @@ struct Quaternion
     }
 
 
-    // pøevod na 4×4 matici
+    // pÅ™evod na 4Ã—4 matici
     Mtx4 toMatrix() const
     {
         float xx = x * x;

@@ -1,4 +1,4 @@
-#pragma once
+ï»¿#pragma once
 
 #include <atomic>
 #include <array>
@@ -9,11 +9,11 @@ template <typename T>
 class ZeroAllocTripleBuffer {
 public:
     ZeroAllocTripleBuffer()
-        : producer_idx(0) // Producer má buffer 0
-        , consumer_idx(2) // Consumer má buffer 2
+        : producer_idx(0) // Producer mÃ¡ buffer 0
+        , consumer_idx(2) // Consumer mÃ¡ buffer 2
     {
-        // V "dirty" schránce leí buffer 1. 
-        // Schránka teï není "prázdná", ale drí ten tøetí volnı buffer.
+        // V "dirty" schrÃ¡nce leÅ¾Ã­ buffer 1. 
+        // SchrÃ¡nka teÄ nenÃ­ "prÃ¡zdnÃ¡", ale drÅ¾Ã­ ten tÅ™etÃ­ volnÃ½ buffer.
         dirty_idx.store(1, std::memory_order_relaxed);
         has_new_data.store(false, std::memory_order_relaxed);
     }
@@ -24,24 +24,24 @@ public:
     }
 
     void publish() {
-        // Vymìníme náš dopsanı buffer za ten, kterı byl v dirty_idx (ten volnı).
+        // VymÄ›nÃ­me nÃ¡Å¡ dopsanÃ½ buffer za ten, kterÃ½ byl v dirty_idx (ten volnÃ½).
         producer_idx = dirty_idx.exchange(producer_idx, std::memory_order_acq_rel);
 
-        // Signalizujeme, e v dirty_idx je teï èerstvé maso.
+        // Signalizujeme, Å¾e v dirty_idx je teÄ ÄerstvÃ© maso.
         has_new_data.store(true, std::memory_order_release);
     }
 
     // --- CONSUMER API ---
     bool update_reader() {
-        // Nejdøív levnì zkontrolujeme, jestli producent vùbec nìco poslal.
+        // NejdÅ™Ã­v levnÄ› zkontrolujeme, jestli producent vÅ¯bec nÄ›co poslal.
         if (!has_new_data.load(std::memory_order_acquire)) {
             return false;
         }
 
-        // Pokud ano, vezmeme si to a v dirty_idx necháme náš starı (u pøeètenı) buffer.
+        // Pokud ano, vezmeme si to a v dirty_idx nechÃ¡me nÃ¡Å¡ starÃ½ (uÅ¾ pÅ™eÄtenÃ½) buffer.
         consumer_idx = dirty_idx.exchange(consumer_idx, std::memory_order_acq_rel);
 
-        // Resetujeme pøíznak, protoe jsme právì vybrali nejnovìjší data.
+        // Resetujeme pÅ™Ã­znak, protoÅ¾e jsme prÃ¡vÄ› vybrali nejnovÄ›jÅ¡Ã­ data.
         has_new_data.store(false, std::memory_order_release);
 
         return true;
@@ -63,10 +63,10 @@ private:
     alignas(cache_line) int producer_idx;
     alignas(cache_line) int consumer_idx;
 
-    // dirty_idx teï slouí jako permanentní úschovna toho "tøetího" bufferu.
+    // dirty_idx teÄ slouÅ¾Ã­ jako permanentnÃ­ Ãºschovna toho "tÅ™etÃ­ho" bufferu.
     alignas(cache_line) std::atomic<int> dirty_idx;
 
-    // Pøíznak, abychom poznali, jestli to, co leí v dirty_idx, 
-    // je novinka od producenta, nebo jen starı odloenı buffer.
+    // PÅ™Ã­znak, abychom poznali, jestli to, co leÅ¾Ã­ v dirty_idx, 
+    // je novinka od producenta, nebo jen starÃ½ odloÅ¾enÃ½ buffer.
     alignas(cache_line) std::atomic<bool> has_new_data;
 };

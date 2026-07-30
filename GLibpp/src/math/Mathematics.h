@@ -1,4 +1,4 @@
-#pragma once
+ï»¿#pragma once
 #include <cmath>
 #include <iostream>
 #include <bit>
@@ -28,10 +28,10 @@ namespace GLibpp::Math {
 
     inline float reciprocal(float x)
     {
-        // rychlý odhad pomocí bit hacku
+        // rychlÃ½ odhad pomocÃ­ bit hacku
 		float y = std::bit_cast<float>(0x7EF311C2 - std::bit_cast<uint32_t>(x));
 
-        // dvì iterace NR
+        // dvÄ› iterace NR
         y = y * (2.0f - x * y);
         y = y * (2.0f - x * y);
 

@@ -1,4 +1,4 @@
-
+ï»¿
 #include "Mesh.h"
 #include "MeshFactory.h"
 #include "MeshModifier.h"
@@ -31,9 +31,9 @@ Mesh MeshFactory::CreateTriangle(float size)
     msh.vertexBuffer.clear();
     msh.indexBuffer.clear();
 
-    float h = size * sqrtf(3.f) * 0.5f; // výška rovnostranného trojúhelníku
+    float h = size * sqrtf(3.f) * 0.5f; // vÃ½Å¡ka rovnostrannÃ©ho trojÃºhelnÃ­ku
 
-    // Rovnostranný trojúhelník v XY rovinì
+    // RovnostrannÃ½ trojÃºhelnÃ­k v XY rovinÄ›
     msh.vertexBuffer.emplace_back(-size * 0.5f, -h / 3.f, 0.f, 1.f);
     msh.vertexBuffer.emplace_back(size * 0.5f, -h / 3.f, 0.f, 1.f);
     msh.vertexBuffer.emplace_back(0.f, h * 2.f / 3.f, 0.f, 1.f);
@@ -129,12 +129,12 @@ Mesh MeshFactory::CreateSphere(float radius, uint32_t segments)
             uint32_t i2 = i0 + (sectors + 1);
             uint32_t i3 = i2 + 1;
 
-            // první trojúhelník
+            // prvnÃ­ trojÃºhelnÃ­k
             msh.indexBuffer.push_back(i0);
             msh.indexBuffer.push_back(i2);
             msh.indexBuffer.push_back(i1);
 
-            // druhý trojúhelník
+            // druhÃ½ trojÃºhelnÃ­k
             msh.indexBuffer.push_back(i1);
             msh.indexBuffer.push_back(i2);
             msh.indexBuffer.push_back(i3);
@@ -219,7 +219,7 @@ Mesh MeshFactory::CreateIcosan(float radius)
 
     const float t = (1.0f + sqrtf(5.0f)) * 0.5f;
 
-    // 12 vertexù icosahedronu
+    // 12 vertexÅ¯ icosahedronu
     msh.vertexBuffer = {
         { -1.0f,  t,  0.0f, 1.0f },{ 1.0f,  t,  0.0f, 1.0f },{ -1.0f, -t,  0.0f, 1.0f },{ 1.0f, -t,  0.0f, 1.0f },
         { 0.0f, -1.0f,  t, 1.0f },{ 0.0f,  1.0f,  t, 1.0f },{ 0.0f, -1.0f, -t, 1.0f },{ 0.0f,  1.0f, -t, 1.0f },
@@ -234,7 +234,7 @@ Mesh MeshFactory::CreateIcosan(float radius)
         v.z = (v.z / len) * radius;
     }
 
-    // 20 trojúhelníkù
+    // 20 trojÃºhelnÃ­kÅ¯
     msh.indexBuffer = {
         0,11,5,  0,5,1,  0,1,7,  0,7,10, 0,10,11,
         1,5,9,   5,11,4, 11,10,2, 10,7,6, 7,1,8,
@@ -316,24 +316,24 @@ Mesh MeshFactory::CreateGridWave(uint32_t size, float waveHeight, float time, fl
     msh.indexBuffer.clear();
     msh.vertexBuffer.reserve(size * size);
 
-    // Støed møížky
+    // StÅ™ed mÅ™Ã­Å¾ky
     const float cx = (size - 1) * 0.5f;
     const float cy = (size - 1) * 0.5f;
 
-    // Frekvence vlny (mùžeš si upravit)
+    // Frekvence vlny (mÅ¯Å¾eÅ¡ si upravit)
     const float frequency = 1.0f;
 
-    // --- Generování vertexù ---
+    // --- GenerovÃ¡nÃ­ vertexÅ¯ ---
     for (uint32_t y = 0; y < size; ++y) {
         for (uint32_t x = 0; x < size; ++x) {
 
             float dx = float(x) - cx;
             float dy = float(y) - cy;
 
-            // Vzdálenost od støedu
+            // VzdÃ¡lenost od stÅ™edu
             float dist = std::sqrt(dx * dx + dy * dy);
 
-            // Radiální vlna
+            // RadiÃ¡lnÃ­ vlna
             float wave = std::sin(dist * frequency - time * speed);
 
             msh.vertexBuffer.emplace_back(
@@ -345,7 +345,7 @@ Mesh MeshFactory::CreateGridWave(uint32_t size, float waveHeight, float time, fl
         }
     }
 
-    // --- Triangulace møížky ---
+    // --- Triangulace mÅ™Ã­Å¾ky ---
     for (uint32_t y = 0; y < size - 1; ++y) {
         for (uint32_t x = 0; x < size - 1; ++x) {
             uint32_t i0 = y * size + x;
@@ -363,6 +363,27 @@ Mesh MeshFactory::CreateGridWave(uint32_t size, float waveHeight, float time, fl
         }
     }
     return msh;
+}
+
+void MeshFactory::UpdateGridWave(Mesh& msh, uint32_t size, float waveHeight, float time, float speed)
+{
+    if (msh.vertexBuffer.size() != size_t(size) * size) return;
+
+    const float cx = (size - 1) * 0.5f;
+    const float cy = (size - 1) * 0.5f;
+    const float frequency = 1.0f;
+
+    size_t i = 0;
+    for (uint32_t y = 0; y < size; ++y) {
+        for (uint32_t x = 0; x < size; ++x, ++i) {
+
+            float dx = float(x) - cx;
+            float dy = float(y) - cy;
+            float dist = std::sqrt(dx * dx + dy * dy);
+
+            msh.vertexBuffer[i].z = waveHeight * std::sin(dist * frequency - time * speed);
+        }
+    }
 }
 
 

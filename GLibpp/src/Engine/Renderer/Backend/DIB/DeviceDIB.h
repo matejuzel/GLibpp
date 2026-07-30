@@ -1,4 +1,4 @@
-#pragma once
+Ôªø#pragma once
 
 #include "RasterizatorDIB.h"
 #include "Color.h"
@@ -80,7 +80,7 @@ namespace Render {
     class DeviceDIB : public internal::DeviceDIBBase
     {
         template<typename D, typename T>
-        friend class DeviceBase;   // Base m· p¯Ìstup do private Derived ...Impl(), ktere nemaji byt videt zvenci
+        friend class DeviceBase;   // Base m√° p≈ô√≠stup do private Derived ...Impl(), ktere nemaji byt videt zvenci
 
     private:
 
@@ -98,7 +98,7 @@ namespace Render {
     public:
 
         /* problem s nenapovidanim IDE to nevyresilo
-        // --- explicitnÌ p¯epublikov·nÌ alias˘ z Base pro lepöÌ viditelnost v IDE ---
+        // --- explicitn√≠ p≈ôepublikov√°n√≠ alias≈Ø z Base pro lep≈°√≠ viditelnost v IDE ---
         using Context = typename Base::Context;
         using Target = typename Base::Target;
         using TargetHandle = typename Base::TargetHandle;
@@ -176,7 +176,7 @@ namespace Render {
             float ra = plane.x * A.x + plane.y * A.y + plane.z * A.z + plane.w * A.w;
             float rb = plane.x * B.x + plane.y * B.y + plane.z * B.z + plane.w * B.w;
 
-            // Oba venku -> ˙seËka zmizÌ
+            // Oba venku -> √∫seƒçka zmiz√≠
             if (ra < 0 && rb < 0) {
                 A = B = { 0,0,0,0 };
                 return;
@@ -223,12 +223,12 @@ namespace Render {
             if (floatBuffer.size() < 3 * vertexCount)
                 floatBuffer.resize(3 * vertexCount);
 
-            // view-space pozice pro v˝poËet norm·l
+            // view-space pozice pro v√Ωpoƒçet norm√°l
             static std::vector<float> viewPos;
             if (viewPos.size() < 3 * vertexCount)
                 viewPos.resize(3 * vertexCount);
 
-            // --- 3) Transformace vrchol˘ ---
+            // --- 3) Transformace vrchol≈Ø ---
             int offset = 0;
             int offsetView = 0;
 
@@ -262,7 +262,7 @@ namespace Render {
                 floatBuffer[offset++] = v.y;
                 floatBuffer[offset++] = v.z;
 
-                // view-space pozice (pro norm·ly)
+                // view-space pozice (pro norm√°ly)
                 Vec4 vView = mv * vertex;
                 vView.divideW();
 
@@ -273,19 +273,19 @@ namespace Render {
 
             Target& target = registry.targets.get(ctx.framebufferHandle);
 
-            // --- 4) SmÏrovÈ svÏtlo ve VIEW SPACE ---
+            // --- 4) Smƒõrov√© svƒõtlo ve VIEW SPACE ---
             float Lx = 0.0f;
             float Ly = 0.0f;
-            float Lz = -1.0f; // svÏtlo zep¯edu v prostoru kamery
+            float Lz = -1.0f; // svƒõtlo zep≈ôedu v prostoru kamery
 
             float lenL = std::sqrt(Lx * Lx + Ly * Ly + Lz * Lz);
             Lx /= lenL; Ly /= lenL; Lz /= lenL;
 
-            // difuznÌ rozsah
+            // difuzn√≠ rozsah
             float a = 0.2f;
             float b = 1.0f;
 
-            // --- 5) Rasterizace troj˙helnÌk˘ ---
+            // --- 5) Rasterizace troj√∫heln√≠k≈Ø ---
             const auto& ib = mesh.getIndexBuffer();
 
             for (int i = 0; i < ib.size(); i += 3)
@@ -294,7 +294,7 @@ namespace Render {
                 int ibb = ib[i + 1];
                 int ic = ib[i + 2];
 
-                // --- view-space pozice pro norm·lu ---
+                // --- view-space pozice pro norm√°lu ---
                 float axv = viewPos[3 * ia];
                 float ayv = viewPos[3 * ia + 1];
                 float azv = viewPos[3 * ia + 2];
@@ -307,7 +307,7 @@ namespace Render {
                 float cyv = viewPos[3 * ic + 1];
                 float czv = viewPos[3 * ic + 2];
 
-                // --- norm·la ve view space ---
+                // --- norm√°la ve view space ---
                 float ABx = bxv - axv;
                 float ABy = byv - ayv;
                 float ABz = bzv - azv;
@@ -450,7 +450,7 @@ namespace Render {
                 v.y = (-v.y * 0.5f + 0.5f) * height + y;
                 };
 
-            // 3 osy: kaûd· m· dva body
+            // 3 osy: ka≈æd√° m√° dva body
             Vec4 axisVerts[6] = {
                 // X axis
                 {0,0,0,1}, {1,0,0,1},

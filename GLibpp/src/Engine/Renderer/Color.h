@@ -1,4 +1,4 @@
-#pragma once
+ï»¿#pragma once
 
 #include <cstdint>
 #include <algorithm>
@@ -18,13 +18,13 @@ struct Color {
         b = (rgba >> 0) & 0xFF;
     }
 
-    // Konstruktor z jednotlivých složek
+    // Konstruktor z jednotlivÃ½ch sloÅ¾ek
     constexpr Color(uint8_t r, uint8_t g, uint8_t b, uint8_t a = 255)
         : r(r), g(g), b(b), a(a)
     {
     }
 
-    // Složení zpìt do 0xAARRGGBB
+    // SloÅ¾enÃ­ zpÄ›t do 0xAARRGGBB
     constexpr uint32_t toRGBA() const noexcept {
         return (uint32_t(a) << 24) |
             (uint32_t(r) << 16) |
@@ -32,7 +32,7 @@ struct Color {
             uint32_t(b);
     }
 
-    // Pøeddefinované barvy
+    // PÅ™eddefinovanÃ© barvy
     static constexpr Color Red() noexcept { return Color(255, 0, 0); }
     static constexpr Color Green() noexcept { return Color(0, 255, 0); }
     static constexpr Color Blue() noexcept { return Color(0, 0, 255); }

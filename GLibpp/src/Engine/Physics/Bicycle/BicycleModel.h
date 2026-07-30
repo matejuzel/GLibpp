@@ -1,4 +1,4 @@
-#pragma once
+ï»¿#pragma once
 
 #include "BicycleParams.h"
 #include "Vec4.h"
@@ -12,8 +12,8 @@ namespace GLibpp::Physics {
     public:
         BicycleParams params;
 
-        Vec4 position;        // svìtová pozice
-        Quaternion heading;   // NEW – plná 3D orientace
+        Vec4 position;        // svÄ›tovÃ¡ pozice
+        Quaternion heading;   // NEW â€“ plnÃ¡ 3D orientace
 
     private:
         
@@ -80,7 +80,7 @@ namespace GLibpp::Physics {
             Vec4 forward = heading * Vec4(0, 0, 1, 0);
             Vec4 right = heading * Vec4(1, 0, 0, 0);
 
-            // rovná jízda
+            // rovnÃ¡ jÃ­zda
             if (fabs(steerAngle) < 0.0001f) {
                 position = position + (forward * (speed * dt));
                 return;
@@ -89,16 +89,16 @@ namespace GLibpp::Physics {
             float R = getIcr();
             float dtheta = (speed * dt) / R;
 
-            // ICR leží vpravo od zadní nápravy
+            // ICR leÅ¾Ã­ vpravo od zadnÃ­ nÃ¡pravy
             Vec4 icr = position + right * R;
 
             // rotace kolem Y
             Quaternion delta = Quaternion::FromAxisAngle(Vec4(0, 1, 0, 0), dtheta);
 
-            // otoèíme heading
+            // otoÄÃ­me heading
             heading = (delta * heading).normalized();
 
-            // otoèíme pozici kolem ICR
+            // otoÄÃ­me pozici kolem ICR
             Vec4 rel = position - icr;
             rel = delta * rel;
             position = icr + rel;

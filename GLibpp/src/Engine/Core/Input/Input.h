@@ -1,4 +1,4 @@
-#pragma once
+ï»¿#pragma once
 #include <vector>
 #include <array>
 #include <algorithm>
@@ -14,50 +14,50 @@ namespace GLibpp {
             m_previous.fill(false);
         }
 
-        // --- VLÁKNO OKNA (WndProc / pollEvents) ---
+        // --- VLÃKNO OKNA (WndProc / pollEvents) ---
 
         /**
-            * Voláno skrze Windows message loop.
-            * Zapisuje do "surové" schránky, která je oddìlená od logiky.
+            * VolÃ¡no skrze Windows message loop.
+            * Zapisuje do "surovÃ©" schrÃ¡nky, kterÃ¡ je oddÄ›lenÃ¡ od logiky.
             */
         void setKeyState(unsigned char vkey, bool isDown) {
-            // Na x86 je zápis do bool (1 byte) atomickı, 
-            // nepotøebujeme mutex pro toto jednoduché nastavení.
+            // Na x86 je zÃ¡pis do bool (1 byte) atomickÃ½, 
+            // nepotÅ™ebujeme mutex pro toto jednoduchÃ© nastavenÃ­.
             m_rawInput[vkey] = isDown;
         }
 
 
-        // --- LOGICKÉ VLÁKNO (timer.tickAndDispatchAction) ---
+        // --- LOGICKÃ‰ VLÃKNO (timer.tickAndDispatchAction) ---
 
         /**
-            * Synchronizuje stavy. Volá se JEDNOU na zaèátku kadého updateLogic kroku.
-            * Pøeklopí surovı vstup do stabilního stavu pro aktuální frame.
+            * Synchronizuje stavy. VolÃ¡ se JEDNOU na zaÄÃ¡tku kaÅ¾dÃ©ho updateLogic kroku.
+            * PÅ™eklopÃ­ surovÃ½ vstup do stabilnÃ­ho stavu pro aktuÃ¡lnÃ­ frame.
             */
         void update() {
-            // 1. To, co bylo v minulém kroku aktuální, je teï pøedchozí
+            // 1. To, co bylo v minulÃ©m kroku aktuÃ¡lnÃ­, je teÄ pÅ™edchozÃ­
             m_previous = m_current;
 
-            // 2. Naèteme surová data ze schránky do aktuálního stavu
-            // Tímto se "zmrazí" vstup pro celou dobu trvání updateLogic()
+            // 2. NaÄteme surovÃ¡ data ze schrÃ¡nky do aktuÃ¡lnÃ­ho stavu
+            // TÃ­mto se "zmrazÃ­" vstup pro celou dobu trvÃ¡nÃ­ updateLogic()
             m_current = m_rawInput;
         }
 
-        /** Je klávesa aktuálnì drena? */
+        /** Je klÃ¡vesa aktuÃ¡lnÄ› drÅ¾ena? */
         bool isDown(unsigned char vkey) const {
             return m_current[vkey];
         }
 
-        /** Byla klávesa stisknuta pøesnì v tomto logickém kroku? (Debounce) */
+        /** Byla klÃ¡vesa stisknuta pÅ™esnÄ› v tomto logickÃ©m kroku? (Debounce) */
         bool wasPressed(unsigned char vkey) const {
             return m_current[vkey] && !m_previous[vkey];
         }
 
-        /** Byla klávesa uvolnìna pøesnì v tomto logickém kroku? */
+        /** Byla klÃ¡vesa uvolnÄ›na pÅ™esnÄ› v tomto logickÃ©m kroku? */
         bool wasReleased(unsigned char vkey) const {
             return !m_current[vkey] && m_previous[vkey];
         }
 
-        /** Pro pøípad ztráty focusu okna - vynuluje vše */
+        /** Pro pÅ™Ã­pad ztrÃ¡ty focusu okna - vynuluje vÅ¡e */
         void reset() {
             m_rawInput.fill(false);
             m_current.fill(false);
@@ -65,10 +65,10 @@ namespace GLibpp {
         }
 
     private:
-        // Surová schránka - sem sype data vlákno okna (asynchronnì)
+        // SurovÃ¡ schrÃ¡nka - sem sype data vlÃ¡kno okna (asynchronnÄ›)
         std::array<bool, 256> m_rawInput;
 
-        // Stabilní stavy - s tìmito pracuje logika (synchronnì v rámci update)
+        // StabilnÃ­ stavy - s tÄ›mito pracuje logika (synchronnÄ› v rÃ¡mci update)
         std::array<bool, 256> m_current;
         std::array<bool, 256> m_previous;
     };
@@ -79,7 +79,7 @@ namespace GLibpp {
     public:
 
 
-        // Singleton pøístup nebo instance v Enginu
+        // Singleton pÅ™Ã­stup nebo instance v Enginu
         //Keyboard& getKeyboard() { return m_keyboard; }
 
         Keyboard keyboard;

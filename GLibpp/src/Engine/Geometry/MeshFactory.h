@@ -16,5 +16,8 @@ public:
 	static Mesh CreateIcosphere(float radius = 1.0f, uint32_t subdivisions = 1);
 	static Mesh CreateGrid(uint32_t size = 1, float distort = 0.0f);
 	static Mesh CreateGridWave(uint32_t size = 1, float waveHeight = 0.5f, float time = 0.0f, float speed = 1.0f);
+
+	// aktualizuje in-place vysku vlny meshe vytvoreneho pres CreateGridWave (stejne size!) - zadne alokace
+	static void UpdateGridWave(Mesh& msh, uint32_t size, float waveHeight, float time, float speed);
 	
 };

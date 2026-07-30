@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 
 
 #include "StableRegistry.h"
@@ -13,7 +13,7 @@ namespace Render {
     struct DeviceTraits;
 
     /** CLASS DeviceBase
-     * CRTP � Curiously Recurring Template Pattern (v podstate compile-time polymorfizmus)
+     * CRTP — Curiously Recurring Template Pattern (v podstate compile-time polymorfizmus)
      * Base trida definuje rozhrani, ktere kazdy backend "DerivedDevice" musi implementovat
      */
     template <typename DerivedDevice, typename DerivedTarget>

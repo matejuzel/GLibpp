@@ -1,4 +1,4 @@
-#pragma once
+Ôªø#pragma once
 
 #include <utility>
 
@@ -15,15 +15,15 @@ public:
         history[1] = initial_value;
     }
 
-    // Zak·ûeme kopÌrov·nÌ/p¯esouv·nÌ drû·ku historie
+    // Zak√°≈æeme kop√≠rov√°n√≠/p≈ôesouv√°n√≠ dr≈æ√°ku historie
     ZeroAllocStateHistory(const ZeroAllocStateHistory&) = delete;
     ZeroAllocStateHistory& operator=(const ZeroAllocStateHistory&) = delete;
     ZeroAllocStateHistory(ZeroAllocStateHistory&&) = delete;
     ZeroAllocStateHistory& operator=(ZeroAllocStateHistory&&) = delete;
 
-    // --- MANIPULACE A Z¡PIS ---
+    // --- MANIPULACE A Z√ÅPIS ---
 
-    // Posune historii a rovnou vr·tÌ referenci na nov˝ aktu·lnÌ stav pro z·pis
+    // Posune historii a rovnou vr√°t√≠ referenci na nov√Ω aktu√°ln√≠ stav pro z√°pis
     T& advance_and_get_current() {
         std::swap(previous_idx, current_idx);
         return history[current_idx];
@@ -42,7 +42,7 @@ public:
     }
 
 
-    // --- PÿÕSTUP PRO »TENÕ ---
+    // --- P≈ò√çSTUP PRO ƒåTEN√ç ---
 
     const T& get_previous() const {
         return history[previous_idx];

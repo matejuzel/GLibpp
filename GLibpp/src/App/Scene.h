@@ -48,7 +48,7 @@ struct Scene {
 
 
 struct LogicTickInfo {
-	double lastLogicTick;
+	double lastLogicTick = 0.0;
 };
 
 struct LogicState {

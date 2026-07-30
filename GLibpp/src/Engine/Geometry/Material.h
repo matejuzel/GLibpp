@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 
 #include <memory>
 #include "Color.h"
@@ -15,7 +15,7 @@ public:
 	Material() : color(0x00ff0000) {}
 
 	Color color;
-	// Pozd�ji...:
+	// Později...:
 	// - shader handle
 	// - textury
 	// - uniformy

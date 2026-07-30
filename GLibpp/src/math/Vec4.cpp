@@ -1,4 +1,4 @@
-#include "Vec4.h"
+ï»¿#include "Vec4.h"
 
 float Vec4::length() const {
     return std::sqrt(x * x + y * y + z * z + w * w);
@@ -59,7 +59,7 @@ Vec4 Vec4::operator-(const Vec4& o) const {
     return Vec4(x - o.x, y - o.y, z - o.z, w - o.w);
 }
 
-// Násobení skalárem (v * s)
+// NÃ¡sobenÃ­ skalÃ¡rem (v * s)
 Vec4 Vec4::operator*(float s) const {
     return Vec4(x * s, y * s, z * s, w * s);
 }
@@ -72,26 +72,26 @@ std::string Vec4::toString() const
 
     float values[4] = { x, y, z, w };
 
-    // 1) Najdi nejdelší øetìzec (vèetnì znaménka)
+    // 1) Najdi nejdelÅ¡Ã­ Å™etÄ›zec (vÄetnÄ› znamÃ©nka)
     int maxWidth = 0;
     for (int i = 0; i < 4; i++) {
         std::ostringstream tmp;
         tmp << std::fixed << std::setprecision(3)
-            << (values[i] >= 0 ? "+" : "")  // pøidej + pro kladná èísla
+            << (values[i] >= 0 ? "+" : "")  // pÅ™idej + pro kladnÃ¡ ÄÃ­sla
             << values[i];
         int len = (int)tmp.str().length();
         if (len > maxWidth)
             maxWidth = len;
     }
 
-    // 2) Vypiš zarovnanì
+    // 2) VypiÅ¡ zarovnanÄ›
     std::ostringstream out;
     out << std::fixed << std::setprecision(3);
 
     out << "[ ";
     for (int i = 0; i < 4; i++) {
         out << std::setw(maxWidth)
-            << (values[i] >= 0 ? "+" : "")  // stejné pravidlo pøi vıpisu
+            << (values[i] >= 0 ? "+" : "")  // stejnÃ© pravidlo pÅ™i vÃ½pisu
             << values[i];
         if (i < 3) out << ", ";
     }

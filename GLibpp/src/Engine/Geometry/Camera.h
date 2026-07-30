@@ -1,4 +1,4 @@
-#pragma once
+Ôªø#pragma once
 
 #include "Vec4.h"
 #include "Mtx4.h"
@@ -23,13 +23,13 @@ public:
     float fovRad;
 
 private:
-    Vec4 target;   // st·le drûÌme pro zpÏtnou kompatibilitu
-    Vec4 up;       // st·le drûÌme pro zpÏtnou kompatibilitu
+    Vec4 target;   // st√°le dr≈æ√≠me pro zpƒõtnou kompatibilitu
+    Vec4 up;       // st√°le dr≈æ√≠me pro zpƒõtnou kompatibilitu
 
-    Quaternion orientation; // NOV… ñ nahrazuje yaw/pitch
+    Quaternion orientation; // NOV√â ‚Äì nahrazuje yaw/pitch
 
-    float yaw;     // zachov·no kv˘li API
-    float pitch;   // zachov·no kv˘li API
+    float yaw;     // zachov√°no kv≈Øli API
+    float pitch;   // zachov√°no kv≈Øli API
 
 public:
 
@@ -57,7 +57,7 @@ public:
     }
 
     // ---------------------------------------------------------
-    // ROTACE ñ API zachov·no
+    // ROTACE ‚Äì API zachov√°no
     // ---------------------------------------------------------
     void rotate(float deltaYaw, float deltaPitch) {
         yaw += deltaYaw;
@@ -65,7 +65,7 @@ public:
 
         pitch = std::clamp(pitch, -1.55f, 1.55f);
 
-        // p¯epoËÌt·me quaternion
+        // p≈ôepoƒç√≠t√°me quaternion
         //orientation = Quaternion::FromEuler(yaw, pitch, 0.0f);
         orientation =
             Quaternion::FromAxisAngle(Vec4(0, 1, 0, 0), yaw) *
@@ -76,8 +76,8 @@ public:
     }
 
     // ---------------------------------------------------------
-    // POHYB ñ API zachov·no
-    // direction je lok·lnÌ
+    // POHYB ‚Äì API zachov√°no
+    // direction je lok√°ln√≠
     // ---------------------------------------------------------
     void move(const Vec4& direction) {
         // transformace direction quaternionem
@@ -104,7 +104,7 @@ private:
     }
 
     // ---------------------------------------------------------
-    // Rekonstrukce yaw/pitch z targetu (kv˘li API)
+    // Rekonstrukce yaw/pitch z targetu (kv≈Øli API)
     // ---------------------------------------------------------
     void updateAnglesFromTarget() {
         Vec4 dir = (target - position).normalized();
@@ -136,7 +136,7 @@ public:
     }
 
     // ---------------------------------------------------------
-    // LERP ñ API zachov·no
+    // LERP ‚Äì API zachov√°no
     // ---------------------------------------------------------
     Camera& operator=(const Camera& other) = default;
 
@@ -161,7 +161,7 @@ public:
     }
 
     // ---------------------------------------------------------
-    // SLERP ñ API zachov·no
+    // SLERP ‚Äì API zachov√°no
     // ---------------------------------------------------------
     friend Camera Slerp(const Camera& a, const Camera& b, float t) {
         Camera r;
@@ -199,15 +199,15 @@ public:
     float farZ;
     float fovRad;
 private:
-    Vec4 target; // VypoËÌtanÈ API zpÏtnÏ kompatibilnÌ
-    Vec4 up;     // VypoËÌtanÈ API zpÏtnÏ kompatibilnÌ
+    Vec4 target; // Vypoƒç√≠tan√© API zpƒõtnƒõ kompatibiln√≠
+    Vec4 up;     // Vypoƒç√≠tan√© API zpƒõtnƒõ kompatibiln√≠
 
     
     
 
-    // Vnit¯nÌ stav pro snadnÈ ovl·d·nÌ
-    float yaw;   // Ot·ËenÌ vlevo/vpravo (radi·ny)
-    float pitch; // Ot·ËenÌ nahoru/dol˘ (radi·ny)
+    // Vnit≈ôn√≠ stav pro snadn√© ovl√°d√°n√≠
+    float yaw;   // Ot√°ƒçen√≠ vlevo/vpravo (radi√°ny)
+    float pitch; // Ot√°ƒçen√≠ nahoru/dol≈Ø (radi√°ny)
 public:
 
     // --- Konstruktory ---
@@ -216,40 +216,40 @@ public:
     Camera(const Vec4& pos, const Vec4& tar, const Vec4& u, float fov, float nZ, float fZ)
         : position(pos), target(tar), up(u), fovRad(fov), nearZ(nZ), farZ(fZ)
     {
-        // P¯i inicializaci p¯es LookAt parametry musÌme dopoËÌtat ˙hly yaw/pitch
+        // P≈ôi inicializaci p≈ôes LookAt parametry mus√≠me dopoƒç√≠tat √∫hly yaw/pitch
         updateAnglesFromTarget();
     }
 
-    // --- KlÌËovÈ API pro v˝poËet View Matice ---
+    // --- Kl√≠ƒçov√© API pro v√Ωpoƒçet View Matice ---
     Mtx4 calculateViewMatrix() const {
         return Mtx4::LookAt(position, target, up);
     }
 
-    // --- Ovl·d·nÌ (pro Input systÈm) ---
+    // --- Ovl√°d√°n√≠ (pro Input syst√©m) ---
 
-    // Ot·ËenÌ (deltaX/deltaY z myöi)
+    // Ot√°ƒçen√≠ (deltaX/deltaY z my≈°i)
     void rotate(float deltaYaw, float deltaPitch) {
         yaw += deltaYaw;
         pitch += deltaPitch;
 
-        // OmezenÌ pohledu nahoru/dol˘ (ochrana p¯ed gimbal lockem v LookAt)
+        // Omezen√≠ pohledu nahoru/dol≈Ø (ochrana p≈ôed gimbal lockem v LookAt)
         pitch = std::clamp(pitch, -1.55f, 1.55f);
 
         updateTargetFromAngles();
     }
 
-    // Pohyb (W, A, S, D z kl·vesnice)
+    // Pohyb (W, A, S, D z kl√°vesnice)
     void move(const Vec4& direction) {
-        // direction je lok·lnÌ (nap¯. 1,0,0 pro dop¯edu), musÌme ho transformovat
-        // nebo jednoduöeji:
+        // direction je lok√°ln√≠ (nap≈ô. 1,0,0 pro dop≈ôedu), mus√≠me ho transformovat
+        // nebo jednodu≈°eji:
         position = position + direction;
-        updateTargetFromAngles(); // Target se musÌ posunout s n·mi
+        updateTargetFromAngles(); // Target se mus√≠ posunout s n√°mi
     }
 
-    // --- InternÌ logika ---
+    // --- Intern√≠ logika ---
 
     void updateTargetFromAngles() {
-        // SfÈrickÈ sou¯adnice -> KartÈzskÈ sou¯adnice (Forward vektor)
+        // Sf√©rick√© sou≈ôadnice -> Kart√©zsk√© sou≈ôadnice (Forward vektor)
         Vec4 forward;
         forward.x = std::cos(yaw) * std::cos(pitch);
         forward.y = std::sin(pitch);
@@ -257,11 +257,11 @@ public:
         forward.w = 0.0f;
         forward.normalize();
 
-        // Target je prostÏ bod kousek p¯ed kamerou
+        // Target je prostƒõ bod kousek p≈ôed kamerou
         target = position + forward;
 
-        // Up vektor (zde fixnÌ world up, pro stabilnÌ FPS kameru)
-        // Pro n·klony (Roll) by se muselo slerpovat i Up
+        // Up vektor (zde fixn√≠ world up, pro stabiln√≠ FPS kameru)
+        // Pro n√°klony (Roll) by se muselo slerpovat i Up
         Vec4 worldUp(0.0f, 1.0f, 0.0f, 0.0f);
         Vec4 right = worldUp.cross(forward).normalized();
         up = forward.cross(right).normalized();
@@ -273,7 +273,7 @@ public:
         yaw = std::atan2(dir.z, dir.x);
     }
 
-    // --- StatickÈ tov·rny ---
+    // --- Statick√© tov√°rny ---
     static Camera Demo(float fovDegrees = 45.0f) {
         Camera c;
         c.position = Vec4(5.0f, 5.0f, 5.0f, 1.0f);
@@ -286,7 +286,7 @@ public:
         return c;
     }
 
-    // --- Oper·tory a Interpolace (z˘st·vajÌ stejnÈ) ---
+    // --- Oper√°tory a Interpolace (z≈Øst√°vaj√≠ stejn√©) ---
     Camera& operator=(const Camera& other) = default;
 
     friend Camera Lerp(const Camera& a, const Camera& b, float t) {
@@ -302,10 +302,10 @@ public:
     }
 
     friend Camera Slerp(const Camera& a, const Camera& b, float t) {
-        // U modernÌ kamery je lepöÌ interpolovat Yaw/Pitch neû Target!
+        // U modern√≠ kamery je lep≈°√≠ interpolovat Yaw/Pitch ne≈æ Target!
         Camera res = Lerp(a, b, t);
-        // Pokud chceö slerpovat orientaci b·ze (Up), pouûij tu p˘vodnÌ Slerp logiku,
-        // ale pro FPS kameru je Lerp ˙hl˘ Yaw/Pitch vizu·lnÏ plynulejöÌ.
+        // Pokud chce≈° slerpovat orientaci b√°ze (Up), pou≈æij tu p≈Øvodn√≠ Slerp logiku,
+        // ale pro FPS kameru je Lerp √∫hl≈Ø Yaw/Pitch vizu√°lnƒõ plynulej≈°√≠.
         return res;
     }
 };

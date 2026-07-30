@@ -1,10 +1,10 @@
-#pragma once
+ï»¿#pragma once
 
 class RunState {
     std::atomic<bool> m_running{ false };
 
 public:
-    // Explicitnì zakáeme kopírování, protoe std::atomic není kopírovatelnı
+    // ExplicitnÄ› zakÃ¡Å¾eme kopÃ­rovÃ¡nÃ­, protoÅ¾e std::atomic nenÃ­ kopÃ­rovatelnÃ½
     RunState() = default;
     RunState(const RunState&) = delete;
     RunState& operator=(const RunState&) = delete;

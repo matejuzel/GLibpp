@@ -19,6 +19,8 @@ Only **x64** is usable. The `Win32`/`x86` configurations exist in the solution b
 ./x64/Debug/GLibpp.exe
 ```
 
+Both `Debug|x64` and `Release|x64` build. `main.cpp` is the only entry point; swap `Debug` for `Release` in the command above and run `./x64/Release/GLibpp.exe`.
+
 There are no tests, no lint config, and no CMake — MSBuild + the `.vcxproj` is the whole build system. The MSVC toolchain here is Czech-localized, so compiler diagnostics come back in Czech.
 
 `main.cpp` asks for monitor `\\.\DISPLAY2`; on a single-monitor machine the window silently falls back to the default position, which is fine.
@@ -58,13 +60,21 @@ Handles are `StableRegistry<T>::Handle{index, generation}`. `targetResize` recre
 
 - **No depth buffer.** `depthbufferHandle` is created and resized but never bound or read. Triangles draw in index order with no Z-test.
 - **No triangle clipping.** `drawMeshImpl` does an all-or-nothing per-vertex frustum test and skips any triangle with an outside vertex. Only `drawAxisImpl` clips properly.
-- **`ResourceManager::meshRegister` / `meshInstanceRegister` are `@todo` stubs returning `{0,0}`.** The mesh handles at the top of `Renderer.h` are meaningless. Meshes are currently passed to `drawMesh` by const ref and several are rebuilt from `MeshFactory` *every frame* inside `renderFrame`.
+- **`ResourceManager::meshRegister` / `meshInstanceRegister` are `@todo` stubs returning `{0,0}`.** The mesh handles at the top of `Renderer.h` are meaningless. Meshes are currently passed to `drawMesh` by const ref; demo meshes are cached as `Renderer` members (built once at construction) and the animated ground wave is updated in place via `MeshFactory::UpdateGridWave` — do not reintroduce per-frame `MeshFactory::Create*` calls in `renderFrame`, they caused visible frame drops.
 - **`Backend/RenderCommand/` is legacy.** It compiles but nothing references it; the only call site is a commented-out block at the bottom of `App.h`.
 - **`GLibpp/_old/`** is a previous iteration of the whole engine, kept for reference. Never edit it or copy patterns from it.
 
 ## Conventions
 
 Comments and commit messages are in **Czech**; match that when editing existing code. Commit subjects follow `vyvoj - <co>`.
+
+### Source encoding — read this before editing any file with Czech comments
+
+Everything under `GLibpp/src/` is **UTF-8 with BOM**, and `/utf-8` is set on both x64 configurations. Keep the BOM when writing these files.
+
+This matters because the history here was mixed: most files were Windows-1250 (the Czech ANSI codepage) with no BOM. A UTF-8 editing tool reading such a file decodes every diacritic as `U+FFFD` and writing it back **destroys the text permanently** — `Změří čas` becomes `Zm��� �as`, and the original bytes are gone. If you ever see `�` in a file, don't edit it: recover the line from git (`git show HEAD:<path>` decoded as CP1250) first.
+
+Two places are still CP1250 on purpose or by neglect: `GLibpp/_old/` (reference-only, never compiled, never edit it) and the `worktree-remove_jitter` branch, whose `Renderer.h` already has mojibake committed.
 
 Math (`src/math/`) is row-vector style with chained mutating builders — `Mtx4::Identity().translate(x,y,z).rotateY(a)` — and `Quaternion` for orientation. `Mtx4::Identity()` returns a value, so the chain mutates a temporary, not a shared identity.
 

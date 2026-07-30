@@ -1,4 +1,4 @@
-#pragma once
+ï»¿#pragma once
 #include <vector>
 #include "Mtx4.h"
 #include "Material.h"
@@ -23,7 +23,7 @@ public:
 
     Mesh& flipFaces()
     {
-        // kadı trojúhelník má 3 indexy
+        // kaÅ¾dÃ½ trojÃºhelnÃ­k mÃ¡ 3 indexy
         for (size_t i = 0; i + 2 < indexBuffer.size(); i += 3)
         {
             std::swap(indexBuffer[i + 1], indexBuffer[i + 2]);

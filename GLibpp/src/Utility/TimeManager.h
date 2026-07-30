@@ -1,4 +1,4 @@
-#pragma once
+ï»¿#pragma once
 
 //#pragma comment(lib, "winmm.lib")
 
@@ -11,7 +11,7 @@
 #include <timeapi.h>
 #include <thread>
 
-#include <timeapi.h> // Potøeba pro timeBeginPeriod
+#include <timeapi.h> // PotÅ™eba pro timeBeginPeriod
 #include <chrono>
 
 #pragma comment(lib, "winmm.lib")
@@ -29,8 +29,8 @@ public:
         return globalStart;
 	}
 
-    // hz - frekvence fixního updatu
-    // fpsWindowSeconds - jak dlouhé období se bere pro vıpoèet FPS (napø. 1.0s)
+    // hz - frekvence fixnÃ­ho updatu
+    // fpsWindowSeconds - jak dlouhÃ© obdobÃ­ se bere pro vÃ½poÄet FPS (napÅ™. 1.0s)
     TimeManager(double hz = 60.0, double fpsWindowSeconds = 1.0)
         : m_fixedDelta(1.0 / hz)
         , m_accumulator(0.0)
@@ -86,7 +86,7 @@ public:
         timeEndPeriod(1);
 	}
 
-    // Zmìøí èas a aktualizuje historii pro FPS
+    // ZmÄ›Å™Ã­ Äas a aktualizuje historii pro FPS
     double tick(double limit = 0.25) {
         LARGE_INTEGER now;
         QueryPerformanceCounter(&now);
@@ -94,8 +94,13 @@ public:
         double frameTime = double(now.QuadPart - m_prev.QuadPart) / double(m_freq.QuadPart);
         m_prev = now;
 
-        // Ochrana proti spirále smrti
-        if (frameTime > limit) frameTime = limit;
+        // Ochrana proti spirÃ¡le smrti
+        if (frameTime > limit) {
+            // Zahozeny cas musime preskocit i v logickem case, jinak by
+            // m_logicalTime po dlouhem zaseku trvale zaostal za wall-clockem
+            m_logicalTime += frameTime - limit;
+            frameTime = limit;
+        }
 
         m_accumulator += frameTime;
         m_lastFrameTime = frameTime;
@@ -115,16 +120,20 @@ public:
     void dispatchAction(const std::function<void(double)>& stepCallback) 
     {
         while (m_accumulator >= m_fixedDelta) {
-            stepCallback(m_fixedDelta);
             m_accumulator -= m_fixedDelta;
+            m_logicalTime += m_fixedDelta;
+            stepCallback(m_fixedDelta);
         }
     }
 
     void dispatchAction(const std::function<void(double, double)>& stepCallback)
     {
         while (m_accumulator >= m_fixedDelta) {
-            stepCallback(m_fixedDelta, sinceStart());
             m_accumulator -= m_fixedDelta;
+            m_logicalTime += m_fixedDelta;
+            // druhy parametr = logicky cas kroku (presne nasobky fixedDelta od epochy),
+            // ne wall-clock okamzik vypoctu - timestampy tak nenesou jitter scheduleru
+            stepCallback(m_fixedDelta, m_logicalTime);
         }
     }
 
@@ -143,9 +152,10 @@ public:
     void tickAndFlush(double limit = 0.25) 
     {
         tick(limit);
-        while (m_accumulator >= m_fixedDelta) 
+        while (m_accumulator >= m_fixedDelta)
         {
             m_accumulator -= m_fixedDelta;
+            m_logicalTime += m_fixedDelta;
         }
 		//m_accumulator = 0.0;
     }
@@ -161,7 +171,7 @@ public:
     double getLowPercentile(double p) const {
         if (m_frameTimestamps.size() < 3) return 0.0;
 
-        // Vıpoèet delta èasù z historie timestampù
+        // VÃ½poÄet delta ÄasÅ¯ z historie timestampÅ¯
         m_tmpFrameTimes.clear();
         m_tmpFrameTimes.reserve(m_frameTimestamps.size() - 1);
 
@@ -169,10 +179,10 @@ public:
             m_tmpFrameTimes.push_back(m_frameTimestamps[i] - m_frameTimestamps[i - 1]);
         }
 
-        // Seøazení od nejrychlejších po nejpomalejší framy
+        // SeÅ™azenÃ­ od nejrychlejÅ¡Ã­ch po nejpomalejÅ¡Ã­ framy
         std::sort(m_tmpFrameTimes.begin(), m_tmpFrameTimes.end());
 
-        // Vybereme index odpovídající percentilu (napø. 99% nejhoršího èasu)
+        // Vybereme index odpovÃ­dajÃ­cÃ­ percentilu (napÅ™. 99% nejhorÅ¡Ã­ho Äasu)
         size_t idx = static_cast<size_t>(p * (m_tmpFrameTimes.size() - 1));
         double percentileFrameTime = m_tmpFrameTimes[idx];
 
@@ -182,7 +192,7 @@ public:
     double getLow1Percent() const { return getLowPercentile(0.99); }
     double getLowPoint1Percent() const { return getLowPercentile(0.999); }
 
-    // --- Ostatní Gettery ---
+    // --- OstatnÃ­ Gettery ---
 
     double getFixedDelta() const { return m_fixedDelta; }
     double getFrameDelta() const { return m_lastFrameTime; }
@@ -199,18 +209,19 @@ public:
     void reset() {
         QueryPerformanceCounter(&m_prev);
         m_accumulator = 0.0;
+        m_logicalTime = sinceStart();
         m_frameTimestamps.clear();
     }
 
     /**
-     * Uspí vlákno, pokud do dalšího logického kroku zbıvá více èasu ne threshold.
-     * @param threshold Minimální èas v sekundách, po kterı má smysl spát (default 1ms).
+     * UspÃ­ vlÃ¡kno, pokud do dalÅ¡Ã­ho logickÃ©ho kroku zbÃ½vÃ¡ vÃ­ce Äasu neÅ¾ threshold.
+     * @param threshold MinimÃ¡lnÃ­ Äas v sekundÃ¡ch, po kterÃ½ mÃ¡ smysl spÃ¡t (default 1ms).
      */
     void sleepIfIdle(double threshold = 0.001) {
         double timeToWait = m_fixedDelta - m_accumulator;
         if (timeToWait > threshold) {
-            // Spíme o nìco ménì (napø. o 0.5ms), abychom nepøešvihli zaèátek kroku 
-            // kvùli nepøesnosti Windows scheduleru.
+            // SpÃ­me o nÄ›co mÃ©nÄ› (napÅ™. o 0.5ms), abychom nepÅ™eÅ¡vihli zaÄÃ¡tek kroku 
+            // kvÅ¯li nepÅ™esnosti Windows scheduleru.
             std::this_thread::sleep_for(std::chrono::microseconds(static_cast<long long>((timeToWait - 0.0005) * 1000000.0)));
         }
     }
@@ -220,10 +231,10 @@ public:
         return m_accumulator; 
     }
 
-    // Vloit nahoru pro _mm_pause()
+    // VloÅ¾it nahoru pro _mm_pause()
 #include <immintrin.h> 
 
-    void waitUntilNextStep(double slack = 0.002) { // Zvednutı slack na 2 ms!
+    void waitUntilNextStep(double slack = 0.002) { // ZvednutÃ½ slack na 2 ms!
         static bool precisionSet = false;
         if (!precisionSet) {
             timeBeginPeriod(1);
@@ -232,23 +243,23 @@ public:
 
         double timeToWait = m_fixedDelta - m_accumulator;
 
-        // 1. FÁZE: OS Sleep (uvolnìní CPU pro ostatní procesy)
-        // Pokud máme k dobru více ne 2 ms, mùeme si dovolit riskantní usnutí
+        // 1. FÃZE: OS Sleep (uvolnÄ›nÃ­ CPU pro ostatnÃ­ procesy)
+        // Pokud mÃ¡me k dobru vÃ­ce neÅ¾ 2 ms, mÅ¯Å¾eme si dovolit riskantnÃ­ usnutÃ­
         if (timeToWait > slack) {
             double sleepTime = timeToWait - slack;
             std::this_thread::sleep_for(
                 std::chrono::microseconds(static_cast<long long>(sleepTime * 1000000.0))
             );
 
-            // Po probuzení zjistíme, kde pøesnì jsme
+            // Po probuzenÃ­ zjistÃ­me, kde pÅ™esnÄ› jsme
             updateAccumulatorOnly();
         }
 
-        // 2. FÁZE: Spin-lock (Absolutní pøesnost na mikrosekundy)
-        // Tady u nesmíme usnout, zbytek èasu "protopíme" aktivním èekáním
+        // 2. FÃZE: Spin-lock (AbsolutnÃ­ pÅ™esnost na mikrosekundy)
+        // Tady uÅ¾ nesmÃ­me usnout, zbytek Äasu "protopÃ­me" aktivnÃ­m ÄekÃ¡nÃ­m
         while (m_accumulator < m_fixedDelta) {
-            // _mm_pause() øekne procesoru, e jde o spin-lock. 
-            // Drasticky to sniuje spotøebu a zahøívání CPU bìhem prázdné smyèky.
+            // _mm_pause() Å™ekne procesoru, Å¾e jde o spin-lock. 
+            // Drasticky to sniÅ¾uje spotÅ™ebu a zahÅ™Ã­vÃ¡nÃ­ CPU bÄ›hem prÃ¡zdnÃ© smyÄky.
             _mm_pause();
 
             updateAccumulatorOnly();
@@ -256,8 +267,8 @@ public:
     }
 
     void waitUntilNextStep__(double slack = 0.0005) {
-        // 1. Nastavíme Windows scheduler na vysokou pøesnost (pokud u není)
-        // Ideálnì volat jednou globálnì, ale pro jistotu:
+        // 1. NastavÃ­me Windows scheduler na vysokou pÅ™esnost (pokud uÅ¾ nenÃ­)
+        // IdeÃ¡lnÄ› volat jednou globÃ¡lnÄ›, ale pro jistotu:
         static bool precisionSet = false;
         if (!precisionSet) {
             timeBeginPeriod(1);
@@ -267,21 +278,21 @@ public:
         while (true) {
             double timeToWait = m_fixedDelta - m_accumulator;
 
-            // Pokud zbıvá víc èasu ne rezerva + minimální rozumnı spánek (1ms)
+            // Pokud zbÃ½vÃ¡ vÃ­c Äasu neÅ¾ rezerva + minimÃ¡lnÃ­ rozumnÃ½ spÃ¡nek (1ms)
             if (timeToWait > (slack + 0.001)) {
-                // Spíme o 'slack' ménì
+                // SpÃ­me o 'slack' mÃ©nÄ›
                 double sleepTime = timeToWait - slack;
                 std::this_thread::sleep_for(
                     std::chrono::microseconds(static_cast<long long>(sleepTime * 1000000.0))
                 );
 
-                // Po probuzení musíme znovu aktualizovat akumulátor (vnitøní tick)
-                // Aby smyèka vìdìla, kolik èasu reálnì uplynulo
+                // Po probuzenÃ­ musÃ­me znovu aktualizovat akumulÃ¡tor (vnitÅ™nÃ­ tick)
+                // Aby smyÄka vÄ›dÄ›la, kolik Äasu reÃ¡lnÄ› uplynulo
                 updateAccumulatorOnly();
             }
             else {
-                // Jsme v oblasti rezervy – zbytek èasu "doukáme" krátkımi yieldy 
-                // nebo prázdnou smyèkou pro absolutní pøesnost.
+                // Jsme v oblasti rezervy â€“ zbytek Äasu "doÅ¥ukÃ¡me" krÃ¡tkÃ½mi yieldy 
+                // nebo prÃ¡zdnou smyÄkou pro absolutnÃ­ pÅ™esnost.
                 break;
             }
         }
@@ -296,7 +307,7 @@ public:
                 minDelta = delta;
             }
         }
-        // Pøevod na FPS (pokud je minDelta 0, vrátíme 0, abychom se vyhnuli dìlení nulou)
+        // PÅ™evod na FPS (pokud je minDelta 0, vrÃ¡tÃ­me 0, abychom se vyhnuli dÄ›lenÃ­ nulou)
         return minDelta;
 	}
 
@@ -316,7 +327,7 @@ public:
             }
         }
 
-        // Pøevod na FPS (pokud je maxDelta 0, vrátíme 0, abychom se vyhnuli dìlení nulou)
+        // PÅ™evod na FPS (pokud je maxDelta 0, vrÃ¡tÃ­me 0, abychom se vyhnuli dÄ›lenÃ­ nulou)
         return maxDelta;
     }
 
@@ -327,7 +338,7 @@ public:
 
 private:
 
-    // Pomocná metoda pro aktualizaci vnitøního èasu bez ovlivnìní FPS historie
+    // PomocnÃ¡ metoda pro aktualizaci vnitÅ™nÃ­ho Äasu bez ovlivnÄ›nÃ­ FPS historie
     void updateAccumulatorOnly() {
         LARGE_INTEGER now;
         QueryPerformanceCounter(&now);
@@ -345,9 +356,13 @@ private:
     double m_accumulator;
     double m_lastFrameTime = 0.0;
 
+    // logicky cas simulace (sekundy od m_absoluteStart) - postupuje presne
+    // po fixedDelta krocich; m_prev startuje na m_absoluteStart, takze 0 sedi
+    double m_logicalTime = 0.0;
+
     // FPS data
     double m_fpsWindow;
     std::deque<double> m_frameTimestamps;
-    // mutable umoòuje modifikaci tmp pole i v const metodách (pro vıpoèet percentilu)
+    // mutable umoÅ¾Åˆuje modifikaci tmp pole i v const metodÃ¡ch (pro vÃ½poÄet percentilu)
     mutable std::vector<double> m_tmpFrameTimes;
 };

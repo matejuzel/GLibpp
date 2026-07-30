@@ -1,4 +1,4 @@
-#pragma once
+ï»¿#pragma once
 #include <cmath>
 #include <string>
 #include <sstream>
@@ -49,14 +49,14 @@ public:
 
     static Vec4 Slerp(const Vec4& a, const Vec4& b, float t)
     {
-        // 1) Normalizace vstupù (pro jistotu)
+        // 1) Normalizace vstupÅ¯ (pro jistotu)
         Vec4 v0 = a.normalized();
         Vec4 v1 = b.normalized();
 
         // 2) Dot produkt
         float dot = Vec4::dot(v0, v1);
 
-        // 3) Pokud jsou skoro rovnobìné -> pouij LERP
+        // 3) Pokud jsou skoro rovnobÄ›Å¾nÃ© -> pouÅ¾ij LERP
         const float EPS = 1e-6f;
         if (std::fabs(dot) > 1.0f - EPS)
         {
@@ -64,15 +64,15 @@ public:
             return (v0 * (1.0f - t) + v1 * t).normalized();
         }
 
-        // 4) Úhel mezi vektory
+        // 4) Ãšhel mezi vektory
         float theta = std::acos(dot);
 
-        // 5) Vıpoèet vah
+        // 5) VÃ½poÄet vah
         float sinTheta = std::sin(theta);
         float w0 = std::sin((1.0f - t) * theta) / sinTheta;
         float w1 = std::sin(t * theta) / sinTheta;
 
-        // 6) Vısledek
+        // 6) VÃ½sledek
         return v0 * w0 + v1 * w1;
     }
 

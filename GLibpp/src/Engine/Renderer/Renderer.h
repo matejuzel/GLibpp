@@ -1,4 +1,4 @@
-#pragma once
+Ôªø#pragma once
 
 #include "RenderTargetDescriptor.h"
 #include "Viewport.h"
@@ -9,6 +9,8 @@
 #include <format>
 #include <iostream>
 #include <windows.h>
+#include <dwmapi.h>
+#pragma comment(lib, "dwmapi.lib")
 #include <memory>
 #include "Vec4.h"
 #include "Mtx4.h"
@@ -88,6 +90,13 @@ namespace Render {
 
         Mesh meshGrid = MeshFactory::CreateGrid(80, 0.2f).applyTransformation(Mtx4::Identity().rotateX(GLibpp::Math::deg2rad(90.0f)).translate(-50.0f, -50.0f, 0.0f));
 
+        // staticke meshe demo sceny - vygenerovane jednou, ne v kazdem framu
+        Mesh meshIcosphere = MeshFactory::CreateIcosphere(1.0f, 4);
+        Mesh meshGridWave = MeshFactory::CreateGridWave(60, 0.2f, 0.0f, 0.05f);
+        Mtx4 gridWaveModel = Mtx4::Identity().rotateX(GLibpp::Math::deg2rad(90.0f)).translate(-25.0f, -25.0f, 0.0f).scale(0.5f);
+        Mesh meshIcrBeam = MeshFactory::CreateCube(0.1f).applyTransformation(Mtx4::Scaling(0.01f, 8.0f, 0.01f));
+        Mesh meshAxleBeam = meshAxleBeam;
+
     public:
 
         Renderer(WindowWin32& window, LogicStateBuffered& logicStateBuffered, float logicHz)
@@ -124,18 +133,18 @@ namespace Render {
             {
                 // Drawing commands
 
-                // Ground - net
-                Mesh meshGridAnim = MeshFactory::CreateGridWave(60, 0.2f, frameIndex, 0.05f).applyTransformation(Mtx4::Identity().rotateX(GLibpp::Math::deg2rad(90.0f)).translate(-25.0f, -25.0f, 0.0f).scale(0.5f));
-                device.drawMesh(ctx, meshGridAnim, Mtx4::Identity(), Color::Grayscale(0.3f), true);
+                // Ground - net (vlna se aktualizuje in-place, transformace jde pres model matici)
+                MeshFactory::UpdateGridWave(meshGridWave, 60, 0.2f, static_cast<float>(frameIndex), 0.05f);
+                device.drawMesh(ctx, meshGridWave, gridWaveModel, Color::Grayscale(0.3f), true);
 
                 // Car
                 device.drawMesh(ctx, scene.car.getMesh(), scene.car.getCarMatrix());
 
                 // shpere
-                device.drawMesh(ctx, MeshFactory::CreateIcosphere(1.0f, 4), scene.car.model.getTransformation(), Color::Grayscale(0.7f), true);
+                device.drawMesh(ctx, meshIcosphere, scene.car.model.getTransformation(), Color::Grayscale(0.7f), true);
             
                 // ICR
-                device.drawMesh(ctx, MeshFactory::CreateCube(0.1f).applyTransformation(Mtx4::Scaling(0.01f, 8.0f, 0.01f)), scene.car.getIcrTransformation());
+                device.drawMesh(ctx, meshIcrBeam, scene.car.getIcrTransformation());
 
                 // wheels
                 device.drawMesh(ctx, scene.car.wheelFrontLeft.getMesh(), scene.car.getFrontLeft());
@@ -144,9 +153,9 @@ namespace Render {
                 device.drawMesh(ctx, scene.car.wheelBackRight.getMesh(), scene.car.getBackRight());
 
                 // wheel axis
-                device.drawMesh(ctx, MeshFactory::CreateCube(1.0f).applyTransformation(Mtx4::Scaling(12.0f, 0.01f, 0.01f)), scene.car.getFrontLeft());
-                device.drawMesh(ctx, MeshFactory::CreateCube(1.0f).applyTransformation(Mtx4::Scaling(12.0f, 0.01f, 0.01f)), scene.car.getFrontRight());
-                device.drawMesh(ctx, MeshFactory::CreateCube(1.0f).applyTransformation(Mtx4::Scaling(12.0f, 0.01f, 0.01f)), scene.car.getCarMatrix());
+                device.drawMesh(ctx, meshAxleBeam, scene.car.getFrontLeft());
+                device.drawMesh(ctx, meshAxleBeam, scene.car.getFrontRight());
+                device.drawMesh(ctx, meshAxleBeam, scene.car.getCarMatrix());
 
                 // axis of local object spaces
                 device.drawAxis(ctx, scene.car.getCarMatrix());
@@ -166,8 +175,8 @@ namespace Render {
             LogicStateFramePair logicStateFramePair;
 
             TimeManager timer(logicHz, true);
-            TimeManager timer1Hz(1.0); // pro v˝poËet FPS kaûdou sekundu
-			TimeManager timerSyncV(35.0);
+            TimeManager timer1Hz(1.0); // pro v√Ωpoƒçet FPS ka≈ædou sekundu
+			TimeManager timerSyncV(logicHz); // fallback pacing, pouzije se jen kdyz selze DwmFlush()
 
 			uint32_t frameIndex = 0;            
 
@@ -202,24 +211,28 @@ namespace Render {
                 }
                 else
                 {
-                    // 1. ZjistÌme p¯esnÈ ËasovÈ znaËky obou stav˘ z Triple Bufferu
+                    // 1. Zjist√≠me p≈ôesn√© ƒçasov√© znaƒçky obou stav≈Ø z Triple Bufferu
                     double timePrev = logicStatePrevious.tickInfo.lastLogicTick;
                     double timeCurr = logicStateCurrent.tickInfo.lastLogicTick;
 
-                    // 2. SkuteËn˝ Ëasov˝ rozdÌl mezi stavy (chr·nÌme proti dÏlenÌ nulou)
+                    // 2. Skuteƒçn√Ω ƒçasov√Ω rozd√≠l mezi stavy (chr√°n√≠me proti dƒõlen√≠ nulou)
                     double stateDelta = timeCurr - timePrev;
                     if (stateDelta <= 0.0001) {
                         stateDelta = timer.getFixedDelta(); // fallback
                     }
 
-                    // 3. VypoËÌt·me Vizu·lnÌ »as = aktu·lnÌ Ëas mÌnus jedno logickÈ okno
-                    // TÌm se vûdy drûÌme bezpeËnÏ MEZI timePrev a timeCurr
-                    double visualTime = timer.sinceStart() - timer.getFixedDelta() *1.5;
+                    // 3. Vypoƒç√≠t√°me Vizu√°ln√≠ ƒåas = aktu√°ln√≠ ƒças m√≠nus jedno logick√© okno
+                    // T√≠m se v≈ædy dr≈æ√≠me bezpeƒçnƒõ MEZI timePrev a timeCurr
+                    // faktor 1.1 = mala rezerva na latenci publishe (pollEvents + updateLogic),
+                    // aby t tesne nepretekalo pres 1.0
+                    double visualTime = timer.sinceStart() - timer.getFixedDelta() * 1.1;
 
-                    // 4. V˝poËet alfa na z·kladÏ skuteËnÈho rozpÏtÌ
+                    // 4. V√Ωpoƒçet alfa na z√°kladƒõ skuteƒçn√©ho rozpƒõt√≠
                     t = (visualTime - timePrev) / stateDelta;
                 }
-                if (t >= 1.0) std::cout << "Zaskub: t = " << t << std::endl;
+                // logujeme jen skutecne zaseky logiky (chybejici stav > pul ticku);
+                // drobne pretece t se tise clampne - cout na render vlakne je drahy
+                if (t >= 1.5) std::cout << "Zaskub: t = " << t << std::endl;
                 double tClamped = std::clamp(t, 0.0, 1.0);
 
                 logicStateInterpolated.scene = Slerp(
@@ -234,15 +247,15 @@ namespace Render {
                     device.getWindow().postMessageSetTitle(timer, frameIndex);
                 });
 
-                // 1. ZmÏ¯Ìme Ëas, kter˝ zabral rendering (p¯id· se do m_accumulator)
-                timerSyncV.tick();
-
-                // 2. UspÌme vl·kno, dokud m_accumulator nedos·hne hodnoty m_fixedDelta (nap¯. 33.3 ms)
-                timerSyncV.waitUntilNextStep();
-
-                // 3. OdeËteme m_fixedDelta z akumul·toru, aby byl p¯ipraven na dalöÌ snÌmek
-                // Pr·zdn· lambda funkce funguje jako "ËistiË"
-                timerSyncV.dispatchAction([](double dt) {});
+                // Synchronizace s kompozitorem: DwmFlush() blokuje do dalsi kompozice (vblank),
+                // takze snimky jdou na obrazovku v pravidelnem rytmu refresh rate monitoru
+                if (FAILED(DwmFlush()))
+                {
+                    // fallback kdyz DWM neni k dispozici: pevny pacing na logicHz
+                    timerSyncV.tick();
+                    timerSyncV.waitUntilNextStep();
+                    timerSyncV.dispatchAction([](double dt) {});
+                }
             }
 
         }

@@ -32,7 +32,7 @@ struct WheelTransformation {
         return m_pos * m_steer * m_roll;
     }
 
-    Mesh getMesh() const { return mesh; }
+    const Mesh& getMesh() const { return mesh; }
 
     static WheelTransformation Lerp(const WheelTransformation& a, const WheelTransformation& b, float t) {
     

@@ -1,4 +1,4 @@
-#pragma once
+Ôªø#pragma once
 
 namespace Render {
 
@@ -8,7 +8,7 @@ namespace Render {
 
 
 /*
-// Z·vislÈ typy (p¯edpokl·d·, ûe include search path je nastaven)
+// Z√°visl√© typy (p≈ôedpokl√°d√°, ≈æe include search path je nastaven)
 #include "Mtx4.h"
 #include "Color.h"
 #include "DeviceTargetHandle.h"
