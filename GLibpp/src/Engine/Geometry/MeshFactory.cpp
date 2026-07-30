@@ -140,6 +140,8 @@ Mesh MeshFactory::CreateSphere(float radius, uint32_t segments)
             msh.indexBuffer.push_back(i3);
         }
     }
+
+    return msh;
 }
 
 Mesh MeshFactory::CreateCylinder(float radius, float height, uint32_t segments) 
