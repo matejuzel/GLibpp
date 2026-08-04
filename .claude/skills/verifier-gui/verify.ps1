@@ -107,3 +107,4 @@ if ($minLowMeasured -lt $MinLow) {
     exit 1
 }
 Write-Output "PASS: min 1% Low = $minLowMeasured (prah $MinLow)"
+exit 0

@@ -1,5 +1,5 @@
 ---
-name: commit
+name: glib-commit
 description: Commit ritual for GLibpp - encoding check, build gate, Czech commit message in the "vyvoj - <co>" style. Use whenever committing changes in this repo.
 ---
 
@@ -10,10 +10,10 @@ Pořadí je závazné — v historii repa už jednou mojibake i rozbitý stav co
 ## 1. Kontrola kódování
 
 ```powershell
-& ".claude\skills\check-encoding\check-encoding.ps1"
+& ".claude\skills\glib-check-encoding\check-encoding.ps1"
 ```
 
-Při nálezu **necommituj** — oprav podle instrukcí skillu `check-encoding`.
+Při nálezu **necommituj** — oprav podle instrukcí skillu `glib-check-encoding`.
 
 ## 2. Build gate
 
@@ -23,7 +23,7 @@ Debug|x64 musí projít (u větších změn i Release|x64):
 & "C:\Program Files\Microsoft Visual Studio\2022\Community\MSBuild\Current\Bin\MSBuild.exe" GLibpp.sln -p:Configuration=Debug -p:Platform=x64 -v:minimal -m
 ```
 
-U změn dotýkajících se rendereru/timingu navíc runtime gate — skill `verify`.
+U změn dotýkajících se rendereru/timingu navíc runtime gate — skill `verifier-gui`.
 
 ## 3. Commit
 

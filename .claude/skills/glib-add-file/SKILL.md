@@ -1,5 +1,5 @@
 ---
-name: add-file
+name: glib-add-file
 description: Add a new .cpp/.h source file to the GLibpp build correctly - vcxproj entry, vcxproj.filters entry, AdditionalIncludeDirectories for new directories (both x64 configs), UTF-8 BOM. Use whenever creating a new source file in this repo.
 ---
 
@@ -23,7 +23,7 @@ MSBuild negloboje — každý soubor se přidává ručně na **čtyři** místa
 
 4. **Nový adresář?** Přidej ho do `AdditionalIncludeDirectories` v **obou** `ItemDefinitionGroup` (`Debug|x64` **i** `Release|x64`) v `GLibpp.vcxproj`. Includes jsou **ploché** — kód píše `#include "NovySoubor.h"`, nikdy relativní cestu; bez include diru se soubor nenajde.
 
-5. **Ověř buildem** (`Debug|x64`) — viz skill `verify`.
+5. **Ověř buildem** (`Debug|x64`) — viz skill `verifier-gui`.
 
 ## Poznámky
 

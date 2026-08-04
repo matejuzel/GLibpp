@@ -1,9 +1,9 @@
 ---
-name: verify
-description: Build GLibpp (x64) and verify runtime health - run the exe, gate on frame pacing (FPS / 1% Low from the window title), optionally simulate driving (arrow keys), capture a screenshot and test ESC shutdown. Use after any code change touching the renderer, timing, Slerp, Scene or per-frame work.
+name: verifier-gui
+description: GUI evidence-capture verifier for GLibpp - build (x64), run the exe, gate on frame pacing (FPS / 1% Low from the window title), simulate driving (arrow keys), capture screenshots and test ESC shutdown. Use to verify any change at the app's window surface (renderer, timing, Slerp, Scene, per-frame work).
 ---
 
-# Verifikace buildu a runtime (GLibpp)
+# Verifikace na GUI povrchu (GLibpp)
 
 Standardní gate po každé změně kódu. Dva kroky: build, pak měřicí skript.
 
@@ -20,7 +20,7 @@ Pro Release zaměň `Debug` za `Release`. Diagnostika chodí česky (českolokal
 Spusť přibalený skript (samostatný, nese si vlastní Add-Type — stav shellu mezi voláními nepersistuje):
 
 ```powershell
-& ".claude\skills\verify\verify.ps1" -Config Debug -Samples 5
+& ".claude\skills\verifier-gui\verify.ps1" -Config Debug -Samples 5
 ```
 
 Parametry:
@@ -30,6 +30,10 @@ Parametry:
 - `-TestEsc` — na konci pošle ESC a ověří, že proces korektně skončil (App joinuje render vlákno)
 - `-MinLow <n>` — práh pro 1% Low (default 52)
 - `-Samples <n>` — počet vzorků titulku po 1 s (default 5)
+
+### Omezení `-Drive` a `-Screenshot`
+
+Injektáž kláves (`keybd_event`) a screenshot (`CopyFromScreen`) fungují jen když okno GLibpp reálně získá popředí. **Pokud uživatel u stroje aktivně pracuje**, Windows foreground-lock `SetForegroundWindow` z pozadí odmítne — klávesy pak padají do uživatelova okna a screenshot vyfotí cizí obsah (snímá se oblast obrazovky, ne okno). V takovém případě se spolehni jen na titulkové vzorky a stdout (ty jdou přímo z procesu) a vizuální ověření odlož, nebo požádej uživatele. Stdout aplikace lze zachytit přes `Start-Process -RedirectStandardOutput` (handly bufferů, `resized:` eventy, `Zaskub` řádky).
 
 ## 3. Interpretace
 

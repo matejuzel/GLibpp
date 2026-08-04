@@ -77,6 +77,8 @@ Handles are `StableRegistry<T>::Handle{index, generation}` (both `uint32_t`; a d
 
 Comments and commit messages are in **Czech**; match that when editing existing code. Commit subjects follow `vyvoj - <co>`.
 
+Project skills in `.claude/skills/` use the **`glib-` prefix** (`glib-add-file`, `glib-check-encoding`, `glib-commit`) so they never collide with built-in skill names (`run`, `review`, `init`, ...). Names that are an upstream protocol contract are the deliberate exception and stay canonical: `verifier-gui` follows the bundled `/verify` protocol's `verifier-*` convention (checked first as the repo's evidence-capture recipe); the same would apply to future `run-*` skills or a persisted `verify` recipe.
+
 ### Source encoding — read this before editing any file with Czech comments
 
 Everything under `GLibpp/src/` is **UTF-8 with BOM**, and `/utf-8` is set on both x64 configurations. Keep the BOM when writing these files.
