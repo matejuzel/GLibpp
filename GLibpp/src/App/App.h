@@ -13,9 +13,8 @@
 
 struct WheelTransformation {
 
-    WheelTransformation(float zPos, float xPos, float radius)
+    WheelTransformation(float zPos, float xPos)
         : position(Vec4(xPos, 0.0f, zPos, 1.0f))
-        , mesh(MeshFactory::CreateCylinder(radius, 0.4f, 12).applyTransformation(Mtx4::RotationZ(3.14159f / 2.0f)))
     {
     }
 
@@ -32,8 +31,6 @@ struct WheelTransformation {
         return m_pos * m_steer * m_roll;
     }
 
-    const Mesh& getMesh() const { return mesh; }
-
     static WheelTransformation Lerp(const WheelTransformation& a, const WheelTransformation& b, float t) {
     
         auto interpolated = b;
@@ -44,11 +41,10 @@ struct WheelTransformation {
         return interpolated;
     }
 
-    float steerAngle = 0.0f; // rad 
+    float steerAngle = 0.0f; // rad
     float rollAngle = 0.0f;
 private:
 
-    Mesh mesh;
     Vec4 position;
 
     float steerAngleMax = GLibpp::Math::deg2rad(35.0f);
@@ -67,20 +63,16 @@ struct CarTransformation
     WheelTransformation wheelBackLeft;
     WheelTransformation wheelBackRight;
 
-    // transformace auta (původ = střed zadní nápravy)
-    Mesh mesh;
-    
+    // geometrie uz zde neni - meshe vlastni ResourceManager (App::setupDemoResources),
+    // Scene nese jen handly (SceneRenderables) a transformace -> kopie Scene nealokuji
+
     CarTransformation()
         : model(GLibpp::Physics::BicycleModel::Basic())
-        , wheelFrontLeft(model.params.wheelBase, -model.params.wheelTrack * 0.5f, model.params.wheelRadius)
-        , wheelFrontRight(model.params.wheelBase, model.params.wheelTrack * 0.5f, model.params.wheelRadius)
-        , wheelBackLeft(0, -model.params.wheelTrack * 0.5f, model.params.wheelRadius)
-        , wheelBackRight(0, model.params.wheelTrack * 0.5f, model.params.wheelRadius)
-        //, object(Mtx4::Identity())
-        , mesh(MeshFactory::CreateCylinder(1.0f, 6, 16).applyTransformation(Mtx4::RotationX(3.14159f / 2.0f)*Mtx4::Translation(0.0f, model.params.wheelBase * 0.5f, 0.0f)))
+        , wheelFrontLeft(model.params.wheelBase, -model.params.wheelTrack * 0.5f)
+        , wheelFrontRight(model.params.wheelBase, model.params.wheelTrack * 0.5f)
+        , wheelBackLeft(0, -model.params.wheelTrack * 0.5f)
+        , wheelBackRight(0, model.params.wheelTrack * 0.5f)
     {}
-    
-    const Mesh& getMesh() const { return mesh; }
 
     void speedUp(float dSpeed)
     {
@@ -197,7 +189,6 @@ struct CarTransformation
 #include "ZeroAllocTripleBuffer.h"
 using LogicStateBuffered = ZeroAllocTripleBuffer<LogicState>;
 #include "Renderer.h"
-#include "RenderCommandList.h"
 #include "Camera.h"
 #include "RunState.h"
 #include "RenderTargetDescriptor.h"
@@ -233,6 +224,10 @@ private:
     using RendererEngine = Render::Renderer<RenderDevice>;
 
     std::unique_ptr<WindowWin32> window;
+
+    // kanonicke uloziste assetu (meshe, instance) - obsah vlastni App, renderer dostava referenci
+    // deklarovano PRED rendererem: renderer drzi referenci, musi tedy zaniknout driv
+    Render::ResourceManager resources;
 
 	//std::unique_ptr<RendererEngine> renderer; // obecny renderer, ktery pouziva RenderDevice (DIB, Stencil, ...), ktery se zvoli definici makra RENDER_BACKEND_XXX
     std::unique_ptr<Render::Renderer<Render::DeviceDIB>> renderer; // pro vyvoj pouzijeme takhle explicitne, kvuli napovidani v IDE...
@@ -344,7 +339,7 @@ public:
 
         {
             // RENDERER
-            renderer = std::make_unique<RendererEngine>(*window, logicStateBuffered, logicHz);
+            renderer = std::make_unique<RendererEngine>(*window, resources, logicStateBuffered, logicHz);
         }
 
         {
@@ -464,6 +459,31 @@ public:
 
     }
 
+    // registrace demo geometrie do ResourceManageru - MUSI probehnout pred startem
+    // render vlakna (registry neni thread-safe); Scene dostane jen handly instanci
+    void setupDemoResources(Scene& scene)
+    {
+        const auto& p = scene.car.model.params;
+
+        // vsechna 4 kola jsou geometricky shodna -> jeden sdileny mesh + jedna instance
+        auto wheelMesh = resources.meshRegister(MeshFactory::CreateCylinder(p.wheelRadius, 0.4f, 12)
+            .applyTransformation(Mtx4::RotationZ(3.14159f / 2.0f)));
+        auto bodyMesh = resources.meshRegister(MeshFactory::CreateCylinder(1.0f, 6, 16)
+            .applyTransformation(Mtx4::RotationX(3.14159f / 2.0f) * Mtx4::Translation(0.0f, p.wheelBase * 0.5f, 0.0f)));
+        auto sphereMesh = resources.meshRegister(MeshFactory::CreateIcosphere(1.0f, 4));
+        auto waveMesh = resources.meshRegister(MeshFactory::CreateGridWave(60, 0.2f, 0.0f, 0.05f));
+        auto icrMesh = resources.meshRegister(MeshFactory::CreateCube(0.1f)
+            .applyTransformation(Mtx4::Scaling(0.01f, 8.0f, 0.01f)));
+
+        Mtx4 gridWaveModel = Mtx4::Identity().rotateX(GLibpp::Math::deg2rad(90.0f)).translate(-25.0f, -25.0f, 0.0f).scale(0.5f);
+
+        scene.renderables.gridWave  = resources.meshInstanceRegister(waveMesh, gridWaveModel, Color::Grayscale(0.3f), true);
+        scene.renderables.carBody   = resources.meshInstanceRegister(bodyMesh);
+        scene.renderables.wheel     = resources.meshInstanceRegister(wheelMesh);
+        scene.renderables.icosphere = resources.meshInstanceRegister(sphereMesh, Mtx4::Identity(), Color::Grayscale(0.7f), true);
+        scene.renderables.icrBeam   = resources.meshInstanceRegister(icrMesh);
+    }
+
     void scenePublish(const LogicState& logicState, double lastLogicTick) {
         
         auto& writeBuffer = logicStateBuffered.get_write_buffer();
@@ -505,9 +525,13 @@ public:
         std::cout << logicState.scene.modelMatrix.toString() << std::endl;
         std::cout << logicState.scene.modelMatrix2.toString() << std::endl;
 
+        setupDemoResources(logicState.scene);
+
         running.start();
 
-        logicStateBuffered.publish();
+        // prvni publikovany stav musi nest platne handly - holy publish() by odeslal
+        // default-konstruovany write buffer s INVALID handly
+        scenePublish(logicState, 0.0);
 
 		setupThreadPriority(THREAD_PRIORITY_HIGHEST);
 

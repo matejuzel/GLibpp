@@ -8,20 +8,33 @@
 #include "Win32Dc.h"
 
 #include <vector>
+#include <algorithm>
 #include <immintrin.h> // AVX2
 
 namespace Render {
 
-    
+    // range zaregistrovaneho meshe v residency polich backendu
+    // offsety urcuje VYHRADNE backend (jiny backend = jiny layout); ResourceManager zna jen identitu = handle
+    struct MeshRangeDIB {
+        uint32_t vertexOffset = 0;
+        uint32_t vertexCount = 0;
+        uint32_t indexOffset = 0;
+        uint32_t indexCount = 0;
+        uint32_t generation = 0;   // validace stale handlu
+        bool valid = false;
+    };
+
     template<typename Device>
     struct RegistryDIB
     {
-        VertexBuffer<Device> vertexBuffer;
+        // privatni residency DIB backendu: kopie geometrie vsech meshu v jednom velkem poli
+        // (stejny flow jako GL backend: upload pri startu, re-upload po mutaci; substrat pro budouci SoA/SIMD)
+        // pozn.: zisk cache lokality je dnes marginalni - primarni duvod je referencni GL-shaped architektura
+        std::vector<Vec4> meshPositions;
+        std::vector<uint32_t> meshIndices;    // indexy lokalni vuci meshi (rasterizace jde pres scratch buffer)
+        std::vector<MeshRangeDIB> meshRanges; // indexovano handle.index -> O(1) lookup bez hashovani
 
         typename Device::TargetRegistry targets;
-
-        //StableRegistry<DeviceTargetBase<Device>> targets;
-        // ..
     };
 
 
@@ -199,7 +212,25 @@ namespace Render {
 
 
 
-        void drawMeshImpl(const Context& ctx, const Mesh& mesh, const Mtx4& transform, const Color& color, bool wiredFlag) noexcept
+        // handle-based kresleni z vlastni residency - po uploadu je backend sobestacny,
+        // na kanonicka data v ResourceManageru uz nesaha
+        void drawMeshImpl(const Context& ctx, MeshHandle h, const Mtx4& transform, const Color& color, bool wiredFlag) noexcept
+        {
+            if (h.index >= registry.meshRanges.size()) return;
+            const MeshRangeDIB& range = registry.meshRanges[h.index];
+            if (!range.valid || range.generation != h.generation) return;
+
+            rasterizeMesh(ctx,
+                registry.meshPositions.data() + range.vertexOffset, range.vertexCount,
+                registry.meshIndices.data() + range.indexOffset, range.indexCount,
+                transform, color, wiredFlag);
+        }
+
+        // spolecne rasterizacni jadro - geometrie prichazi jako pointer + pocet
+        // (bud primo kanonicky Mesh, nebo range z residency poli)
+        void rasterizeMesh(const Context& ctx, const Vec4* positions, size_t vertexCount,
+                           const uint32_t* indices, size_t indexCount,
+                           const Mtx4& transform, const Color& color, bool wiredFlag) noexcept
         {
             if (!registry.targets.isValid(ctx.framebufferHandle)) return;
 
@@ -218,8 +249,6 @@ namespace Render {
                 };
 
             // --- 2) Buffery ---
-            size_t vertexCount = mesh.getVertexBuffer().size();
-
             if (floatBuffer.size() < 3 * vertexCount)
                 floatBuffer.resize(3 * vertexCount);
 
@@ -232,8 +261,9 @@ namespace Render {
             int offset = 0;
             int offsetView = 0;
 
-            for (const auto& vertex : mesh.getVertexBuffer())
+            for (size_t vi = 0; vi < vertexCount; ++vi)
             {
+                const Vec4& vertex = positions[vi];
                 // projekce + viewport
                 Vec4 v = mvp * vertex;
                 if (fabs(v.w) > 10e-6) 
@@ -286,13 +316,11 @@ namespace Render {
             float b = 1.0f;
 
             // --- 5) Rasterizace trojúhelníků ---
-            const auto& ib = mesh.getIndexBuffer();
-
-            for (int i = 0; i < ib.size(); i += 3)
+            for (size_t i = 0; i + 2 < indexCount; i += 3)
             {
-                int ia = ib[i];
-                int ibb = ib[i + 1];
-                int ic = ib[i + 2];
+                uint32_t ia = indices[i];
+                uint32_t ibb = indices[i + 1];
+                uint32_t ic = indices[i + 2];
 
                 // --- view-space pozice pro normálu ---
                 float axv = viewPos[3 * ia];
@@ -368,68 +396,6 @@ namespace Render {
         }
 
 
-
-        void drawMeshImpl2(const Context& ctx, const Mesh& mesh, const Mtx4& transform, const Color& color) noexcept
-        {
-            if (!registry.targets.isValid(ctx.framebufferHandle)) return;
-
-            Mtx4 mvp = ctx.getModelViewProjection(transform);
-
-            uint32_t x = ctx.getViewport().x;
-            uint32_t y = ctx.getViewport().y;
-            uint32_t width = ctx.getViewport().width;
-            uint32_t height = ctx.getViewport().height;
-
-            auto viewportTransform = [&](Vec4& v) {
-                v.x = (v.x * 0.5f + 0.5f) * width + x;
-                v.y = (-v.y * 0.5f + 0.5f) * height + y;
-            };
-            
-            auto vertexCount = mesh.getVertexBuffer().size();
-            if (floatBuffer.size() < 3*vertexCount)
-            {
-                floatBuffer.resize(3*vertexCount);
-            }
-
-            for (int offset = 0; const auto& vertex : mesh.getVertexBuffer())
-            {
-                auto vertex_ = mvp * vertex;
-                vertex_.divideW();
-
-                viewportTransform(vertex_);
-
-                floatBuffer[offset++] = vertex_.x;
-                floatBuffer[offset++] = vertex_.y;
-                floatBuffer[offset++] = vertex_.z;
-            }
-
-            Target& target = registry.targets.get(ctx.framebufferHandle);
-
-            for (int i = 0; i < mesh.getIndexBuffer().size()/3; i++)
-            {
-                int ia = mesh.getIndexBuffer()[3*i];
-                int ib = mesh.getIndexBuffer()[3*i + 1];
-                int ic = mesh.getIndexBuffer()[3*i + 2];
-
-                float vax = floatBuffer[3*ia];
-                float vay = floatBuffer[3*ia + 1];
-
-                float vbx = floatBuffer[3*ib];
-                float vby = floatBuffer[3*ib + 1];
-
-                float vcx = floatBuffer[3*ic];
-                float vcy = floatBuffer[3*ic + 1];
-
-                RasterizatorDIB::drawTriangle(
-                    target,
-                    vax, vay,
-                    vbx, vby,
-                    vcx, vcy,
-                    color.toRGBA(),
-                    false
-                );
-            }
-        }
 
         void drawAxisImpl(const Context& ctx, const Mtx4& transform)
         {
@@ -572,13 +538,6 @@ namespace Render {
             );
         }
 
-        //void drawMeshEnqueueImpl(const Context& ctx, MeshHandle meshHandle)
-        //{
-        //    // @todo
-        //}
-
-
-
         inline void clearScalar(uint32_t* dst, size_t size, uint32_t color) noexcept
         {
             std::fill_n(dst, size, color);
@@ -660,35 +619,43 @@ namespace Render {
             BitBlt(targetDC, 0, 0, width, height, sourceDC, 0, 0, SRCCOPY);
         }
 
-        void registerMeshImpl(const Mesh& mesh) noexcept
+        // upload geometrie do residency poli - vola se z upload walku na zacatku runLoop
+        void meshRegisterImpl(MeshHandle h, const Mesh& mesh) noexcept
         {
-            
-            //registry.vertexBuffer.positions.push_back(3.14f);
-            //registry.vertexBuffer.positions.push_back(4.0f);
-            //registry.vertexBuffer.positions.push_back(54.2f);
+            const auto& vb = mesh.getVertexBuffer();
+            const auto& ib = mesh.getIndexBuffer();
 
-            /*
-            std::cout << "RegisterMesh(@todo)" << std::endl;
-            for (auto v : registry.vertexBuffer.positions) {
+            if (registry.meshRanges.size() <= h.index)
+                registry.meshRanges.resize(h.index + 1);
 
-                std::cout << v << std::endl;
-            }
-            */
-            /*
+            MeshRangeDIB range;
+            range.vertexOffset = static_cast<uint32_t>(registry.meshPositions.size());
+            range.vertexCount = static_cast<uint32_t>(vb.size());
+            range.indexOffset = static_cast<uint32_t>(registry.meshIndices.size());
+            range.indexCount = static_cast<uint32_t>(ib.size());
+            range.generation = h.generation;
+            range.valid = true;
 
-
-            vertexBuffer.push_back(3.14159f);
-            vertexBuffer.push_back(2.0f);
-            vertexBuffer.push_back(3.23f);
-            vertexBuffer.push_back(5.112f);
-            vertexBuffer.push_back(7.23f);
-
-
-
-            mesh.getIndexBuffer();
-            */
+            registry.meshPositions.insert(registry.meshPositions.end(), vb.begin(), vb.end());
+            registry.meshIndices.insert(registry.meshIndices.end(), ib.begin(), ib.end());
+            registry.meshRanges[h.index] = range;
         }
 
+        // re-upload dat po mutaci kanonickeho meshe (dynamicke meshe - GridWave)
+        // velikosti se menit nesmi - range je v polich pevne dany
+        void meshUpdateImpl(MeshHandle h, const Mesh& mesh) noexcept
+        {
+            if (h.index >= registry.meshRanges.size()) return;
+            const MeshRangeDIB& range = registry.meshRanges[h.index];
+            if (!range.valid || range.generation != h.generation) return;
+
+            const auto& vb = mesh.getVertexBuffer();
+            const auto& ib = mesh.getIndexBuffer();
+            if (vb.size() != range.vertexCount || ib.size() != range.indexCount) return;
+
+            std::copy(vb.begin(), vb.end(), registry.meshPositions.begin() + range.vertexOffset);
+            std::copy(ib.begin(), ib.end(), registry.meshIndices.begin() + range.indexOffset);
+        }
 
         Context createContextImpl() noexcept {
             Context ctx;

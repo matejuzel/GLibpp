@@ -27,7 +27,7 @@ There are no tests, no lint config, and no CMake — MSBuild + the `.vcxproj` is
 
 ### Adding a file
 
-New `.cpp`/`.h` files must be added to `GLibpp/GLibpp.vcxproj` by hand — MSBuild lists sources explicitly and will not glob. A new directory must also be appended to `AdditionalIncludeDirectories` in **both** the `Debug|x64` and `Release|x64` `ItemDefinitionGroup`s, because includes are **flat**: code writes `#include "Mtx4.h"`, never a relative path. `HandleRegistry.h` is on disk but absent from the project — untracked by the build.
+New `.cpp`/`.h` files must be added to `GLibpp/GLibpp.vcxproj` by hand — MSBuild lists sources explicitly and will not glob. A new directory must also be appended to `AdditionalIncludeDirectories` in **both** the `Debug|x64` and `Release|x64` `ItemDefinitionGroup`s, because includes are **flat**: code writes `#include "Mtx4.h"`, never a relative path.
 
 ## Architecture
 
@@ -50,18 +50,27 @@ Because render rate ≠ logic rate, the renderer **interpolates between two logi
 
 `Renderer<Device>` is a template; the backend is chosen at compile time by the `RENDER_BACKEND_DIB` macro in `App.h` and baked in. `DeviceBase<Device, Target>` (`Backend/Common/DeviceBase.h`) dispatches through `static_cast<Device*>(this)->xxxImpl(...)` — there is no vtable and no runtime backend switching.
 
-A new backend needs: a `Render::DeviceTraits<YourDevice>` specialization (`GpuBuffer3D`/`GpuBuffer2D`/`GpuIndexBuffer`), a target deriving from `DeviceTargetBase<Device>` constructible from a `RenderTargetDescriptor`, a `YourDevice(WindowWin32&)` constructor, and private `...Impl` methods with `friend class DeviceBase<D,T>`. `Renderer` itself only calls `createContext`, `clear`, `drawMesh`, `drawAxis`, `present`, `targetResize`, `getWindow`.
+A new backend needs: a `Render::DeviceTraits<YourDevice>` specialization (`GpuBuffer3D`/`GpuBuffer2D`/`GpuIndexBuffer`), a target deriving from `DeviceTargetBase<Device>` constructible from a `RenderTargetDescriptor`, a `YourDevice(WindowWin32&)` constructor, and private `...Impl` methods with `friend class DeviceBase<D,T>`. `Renderer` itself only calls `createContext`, `clear`, `drawMesh`, `drawAxis`, `present`, `targetCreate`, `targetResize`, `meshRegister`, `meshUpdate`, `getWindow`. `meshRegisterImpl`/`meshUpdateImpl` have default no-op implementations in `DeviceBase` — a backend that reads canonical data directly implements nothing.
 
-Handles are `StableRegistry<T>::Handle{index, generation}`. `targetResize` recreates the object in place **without bumping generation**, so handles survive a resize; only `remove()` invalidates them.
+Handles are `StableRegistry<T>::Handle{index, generation}` (both `uint32_t`; a default-constructed handle equals `INVALID`, never slot 0). `targetResize` recreates the object in place **without bumping generation**, so handles survive a resize; only `remove()` invalidates them.
 
 `Renderer::resize` must only ever be called from the render thread. Window resize events arrive on the logic thread, so they go through `resizeRequestSet()` → an atomic `ResizeRequest` the render loop consumes at the top of its next iteration. Keep that pattern for anything else crossing into the renderer.
 
+### Resource management: canonical storage + per-backend residency
+
+- **`Render::ResourceManager`** (`src/Engine/Renderer/ResourceManager.h`) is a **non-templated** pure store owned by **`App`** (assets are application content): `StableRegistry<Mesh>` + `StableRegistry<MeshInstance>` behind the handle aliases from `ResourceHandles.h` (`MeshHandle`, `MeshInstanceHandle`, `MESH_*_INVALID`). It knows nothing about any Device.
+- **Registration happens only before the render thread starts** (`App::setupDemoResources`, called in `App::run` before the thread spawns). `Renderer::runLoop` then calls `resources.freeze()` — after that every registration method asserts. Runtime creation from the logic thread is a planned future feature via an SPSC upload queue consumed at the top of `runLoop` (seam is marked there next to `resizeRequest.consume`); `meshRegister` already returns the handle immediately so that queue can be added without changing the API.
+- **Upload walk**: at the top of `runLoop` (render thread — a future GL backend has its context live here) the Renderer iterates `resources.meshForEach` and calls `device.meshRegister(h, mesh)`. The DIB backend copies all geometry into big arrays in `RegistryDIB` (`meshPositions`/`meshIndices`) with a `meshRanges` table indexed by `handle.index` — offsets are the backend's private residency detail, never the ResourceManager's.
+- **Drawing is handle-based**: `device.drawMesh(ctx, MeshHandle, world, color, wired)`; there is no `const Mesh&` draw path. `Renderer::drawInstance` resolves a `MeshInstance` (mesh handle + baked `localTransform` + color + wireframe; world transform is passed per-draw because logic computes it every tick) and silently skips INVALID handles — the first frames legitimately carry default-constructed Scenes.
+- **`Scene` owns no geometry** — only `SceneRenderables` (instance handles) and transforms; a `static_assert(std::is_trivially_copyable_v<Scene>)` in `Scene.h` enforces it. Publish and Slerp are allocation-free; keep it that way.
+- **Dynamic meshes** (the ground wave): mutate canonical data in place on the render thread via `resources.meshGetDynamic(h)` + `MeshFactory::UpdateGridWave`, then re-upload with `device.meshUpdate(h, resources.meshGet(h))`. Do not reintroduce per-frame `MeshFactory::Create*` calls in `renderFrame` — they caused visible frame drops.
+
 ### What is stubbed or dead — don't be misled
 
-- **No depth buffer.** `depthbufferHandle` is created and resized but never bound or read. Triangles draw in index order with no Z-test.
-- **No triangle clipping.** `drawMeshImpl` does an all-or-nothing per-vertex frustum test and skips any triangle with an outside vertex. Only `drawAxisImpl` clips properly.
-- **`ResourceManager::meshRegister` / `meshInstanceRegister` are `@todo` stubs returning `{0,0}`.** The mesh handles at the top of `Renderer.h` are meaningless. Meshes are currently passed to `drawMesh` by const ref; demo meshes are cached as `Renderer` members (built once at construction) and the animated ground wave is updated in place via `MeshFactory::UpdateGridWave` — do not reintroduce per-frame `MeshFactory::Create*` calls in `renderFrame`, they caused visible frame drops.
-- **`Backend/RenderCommand/` is legacy.** It compiles but nothing references it; the only call site is a commented-out block at the bottom of `App.h`.
+- **No depth buffer.** `depthbufferHandle` (a `Renderer` member) is created and resized but never bound or read. Triangles draw in index order with no Z-test.
+- **No triangle clipping.** `rasterizeMesh` (`DeviceDIB.h`) does an all-or-nothing per-vertex frustum test and skips any triangle with an outside vertex. Only `drawAxisImpl` clips properly.
+- **`Renderer::resize` failure clobbers handles.** If `targetResize` fails it returns `TARGET_INVALID`, which overwrites the stored handle permanently — known footgun, documented in a comment, fix out of scope so far.
+- **`Backend/RenderCommand/` is legacy.** Headers only, referenced by nothing (the `App.h` include was removed); it no longer compiles as part of any TU.
 - **`GLibpp/_old/`** is a previous iteration of the whole engine, kept for reference. Never edit it or copy patterns from it.
 
 ## Conventions

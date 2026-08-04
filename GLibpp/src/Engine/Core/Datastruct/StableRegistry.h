@@ -13,8 +13,9 @@ class StableRegistry {
 public:
 
     struct Handle {
-        size_t index;
-        uint32_t generation;
+        // default = INVALID, aby default-konstruovany handle nikdy omylem nemiril na slot 0
+        uint32_t index = std::numeric_limits<uint32_t>::max();
+        uint32_t generation = 0;
 
         bool operator==(const Handle& other) const
         {
@@ -36,7 +37,7 @@ public:
 
     template<typename... Args>
     Handle add(Args&&... args) {
-        size_t index;
+        uint32_t index;
 
         if (!freeList.empty()) {
             index = freeList.back();
@@ -44,7 +45,8 @@ public:
             items[index] = std::make_unique<T>(std::forward<Args>(args)...);
         }
         else {
-            index = items.size();
+            assert(items.size() < std::numeric_limits<uint32_t>::max());
+            index = static_cast<uint32_t>(items.size());
             items.emplace_back(std::make_unique<T>(std::forward<Args>(args)...));
             generations.push_back(0);
         }
@@ -63,7 +65,15 @@ public:
     bool isValid(Handle h) const {
         if (h == INVALID) return false;
         if (h.index >= items.size()) return false;
-        return h.index < items.size() && items[h.index] != nullptr && generations[h.index] == h.generation;
+        return items[h.index] != nullptr && generations[h.index] == h.generation;
+    }
+
+    // iterace pres vsechny zive polozky (handle + data) - napr. upload geometrie do backendu
+    template<typename F>
+    void forEach(F&& f) const {
+        for (uint32_t i = 0; i < items.size(); ++i) {
+            if (items[i]) f(Handle{ i, generations[i] }, *items[i]);
+        }
     }
 
     T& get(Handle h) {
@@ -93,6 +103,6 @@ public:
 private:
     std::vector<std::unique_ptr<T>> items;
     std::vector<uint32_t> generations;
-    std::vector<size_t> freeList;
+    std::vector<uint32_t> freeList;
 };
 

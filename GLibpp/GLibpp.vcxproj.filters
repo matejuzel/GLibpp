@@ -87,9 +87,6 @@
     <ClCompile Include="src\Engine\Geometry\Mesh.cpp">
       <Filter>Zdrojové soubory\Engine\Geometry</Filter>
     </ClCompile>
-    <ClCompile Include="src\Engine\Geometry\MeshInstance.cpp">
-      <Filter>Zdrojové soubory\Engine\Geometry</Filter>
-    </ClCompile>
     <ClCompile Include="src\Engine\Geometry\MeshFactory.cpp">
       <Filter>Zdrojové soubory\Engine\Geometry</Filter>
     </ClCompile>
@@ -119,9 +116,6 @@
     <ClInclude Include="src\Engine\Renderer\TextureUsage.h">
       <Filter>Zdrojové soubory\Engine\Renderer</Filter>
     </ClInclude>
-    <ClInclude Include="src\Engine\Renderer\RenderState.h">
-      <Filter>Zdrojové soubory\Engine\Renderer</Filter>
-    </ClInclude>
     <ClInclude Include="src\Engine\Renderer\Viewport.h">
       <Filter>Zdrojové soubory\Engine\Renderer</Filter>
     </ClInclude>
@@ -142,9 +136,6 @@
     </ClInclude>
     <ClInclude Include="src\Engine\Renderer\Backend\RenderCommand\RenderCommandStructs.h">
       <Filter>Zdrojové soubory\Engine\Renderer\Backend\RenderCommand</Filter>
-    </ClInclude>
-    <ClInclude Include="src\Engine\Core\handles.h">
-      <Filter>Zdrojové soubory\Engine\Core</Filter>
     </ClInclude>
     <ClInclude Include="src\Engine\Core\Datastruct\DoubleBuffer.h">
       <Filter>Zdrojové soubory\Engine\Core\Datastruct</Filter>
@@ -182,10 +173,10 @@
     <ClInclude Include="src\Engine\Geometry\MeshInstance.h">
       <Filter>Zdrojové soubory\Engine\Geometry</Filter>
     </ClInclude>
-    <ClInclude Include="src\Engine\Core\Datastruct\AssetRegistry.h">
-      <Filter>Zdrojové soubory\Engine\Core\Datastruct</Filter>
-    </ClInclude>
     <ClInclude Include="src\Engine\Renderer\VertexBuffer.h">
+      <Filter>Zdrojové soubory\Engine\Renderer</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Engine\Renderer\ResourceHandles.h">
       <Filter>Zdrojové soubory\Engine\Renderer</Filter>
     </ClInclude>
     <ClInclude Include="src\Platform\Win32\Win32DC.h">

@@ -2,12 +2,26 @@
 
 #include "Camera.h"
 #include "Mathematics.h"
+#include "ResourceHandles.h"
+#include <type_traits>
+
+// handly demo renderables - trivialne kopirovatelne, zadne alokace pri publish/Slerp
+// jedna instance se smi kreslit vicekrat (wheel je sdilena vsemi 4 koly)
+struct SceneRenderables {
+	MeshInstanceHandle gridWave  = MESH_INSTANCE_INVALID;
+	MeshInstanceHandle carBody   = MESH_INSTANCE_INVALID;
+	MeshInstanceHandle wheel     = MESH_INSTANCE_INVALID;
+	MeshInstanceHandle icosphere = MESH_INSTANCE_INVALID;
+	MeshInstanceHandle icrBeam   = MESH_INSTANCE_INVALID;
+};
 
 struct Scene {
 
 	Camera camera;
 
 	CarTransformation car;
+
+	SceneRenderables renderables;
 
 
 	Mtx4 modelMatrix;
@@ -45,6 +59,10 @@ struct Scene {
 	}
 
 };
+
+// Scene se kopiruje pri kazdem publishi (60 Hz) i interpolaci (kazdy frame)
+// - nesmi vlastnit zadna heapova data (meshe patri do ResourceManageru, Scene nese jen handly)
+static_assert(std::is_trivially_copyable_v<Scene>);
 
 
 struct LogicTickInfo {

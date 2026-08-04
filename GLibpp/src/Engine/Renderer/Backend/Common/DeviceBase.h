@@ -3,7 +3,7 @@
 
 #include "StableRegistry.h"
 #include "Mesh.h"
-#include "MeshInstance.h"
+#include "ResourceHandles.h"
 
 namespace Render {
 
@@ -59,9 +59,11 @@ namespace Render {
             return static_cast<DerivedDevice*>(this)->targetGetImpl(targetHandle);
 		}
         
-        void drawMesh(const Context& ctx, const Mesh& mesh, const Mtx4& transform, const Color& color = Color::Grayscale(0.3f), bool wiredFlag = false) noexcept
+        // handle-based kresleni - backend cerpa z vlastni residency (identita = MeshHandle);
+        // nevalidni/nezaregistrovany handle se tise preskoci
+        void drawMesh(const Context& ctx, MeshHandle h, const Mtx4& transform, const Color& color = Color::Grayscale(0.3f), bool wiredFlag = false) noexcept
         {
-            static_cast<DerivedDevice*>(this)->drawMeshImpl(ctx, mesh, transform, color, wiredFlag);
+            static_cast<DerivedDevice*>(this)->drawMeshImpl(ctx, h, transform, color, wiredFlag);
         }
 
         void drawAxis(const Context& ctx, const Mtx4& transform)
@@ -74,11 +76,6 @@ namespace Render {
             static_cast<DerivedDevice*>(this)->drawStaticTestMeshImpl(ctx, scaleFactor);
         }
 
-        //void drawMeshEnqueue(const Context& ctx, MeshHandle meshHandle)
-        //{
-        //    static_cast<DerivedDevice*>(this)->drawMeshEnqueueImpl(ctx);
-        //}
-
         void clear(const Context& ctx) noexcept
         {
             static_cast<DerivedDevice*>(this)->clearImpl(ctx);
@@ -89,15 +86,29 @@ namespace Render {
             static_cast<DerivedDevice*>(this)->presentImpl(targetHandle);
         }
 
-        void registerMesh(const Mesh& mesh) noexcept
+        // registrace geometrie v backendu - identita = MeshHandle (razi ho ResourceManager)
+        // backend si pod handlem uklada vlastni residency (kopie ve velkych polich, offsety, VBO, ...)
+        // vola se z upload walku na zacatku runLoop (render vlakno - u GL tu bude aktivni context)
+        void meshRegister(MeshHandle h, const Mesh& mesh) noexcept
         {
-            static_cast<DerivedDevice*>(this)->registerMeshImpl(mesh);
+            static_cast<DerivedDevice*>(this)->meshRegisterImpl(h, mesh);
+        }
+
+        // notifikace o zmene dat meshe (dynamicke meshe, napr. GridWave) - backend si obnovi svou kopii
+        void meshUpdate(MeshHandle h, const Mesh& mesh) noexcept
+        {
+            static_cast<DerivedDevice*>(this)->meshUpdateImpl(h, mesh);
         }
 
         Context createContext() noexcept {
             return static_cast<DerivedDevice*>(this)->createContextImpl();
         }
 
+    protected:
+
+        // default no-op - backend, ktery zadnou vlastni residency nepotrebuje, nic neimplementuje
+        void meshRegisterImpl(MeshHandle, const Mesh&) noexcept {}
+        void meshUpdateImpl(MeshHandle, const Mesh&) noexcept {}
 
     };
 

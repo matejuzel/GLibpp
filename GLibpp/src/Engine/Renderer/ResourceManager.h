@@ -1,71 +1,99 @@
 #pragma once
 
 #include "Mesh.h"
-#include "StableRegistry.h"
-#include "AssetRegistry.h"
-#include "VertexBuffer.h"
 #include "MeshInstance.h"
+#include "ResourceHandles.h"
+#include "StableRegistry.h"
+#include "Mtx4.h"
+#include "Color.h"
 
-
-#include <vector>
-
+#include <cassert>
+#include <utility>
 
 namespace Render {
 
-    template <typename Device>
+    // Kanonicke uloziste assetu (meshe, instance) + jejich identita (handly).
+    // Netemplatovana trida bez znalosti backendu - residency (kopie geometrie,
+    // offsety, VBO, ...) je privatni vec konkretniho Device, klicovana handlem.
+    //
+    // Vlastni ho App (assety = obsah aplikace); Renderer dostava referenci a orchestruje:
+    // na zacatku runLoop zavola freeze() a upload walk (meshForEach -> device.meshRegister).
+    //
+    // Vlaknovy kontrakt: registrace POUZE pred startem render vlakna (registry neni
+    // thread-safe); po freeze() na data saha vyhradne render vlakno (vc. meshGetDynamic).
+    // Budouci runtime tvorba z logickeho vlakna pujde pres SPSC upload frontu
+    // konzumovanou na render vlakne - verejne API se tim nezmeni.
     struct ResourceManager {
 
-		using TargetHandle = typename Device::TargetHandle;
-		//using MeshHandle = typename StableRegistry<Mesh>::Handle;
-		//using MeshInstanceHandle = typename StableRegistry<MeshInstance>::Handle;
+        // vraci handle okamzite; volajici nesmi predpokladat synchronni rezidenci dat v backendu
+        MeshHandle meshRegister(Mesh mesh)
+        {
+            assert(!frozen && "registrace resources jen pred startem render smycky (runLoop)");
+            return meshes.add(std::move(mesh));
+        }
 
-		using MeshHandle = typename StableRegistry<Mesh>::Handle;
-		using MeshInstanceHandle = typename StableRegistry<MeshInstance>::Handle;
+        const Mesh& meshGet(MeshHandle h) const
+        {
+            return meshes.get(h);
+        }
 
-		ResourceManager(Device& device)
-			: device(device)
-		{
+        // mutable pristup pro dynamicke meshe (napr. GridWave) - jen render vlakno,
+        // in-place mutace dat bez alokaci; po zmene je nutne notifikovat backend (device.meshUpdate)
+        Mesh& meshGetDynamic(MeshHandle h)
+        {
+            return meshes.get(h);
+        }
 
-			auto& window = device.getWindow();
-			auto width = window.getClientWidth();
-			auto height = window.getClientHeight();
+        bool meshIsValid(MeshHandle h) const
+        {
+            return meshes.isValid(h);
+        }
 
-			framebufferHandle = targetCreate(RenderTargetDescriptor::FramebufferRGBA32bit(width, height));
-			depthbufferHandle = targetCreate(RenderTargetDescriptor::Depthbuffer24bit(width, height));
-		}
+        // jen pred freeze - backend mesh jeste nevidel (upload probiha az pri freeze v runLoop)
+        void meshRemove(MeshHandle h)
+        {
+            assert(!frozen && "meshRemove jen pred startem render smycky (runLoop)");
+            meshes.remove(h);
+        }
 
-		TargetHandle targetCreate(RenderTargetDescriptor descriptor)
-		{
-			return device.targetCreate(descriptor);
-		}
+        // iterace pres vsechny meshe (handle + data) - upload walk na zacatku runLoop
+        template<typename F>
+        void meshForEach(F&& f) const
+        {
+            meshes.forEach(std::forward<F>(f));
+        }
 
-		MeshHandle meshRegister(const Mesh& mesh)
-		{
-			// @todo
-			return {0,0};
-		}
+        MeshInstanceHandle meshInstanceRegister(MeshHandle mesh,
+                                                const Mtx4& localTransform = Mtx4::Identity(),
+                                                Color color = Color::Grayscale(0.3f),
+                                                bool wireframe = false)
+        {
+            assert(!frozen && "registrace resources jen pred startem render smycky (runLoop)");
+            assert(meshes.isValid(mesh));
+            return instances.add(MeshInstance{ mesh, localTransform, color, wireframe });
+        }
 
-		MeshInstanceHandle meshInstanceRegister(MeshHandle meshHandle, const Mtx4& transform)
-		{
-			// @todo
-			return {0,0};
-		}
+        const MeshInstance& meshInstanceGet(MeshInstanceHandle h) const
+        {
+            return instances.get(h);
+        }
 
+        bool meshInstanceIsValid(MeshInstanceHandle h) const
+        {
+            return instances.isValid(h);
+        }
 
+        // vola render vlakno na zacatku runLoop - od te chvile je registrace zakazana
+        void freeze()
+        {
+            frozen = true;
+        }
 
+    private:
 
-		Device& device;
-
-		TargetHandle framebufferHandle;
-		TargetHandle depthbufferHandle;
-
+        StableRegistry<Mesh> meshes;
+        StableRegistry<MeshInstance> instances;
+        bool frozen = false;
     };
 
 }
-
-
-
-
-
-
-

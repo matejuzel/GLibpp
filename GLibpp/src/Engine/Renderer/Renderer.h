@@ -28,7 +28,6 @@
 #include "Scene.h"
 #include "Mesh.h"
 #include "StableRegistry.h"
-#include "AssetRegistry.h"
 #include "RunState.h"
 #include "TimeManager.h"
 #include "ZeroAllocStateHistory.h"
@@ -66,50 +65,42 @@ namespace Render {
 
     private:
 
-        using ResourceManager = ResourceManager<Device>;
         using LogicStateFramePair = ZeroAllocStateHistory<LogicState>;
 
         Device device;
         Viewport viewport;
         ResizeRequest resizeRequest;
-        ResourceManager resources;
+
+        // kanonicke uloziste assetu - vlastni ho App, renderer je jen konzument/orchestrator
+        ResourceManager& resources;
+
+        // render targety vlastni Renderer - jsou to stavy render pipeline, ne assety
+        typename Device::TargetHandle framebufferHandle;
+        typename Device::TargetHandle depthbufferHandle;
 
         float logicHz;
 
         LogicStateBuffered& logicStateBuffered;
         RunState running;
 
-        // docasne zatim takhle
-        ResourceManager::MeshHandle mshHandle00 = resources.meshRegister(MeshFactory::CreateCube(1.0f));
-        ResourceManager::MeshInstanceHandle mshInstHandle00 = resources.meshInstanceRegister(mshHandle00, Mtx4::Identity());
-        ResourceManager::MeshInstanceHandle mshInstHandle01 = resources.meshInstanceRegister(mshHandle00, Mtx4::Identity().rotateY(0.3f));
-        ResourceManager::MeshInstanceHandle mshInstHandle02 = resources.meshInstanceRegister(mshHandle00, Mtx4::Identity().rotateY(0.6f));
-        ResourceManager::MeshInstanceHandle mshInstHandle03 = resources.meshInstanceRegister(mshHandle00, Mtx4::Identity().rotateY(0.9f));
-
-        // tmp
-
-        Mesh meshGrid = MeshFactory::CreateGrid(80, 0.2f).applyTransformation(Mtx4::Identity().rotateX(GLibpp::Math::deg2rad(90.0f)).translate(-50.0f, -50.0f, 0.0f));
-
-        // staticke meshe demo sceny - vygenerovane jednou, ne v kazdem framu
-        Mesh meshIcosphere = MeshFactory::CreateIcosphere(1.0f, 4);
-        Mesh meshGridWave = MeshFactory::CreateGridWave(60, 0.2f, 0.0f, 0.05f);
-        Mtx4 gridWaveModel = Mtx4::Identity().rotateX(GLibpp::Math::deg2rad(90.0f)).translate(-25.0f, -25.0f, 0.0f).scale(0.5f);
-        Mesh meshIcrBeam = MeshFactory::CreateCube(0.1f).applyTransformation(Mtx4::Scaling(0.01f, 8.0f, 0.01f));
-        Mesh meshAxleBeam = meshAxleBeam;
-
     public:
 
-        Renderer(WindowWin32& window, LogicStateBuffered& logicStateBuffered, float logicHz)
+        Renderer(WindowWin32& window, ResourceManager& resources, LogicStateBuffered& logicStateBuffered, float logicHz)
             : device(window)
-			, resources(device)
 			, viewport{ 0, 0, window.getClientWidth(), window.getClientHeight() }
-            , logicStateBuffered(logicStateBuffered)
+			, resources(resources)
             , logicHz(logicHz)
+            , logicStateBuffered(logicStateBuffered)
         {
-			resize(window.getClientWidth(), window.getClientHeight());
+            auto width = window.getClientWidth();
+            auto height = window.getClientHeight();
+            framebufferHandle = device.targetCreate(RenderTargetDescriptor::FramebufferRGBA32bit(width, height));
+            depthbufferHandle = device.targetCreate(RenderTargetDescriptor::Depthbuffer24bit(width, height));
 
-            std::cout << "frame buffer: " << resources.framebufferHandle << std::endl;
-            std::cout << "depth buffer: " << resources.depthbufferHandle << std::endl;
+			resize(width, height);
+
+            std::cout << "frame buffer: " << framebufferHandle << std::endl;
+            std::cout << "depth buffer: " << depthbufferHandle << std::endl;
         }
 
         void renderFrame(const Scene& scene, uint32_t frameIndex)
@@ -126,36 +117,38 @@ namespace Render {
             ctx.setView(scene.camera.calculateViewMatrix());
             ctx.setProjection(Mtx4::Perspective(fovRad, aspect, nearZ, farZ));
             ctx.setViewport(viewport);
-            ctx.framebufferHandle = resources.framebufferHandle;
+            ctx.framebufferHandle = framebufferHandle;
                 
             device.clear(ctx);
 
             {
                 // Drawing commands
 
-                // Ground - net (vlna se aktualizuje in-place, transformace jde pres model matici)
-                MeshFactory::UpdateGridWave(meshGridWave, 60, 0.2f, static_cast<float>(frameIndex), 0.05f);
-                device.drawMesh(ctx, meshGridWave, gridWaveModel, Color::Grayscale(0.3f), true);
+                // Ground - dynamicka vlna: in-place mutace kanonickych dat (zero-alloc)
+                // + re-upload zmeneneho range do residency backendu
+                // (parametry vlny musi sedet s registraci v App::setupDemoResources)
+                if (resources.meshInstanceIsValid(scene.renderables.gridWave))
+                {
+                    MeshHandle waveMesh = resources.meshInstanceGet(scene.renderables.gridWave).mesh;
+                    MeshFactory::UpdateGridWave(resources.meshGetDynamic(waveMesh), 60, 0.2f, static_cast<float>(frameIndex), 0.05f);
+                    device.meshUpdate(waveMesh, resources.meshGet(waveMesh));
+                }
+                drawInstance(ctx, scene.renderables.gridWave, Mtx4::Identity());
 
                 // Car
-                device.drawMesh(ctx, scene.car.getMesh(), scene.car.getCarMatrix());
+                drawInstance(ctx, scene.renderables.carBody, scene.car.getCarMatrix());
 
                 // shpere
-                device.drawMesh(ctx, meshIcosphere, scene.car.model.getTransformation(), Color::Grayscale(0.7f), true);
-            
+                drawInstance(ctx, scene.renderables.icosphere, scene.car.model.getTransformation());
+
                 // ICR
-                device.drawMesh(ctx, meshIcrBeam, scene.car.getIcrTransformation());
+                drawInstance(ctx, scene.renderables.icrBeam, scene.car.getIcrTransformation());
 
-                // wheels
-                device.drawMesh(ctx, scene.car.wheelFrontLeft.getMesh(), scene.car.getFrontLeft());
-                device.drawMesh(ctx, scene.car.wheelFrontRight.getMesh(), scene.car.getFrontRight());
-                device.drawMesh(ctx, scene.car.wheelBackLeft.getMesh(), scene.car.getBackLeft());
-                device.drawMesh(ctx, scene.car.wheelBackRight.getMesh(), scene.car.getBackRight());
-
-                // wheel axis
-                device.drawMesh(ctx, meshAxleBeam, scene.car.getFrontLeft());
-                device.drawMesh(ctx, meshAxleBeam, scene.car.getFrontRight());
-                device.drawMesh(ctx, meshAxleBeam, scene.car.getCarMatrix());
+                // wheels - jedna sdilena instance kreslena 4x s ruznymi world maticemi
+                drawInstance(ctx, scene.renderables.wheel, scene.car.getFrontLeft());
+                drawInstance(ctx, scene.renderables.wheel, scene.car.getFrontRight());
+                drawInstance(ctx, scene.renderables.wheel, scene.car.getBackLeft());
+                drawInstance(ctx, scene.renderables.wheel, scene.car.getBackRight());
 
                 // axis of local object spaces
                 device.drawAxis(ctx, scene.car.getCarMatrix());
@@ -166,7 +159,7 @@ namespace Render {
                 device.drawAxis(ctx, scene.car.getBackRight().scale(scene.car.model.params.wheelRadius));
             }
 
-            device.present(resources.framebufferHandle);
+            device.present(framebufferHandle);
         }
 
         void runLoop()
@@ -178,7 +171,14 @@ namespace Render {
             TimeManager timer1Hz(1.0); // pro výpočet FPS každou sekundu
 			TimeManager timerSyncV(logicHz); // fallback pacing, pouzije se jen kdyz selze DwmFlush()
 
-			uint32_t frameIndex = 0;            
+			uint32_t frameIndex = 0;
+
+            // od ted je registrace resources zakazana - na data saha uz jen render vlakno
+            resources.freeze();
+
+            // upload point - render vlakno (u GL backendu tady bude aktivni context);
+            // backend si z kanonickych dat postavi vlastni residency (kopie, offsety, VBO, ...)
+            resources.meshForEach([&](MeshHandle h, const Mesh& m) { device.meshRegister(h, m); });
 
             running.start();
 
@@ -186,6 +186,8 @@ namespace Render {
             {
 
                 {
+                    // budouci seam: resources.uploadQueueConsume() - SPSC fronta pro runtime tvorbu
+                    // resources z logickeho vlakna (skutecne add() do registru probehne az tady, na render vlakne)
                     if (uint32_t w, h; resizeRequest.consume(w, h))
                     {
                         this->resize(w, h);
@@ -270,19 +272,25 @@ namespace Render {
             resizeRequest.set(width, height);
         }
 
-        ResourceManager& getResourceManager()
-        {
-            return resources;
-        }
-
     private:
 
+        // kresli instanci pres handle; INVALID se tise preskoci
+        // (napr. prvni framy, kdy triple buffer jeste drzi default-konstruovany stav)
+        void drawInstance(const typename Device::Context& ctx, MeshInstanceHandle h, const Mtx4& world)
+        {
+            if (!resources.meshInstanceIsValid(h)) return;
+            const MeshInstance& inst = resources.meshInstanceGet(h);
+            device.drawMesh(ctx, inst.mesh, world * inst.localTransform, inst.color, inst.wireframe);
+        }
+
         // Metoda resize(w, h) nesmi byt volana z jineho threadu
-        void resize(uint32_t width, uint32_t height) 
+        void resize(uint32_t width, uint32_t height)
         {
             if (width == 0 || height == 0) return;
-            resources.framebufferHandle = device.targetResize(resources.framebufferHandle, width, height);
-            resources.depthbufferHandle = device.targetResize(resources.depthbufferHandle, width, height);
+            // pozn.: pri selhani targetResize se handle prepise na TARGET_INVALID a target je nenavratne
+            // ztraceny (znamy footgun, oprava mimo scope teto zmeny)
+            framebufferHandle = device.targetResize(framebufferHandle, width, height);
+            depthbufferHandle = device.targetResize(depthbufferHandle, width, height);
             viewport.resize(width, height);
         }
 
