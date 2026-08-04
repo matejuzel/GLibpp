@@ -37,28 +37,34 @@ Start-Sleep -Seconds $WarmupSeconds
 $p = Get-Process GLibpp -ErrorAction SilentlyContinue
 if (-not $p) { Write-Output "FAIL: proces po startu nezije"; exit 1 }
 
+function Save-WindowShot([System.Diagnostics.Process]$proc, [string]$path) {
+    $r = New-Object "GLibVerify+RECT"
+    [GLibVerify]::GetWindowRect($proc.MainWindowHandle, [ref]$r) | Out-Null
+    $w = $r.Right - $r.Left; $h = $r.Bottom - $r.Top
+    $bmp = New-Object System.Drawing.Bitmap($w, $h)
+    $g = [System.Drawing.Graphics]::FromImage($bmp)
+    $g.CopyFromScreen($r.Left, $r.Top, 0, 0, $bmp.Size)
+    $bmp.Save($path, [System.Drawing.Imaging.ImageFormat]::Png)
+    $g.Dispose(); $bmp.Dispose()
+    Write-Output "screenshot: $path ($w x $h)"
+}
+
 if ($Drive) {
     [GLibVerify]::SetForegroundWindow($p.MainWindowHandle) | Out-Null
     Start-Sleep -Milliseconds 500
     [GLibVerify]::keybd_event(0x26, 0, 0, [UIntPtr]::Zero)   # UP down
-    Start-Sleep -Seconds 2
+    Start-Sleep -Milliseconds 1200
+    # screenshot uprostred jizdy - auto je jeste v zaberu staticke demo kamery
+    if ($Screenshot -ne "") { Save-WindowShot $p $Screenshot }
+    Start-Sleep -Milliseconds 800
     [GLibVerify]::keybd_event(0x25, 0, 0, [UIntPtr]::Zero)   # LEFT down
     Start-Sleep -Seconds 1
     [GLibVerify]::keybd_event(0x25, 0, 2, [UIntPtr]::Zero)   # LEFT up
     [GLibVerify]::keybd_event(0x26, 0, 2, [UIntPtr]::Zero)   # UP up
     Start-Sleep -Milliseconds 300
 }
-
-if ($Screenshot -ne "") {
-    $r = New-Object "GLibVerify+RECT"
-    [GLibVerify]::GetWindowRect($p.MainWindowHandle, [ref]$r) | Out-Null
-    $w = $r.Right - $r.Left; $h = $r.Bottom - $r.Top
-    $bmp = New-Object System.Drawing.Bitmap($w, $h)
-    $g = [System.Drawing.Graphics]::FromImage($bmp)
-    $g.CopyFromScreen($r.Left, $r.Top, 0, 0, $bmp.Size)
-    $bmp.Save($Screenshot, [System.Drawing.Imaging.ImageFormat]::Png)
-    $g.Dispose(); $bmp.Dispose()
-    Write-Output "screenshot: $Screenshot ($w x $h)"
+elseif ($Screenshot -ne "") {
+    Save-WindowShot $p $Screenshot
 }
 
 # mereni: titulek nese "FPS: n ||| 1% Low: n ||| ..." aktualizovany 1x/s render vlaknem
