@@ -167,11 +167,6 @@ public:
     void updateLogic(float dt, Scene& scene)
     {
 
-        if (input.keyboard.isDown(KeyMap::KEY_SPACE)) {
-            // debug: vyjezd kamery vzhuru
-            scene.camera.move((Vec4(0.0f, 4.0f, 0.0f, 1.0f)) * dt);
-        }
-
         bool flag = true;
         if (input.keyboard.isDown(KeyMap::KEY_UP)) {
             scene.car.speedUp(3 * dt);
@@ -201,6 +196,29 @@ public:
         }
 
         if (flagResetSteer) scene.car.steerFrontWheelsReset(dt);
+
+        updateFollowCamera(scene, dt);
+    }
+
+    // follow kamera - drzi se za autem podle jeho headingu a kouka na nej;
+    // pozice se dotahuje exponencialnim tlumenim (frame-rate nezavisle),
+    // takze se kamera v zatacce prijemne opozdi; cil je rigidni - auto je vzdy v zaberu
+    void updateFollowCamera(Scene& scene, float dt)
+    {
+        constexpr float followDistance = 12.0f; // za autem (podel -forward)
+        constexpr float followHeight   = 5.0f;  // vyska kamery nad pozici auta
+        constexpr float lookAtHeight   = 1.5f;  // cil mirne nad podvozkem
+        constexpr float stiffness      = 1.0f;  // rychlost dotahovani pozice [1/s]
+
+        Vec4 carPos = scene.car.model.getPosition();
+        Vec4 forward = scene.car.model.getHeading() * Vec4(0.0f, 0.0f, 1.0f, 0.0f);
+
+        Vec4 desired = carPos - forward * followDistance + Vec4(0.0f, followHeight, 0.0f, 0.0f);
+
+        float alpha = 1.0f - std::exp(-stiffness * dt);
+        Vec4 newPos = Vec4::Lerp(scene.camera.position, desired, alpha);
+
+        scene.camera.lookAtFrom(newPos, carPos + Vec4(0.0f, lookAtHeight, 0.0f, 0.0f));
     }
 
     // registrace demo geometrie do ResourceManageru - MUSI probehnout pred startem

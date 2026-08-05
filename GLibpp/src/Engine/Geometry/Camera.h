@@ -61,6 +61,15 @@ public:
         updateTargetFromAngles(); // Target se musí posunout s námi
     }
 
+    // Umísti kameru do pos a natoč ji na tar (follow/chase kamera)
+    // Dopočítá yaw/pitch z nového směru a konzistentní up vektor
+    void lookAtFrom(const Vec4& pos, const Vec4& tar) {
+        position = pos;
+        target = tar;
+        updateAnglesFromTarget();
+        updateTargetFromAngles();
+    }
+
     // --- Interní logika ---
 
     void updateTargetFromAngles() {
@@ -107,7 +116,13 @@ public:
     friend Camera Lerp(const Camera& a, const Camera& b, float t) {
         Camera res;
         res.position = a.position + (b.position - a.position) * t;
-        res.yaw = a.yaw + (b.yaw - a.yaw) * t;
+
+        // yaw se točí dokola (atan2 skáče na hranici +-pi) -> interpolace po nejkratší
+        // cestě; jinak by kamera při přechodu hranice na jeden frame prosvištěla 2*pi
+        constexpr float kTwoPi = 6.283185307179586f;
+        float dYaw = std::remainder(b.yaw - a.yaw, kTwoPi);
+        res.yaw = a.yaw + dYaw * t;
+
         res.pitch = a.pitch + (b.pitch - a.pitch) * t;
         res.fovRad = a.fovRad + (b.fovRad - a.fovRad) * t;
         res.nearZ = a.nearZ + (b.nearZ - a.nearZ) * t;
