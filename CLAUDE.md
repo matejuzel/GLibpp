@@ -23,7 +23,7 @@ Both `Debug|x64` and `Release|x64` build. `main.cpp` is the only entry point; sw
 
 There are no tests, no lint config, and no CMake — MSBuild + the `.vcxproj` is the whole build system. The MSVC toolchain here is Czech-localized, so compiler diagnostics come back in Czech.
 
-`main.cpp` asks for monitor `\\.\DISPLAY2`; on a single-monitor machine the window silently falls back to the default position, which is fine.
+`main.cpp` asks for monitor `\\.\DISPLAY1`; on a machine without that display name the window silently falls back to the default position, which is fine.
 
 ### Adding a file
 
@@ -70,7 +70,6 @@ Handles are `StableRegistry<T>::Handle{index, generation}` (both `uint32_t`; a d
 - **No depth buffer.** `depthbufferHandle` (a `Renderer` member) is created and resized but never bound or read. Triangles draw in index order with no Z-test.
 - **No triangle clipping.** `rasterizeMesh` (`DeviceDIB.h`) does an all-or-nothing per-vertex frustum test and skips any triangle with an outside vertex. Only `drawAxisImpl` clips properly.
 - **`Renderer::resize` failure clobbers handles.** If `targetResize` fails it returns `TARGET_INVALID`, which overwrites the stored handle permanently — known footgun, documented in a comment, fix out of scope so far.
-- **`Backend/RenderCommand/` is legacy.** Headers only, referenced by nothing (the `App.h` include was removed); it no longer compiles as part of any TU.
 - **`GLibpp/_old/`** is a previous iteration of the whole engine, kept for reference. Never edit it or copy patterns from it.
 
 ## Conventions

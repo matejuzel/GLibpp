@@ -15,7 +15,6 @@
 #include "Vec4.h"
 #include "Mtx4.h"
 #include "Camera.h"
-#include "DoubleBuffer.h"
 // Backend Common
 #include "DeviceContext.h"
 #include "DeviceBase.h"

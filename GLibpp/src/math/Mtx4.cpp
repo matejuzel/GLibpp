@@ -127,13 +127,8 @@
 
     Mtx4& Mtx4::setIdentity()
     {
-        static Mtx4 i{
-            1, 0, 0, 0,
-            0, 1, 0, 0,
-            0, 0, 1, 0,
-            0, 0, 0, 1
-        };
-        return i;
+        *this = Mtx4();
+        return *this;
     }
 
     Mtx4& Mtx4::inverse()
@@ -275,13 +270,17 @@
             m[2] * inv.data[8] +
             m[3] * inv.data[12];
 
-        if (det == 0.0f)
+        if (det == 0.0f) {
+            // singularni matice inverzi nema - fallback: nulova matice
+            // (early return: bez nej by se fallback vzapeti prepsal deleni-nulou vysledkem)
             (*this) = Mtx4(
                         0.0f, 0.0f, 0.0f, 0.0f,
                         0.0f, 0.0f, 0.0f, 0.0f,
                         0.0f, 0.0f, 0.0f, 0.0f,
                         0.0f, 0.0f, 0.0f, 0.0f
-                      ); // fallback: identity or zero matrix
+                      );
+            return *this;
+        }
 
         float invDet = 1.0f / det;
         for (int i = 0; i < 16; i++)

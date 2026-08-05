@@ -19,7 +19,6 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="src\Engine\Geometry\Material.cpp" />
     <ClCompile Include="src\Engine\Geometry\Mesh.cpp" />
     <ClCompile Include="src\Engine\Geometry\MeshFactory.cpp" />
     <ClCompile Include="src\main.cpp" />
@@ -29,15 +28,14 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\App\App.h" />
+    <ClInclude Include="src\App\CarTransformation.h" />
     <ClInclude Include="src\App\Scene.h" />
-    <ClInclude Include="src\Engine\Core\Datastruct\DoubleBuffer.h" />
     <ClInclude Include="src\Engine\Core\Datastruct\StableRegistry.h" />
     <ClInclude Include="src\Engine\Core\Datastruct\ZeroAllocStateHistory.h" />
     <ClInclude Include="src\Engine\Core\Datastruct\ZeroAllocTripleBuffer.h" />
     <ClInclude Include="src\Engine\Core\Input\Input.h" />
     <ClInclude Include="src\Engine\Core\RunState.h" />
     <ClInclude Include="src\Engine\Geometry\Camera.h" />
-    <ClInclude Include="src\Engine\Geometry\Material.h" />
     <ClInclude Include="src\Engine\Geometry\Mesh.h" />
     <ClInclude Include="src\Engine\Geometry\MeshFactory.h" />
     <ClInclude Include="src\Engine\Geometry\MeshInstance.h" />
@@ -50,13 +48,6 @@
     <ClInclude Include="src\Engine\Renderer\Backend\DIB\RasterizatorDIB.h" />
     <ClInclude Include="src\Engine\Renderer\Backend\DIB\DeviceDIB.h" />
     <ClInclude Include="src\Engine\Renderer\Backend\DIB\DeviceTargetDIB.h" />
-    <ClInclude Include="src\Engine\Renderer\Backend\RenderCommand\RenderCommand.h" />
-    <ClInclude Include="src\Engine\Renderer\Backend\RenderCommand\RenderCommandData.h" />
-    <ClInclude Include="src\Engine\Renderer\Backend\RenderCommand\RenderCommandList.h" />
-    <ClInclude Include="src\Engine\Renderer\Backend\RenderCommand\RenderCommandStructs.h" />
-    <ClInclude Include="src\Engine\Renderer\Backend\RenderCommand\RenderCommandType.h" />
-    <ClInclude Include="src\Engine\Renderer\Backend\Stencil\RenderDeviceStencil.h" />
-    <ClInclude Include="src\Engine\Renderer\Backend\Stencil\RenderTargetStencil.h" />
     <ClInclude Include="src\Engine\Renderer\Color.h" />
     <ClInclude Include="src\Engine\Renderer\Renderer.h" />
     <ClInclude Include="src\Engine\Renderer\ResourceHandles.h" />
@@ -159,7 +150,7 @@
       <PreprocessorDefinitions>_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <AdditionalOptions>/utf-8 %(AdditionalOptions)</AdditionalOptions>
-      <AdditionalIncludeDirectories>$(ProjectDir)src;$(ProjectDir)src\App;$(ProjectDir)src\Engine;$(ProjectDir)src\Math;$(ProjectDir)src\Platform;$(ProjectDir)src\Utility;$(ProjectDir)src\Engine\Core;$(ProjectDir)src\Engine\Renderer;$(ProjectDir)src\Engine\Core\Datastruct;$(ProjectDir)src\Engine\Renderer\Backend;$(ProjectDir)src\Engine\Renderer\Backend\Common;$(ProjectDir)src\Engine\Renderer\Backend\DIB;$(ProjectDir)src\Platform\Win32;$(ProjectDir)src\Engine\Renderer\Backend\RenderCommand;$(ProjectDir)src\Engine\Core\Input;$(ProjectDir)src\Engine\Renderer\Backend\Stencil;$(ProjectDir)src\Engine\Geometry;$(ProjectDir)src\Engine\Physics\Bicycle;$(ProjectDir)src\Engine\Physics</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ProjectDir)src;$(ProjectDir)src\App;$(ProjectDir)src\Engine;$(ProjectDir)src\Math;$(ProjectDir)src\Platform;$(ProjectDir)src\Utility;$(ProjectDir)src\Engine\Core;$(ProjectDir)src\Engine\Renderer;$(ProjectDir)src\Engine\Core\Datastruct;$(ProjectDir)src\Engine\Renderer\Backend;$(ProjectDir)src\Engine\Renderer\Backend\Common;$(ProjectDir)src\Engine\Renderer\Backend\DIB;$(ProjectDir)src\Platform\Win32;$(ProjectDir)src\Engine\Core\Input;$(ProjectDir)src\Engine\Geometry;$(ProjectDir)src\Engine\Physics\Bicycle;$(ProjectDir)src\Engine\Physics</AdditionalIncludeDirectories>
       <LanguageStandard>stdcpp20</LanguageStandard>
     </ClCompile>
     <Link>
@@ -176,7 +167,7 @@
       <PreprocessorDefinitions>NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <AdditionalOptions>/utf-8 %(AdditionalOptions)</AdditionalOptions>
-      <AdditionalIncludeDirectories>$(ProjectDir)src;$(ProjectDir)src\App;$(ProjectDir)src\Engine;$(ProjectDir)src\Math;$(ProjectDir)src\Platform;$(ProjectDir)src\Utility;$(ProjectDir)src\Engine\Core;$(ProjectDir)src\Engine\Renderer;$(ProjectDir)src\Engine\Core\Datastruct;$(ProjectDir)src\Engine\Renderer\Backend;$(ProjectDir)src\Engine\Renderer\Backend\Common;$(ProjectDir)src\Engine\Renderer\Backend\DIB;$(ProjectDir)src\Platform\Win32;$(ProjectDir)src\Engine\Renderer\Backend\RenderCommand;$(ProjectDir)src\Engine\Core\Input;$(ProjectDir)src\Engine\Renderer\Backend\Stencil;$(ProjectDir)src\Engine\Geometry;$(ProjectDir)src\Engine\Physics\Bicycle;$(ProjectDir)src\Engine\Physics</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ProjectDir)src;$(ProjectDir)src\App;$(ProjectDir)src\Engine;$(ProjectDir)src\Math;$(ProjectDir)src\Platform;$(ProjectDir)src\Utility;$(ProjectDir)src\Engine\Core;$(ProjectDir)src\Engine\Renderer;$(ProjectDir)src\Engine\Core\Datastruct;$(ProjectDir)src\Engine\Renderer\Backend;$(ProjectDir)src\Engine\Renderer\Backend\Common;$(ProjectDir)src\Engine\Renderer\Backend\DIB;$(ProjectDir)src\Platform\Win32;$(ProjectDir)src\Engine\Core\Input;$(ProjectDir)src\Engine\Geometry;$(ProjectDir)src\Engine\Physics\Bicycle;$(ProjectDir)src\Engine\Physics</AdditionalIncludeDirectories>
       <LanguageStandard>stdcpp20</LanguageStandard>
     </ClCompile>
     <Link>

@@ -63,9 +63,4 @@ namespace GLibpp::Math {
         return std::abs(x);
     }
 
-    inline float fastDiv(float numerator, float denominator)
-    {
-        return numerator * reciprocal(denominator);
-	}
-
 };

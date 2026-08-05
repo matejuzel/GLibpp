@@ -13,6 +13,7 @@
 
 #include <timeapi.h> // Potřeba pro timeBeginPeriod
 #include <chrono>
+#include <immintrin.h> // _mm_pause() ve waitUntilNextStep
 
 #pragma comment(lib, "winmm.lib")
 
@@ -213,26 +214,10 @@ public:
         m_frameTimestamps.clear();
     }
 
-    /**
-     * Uspí vlákno, pokud do dalšího logického kroku zbývá více času než threshold.
-     * @param threshold Minimální čas v sekundách, po který má smysl spát (default 1ms).
-     */
-    void sleepIfIdle(double threshold = 0.001) {
-        double timeToWait = m_fixedDelta - m_accumulator;
-        if (timeToWait > threshold) {
-            // Spíme o něco méně (např. o 0.5ms), abychom nepřešvihli začátek kroku 
-            // kvůli nepřesnosti Windows scheduleru.
-            std::this_thread::sleep_for(std::chrono::microseconds(static_cast<long long>((timeToWait - 0.0005) * 1000000.0)));
-        }
-    }
-
-	double getAccumulator() const 
+	double getAccumulator() const
     { 
         return m_accumulator; 
     }
-
-    // Vložit nahoru pro _mm_pause()
-#include <immintrin.h> 
 
     void waitUntilNextStep(double slack = 0.002) { // Zvednutý slack na 2 ms!
         static bool precisionSet = false;
@@ -263,38 +248,6 @@ public:
             _mm_pause();
 
             updateAccumulatorOnly();
-        }
-    }
-
-    void waitUntilNextStep__(double slack = 0.0005) {
-        // 1. Nastavíme Windows scheduler na vysokou přesnost (pokud už není)
-        // Ideálně volat jednou globálně, ale pro jistotu:
-        static bool precisionSet = false;
-        if (!precisionSet) {
-            timeBeginPeriod(1);
-            precisionSet = true;
-        }
-
-        while (true) {
-            double timeToWait = m_fixedDelta - m_accumulator;
-
-            // Pokud zbývá víc času než rezerva + minimální rozumný spánek (1ms)
-            if (timeToWait > (slack + 0.001)) {
-                // Spíme o 'slack' méně
-                double sleepTime = timeToWait - slack;
-                std::this_thread::sleep_for(
-                    std::chrono::microseconds(static_cast<long long>(sleepTime * 1000000.0))
-                );
-
-                // Po probuzení musíme znovu aktualizovat akumulátor (vnitřní tick)
-                // Aby smyčka věděla, kolik času reálně uplynulo
-                updateAccumulatorOnly();
-            }
-            else {
-                // Jsme v oblasti rezervy – zbytek času "doťukáme" krátkými yieldy 
-                // nebo prázdnou smyčkou pro absolutní přesnost.
-                break;
-            }
         }
     }
 

@@ -106,56 +106,6 @@ namespace Render {
         }
 
 
-        static void inline drawTriangle_(DeviceTargetDIB& target, int x0, int y0, int x1, int y1, int x2, int y2, uint32_t color) noexcept
-        {
-            //std::cout << "triangle([" << x0 << "," << y0 << "] [" << x1 << "," << y1 << "][" << x2 << "," << y2 << "])" << std::endl;
-
-            // Seřadíme vrcholy podle Y (od nejnižšího)
-            if (y1 < y0) { std::swap(y0, y1); std::swap(x0, x1); }
-            if (y2 < y0) { std::swap(y0, y2); std::swap(x0, x2); }
-            if (y2 < y1) { std::swap(y1, y2); std::swap(x1, x2); }
-
-            auto drawSpan = [&](int y, int xStart, int xEnd)
-                {
-                    if (y < 0 || y >= (int)target.descriptor.height)
-                        return;
-
-                    if (xStart > xEnd)
-                        std::swap(xStart, xEnd);
-
-                    xStart = std::max(0, xStart);
-                    xEnd = std::min((int)target.descriptor.width - 1, xEnd);
-
-                    uint32_t* row = target.framebuffer + y * target.descriptor.width;
-                    for (int x = xStart; x <= xEnd; x++)
-                        row[x] = color;
-                };
-
-            auto edgeInterp = [&](int y, int x0, int y0, int x1, int y1)
-                {
-                    if (y1 == y0)
-                        return x0;
-
-                    return x0 + (x1 - x0) * (y - y0) / (y1 - y0);
-                };
-
-            // Horní část (od y0 do y1)
-            for (int y = y0; y <= y1; y++)
-            {
-                int xa = edgeInterp(y, x0, y0, x2, y2);
-                int xb = edgeInterp(y, x0, y0, x1, y1);
-                drawSpan(y, xa, xb);
-            }
-
-            // Dolní část (od y1 do y2)
-            for (int y = y1; y <= y2; y++)
-            {
-                int xa = edgeInterp(y, x0, y0, x2, y2);
-                int xb = edgeInterp(y, x1, y1, x2, y2);
-                drawSpan(y, xa, xb);
-            }
-        }
-
         static void inline drawTriangle(
             DeviceTargetDIB& target,
             float x0, float y0,

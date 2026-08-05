@@ -1,8 +1,6 @@
 ﻿#pragma once
 #include <vector>
 #include "Mtx4.h"
-#include "Material.h"
-#include <unordered_map>
 
 class Mesh {
 

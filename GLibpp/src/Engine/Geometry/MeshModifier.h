@@ -1,6 +1,9 @@
-#pragma once
+﻿#pragma once
 
 #include "Mesh.h"
+#include <unordered_map>
+#include <algorithm>
+#include <cstdint>
 
 class MeshModifier {
 

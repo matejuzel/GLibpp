@@ -107,6 +107,7 @@ namespace Render {
 		CpuFeatures cpuFeatures = detectCpuFeatures();
 
         std::vector<float> floatBuffer;
+        std::vector<float> viewPosBuffer; // view-space pozice (pro vypocet normal)
 
     public:
 
@@ -253,9 +254,8 @@ namespace Render {
                 floatBuffer.resize(3 * vertexCount);
 
             // view-space pozice pro výpočet normál
-            static std::vector<float> viewPos;
-            if (viewPos.size() < 3 * vertexCount)
-                viewPos.resize(3 * vertexCount);
+            if (viewPosBuffer.size() < 3 * vertexCount)
+                viewPosBuffer.resize(3 * vertexCount);
 
             // --- 3) Transformace vrcholů ---
             int offset = 0;
@@ -296,9 +296,9 @@ namespace Render {
                 Vec4 vView = mv * vertex;
                 vView.divideW();
 
-                viewPos[offsetView++] = vView.x;
-                viewPos[offsetView++] = vView.y;
-                viewPos[offsetView++] = vView.z;
+                viewPosBuffer[offsetView++] = vView.x;
+                viewPosBuffer[offsetView++] = vView.y;
+                viewPosBuffer[offsetView++] = vView.z;
             }
 
             Target& target = registry.targets.get(ctx.framebufferHandle);
@@ -323,17 +323,17 @@ namespace Render {
                 uint32_t ic = indices[i + 2];
 
                 // --- view-space pozice pro normálu ---
-                float axv = viewPos[3 * ia];
-                float ayv = viewPos[3 * ia + 1];
-                float azv = viewPos[3 * ia + 2];
+                float axv = viewPosBuffer[3 * ia];
+                float ayv = viewPosBuffer[3 * ia + 1];
+                float azv = viewPosBuffer[3 * ia + 2];
 
-                float bxv = viewPos[3 * ibb];
-                float byv = viewPos[3 * ibb + 1];
-                float bzv = viewPos[3 * ibb + 2];
+                float bxv = viewPosBuffer[3 * ibb];
+                float byv = viewPosBuffer[3 * ibb + 1];
+                float bzv = viewPosBuffer[3 * ibb + 2];
 
-                float cxv = viewPos[3 * ic];
-                float cyv = viewPos[3 * ic + 1];
-                float czv = viewPos[3 * ic + 2];
+                float cxv = viewPosBuffer[3 * ic];
+                float cyv = viewPosBuffer[3 * ic + 1];
+                float czv = viewPosBuffer[3 * ic + 2];
 
                 // --- normála ve view space ---
                 float ABx = bxv - axv;
@@ -479,64 +479,6 @@ namespace Render {
             );
         }
 
-
-        void drawStaticTestMeshImpl(const Context& ctx, float scaleFactor) noexcept
-        {
-            
-            if (!registry.targets.isValid(ctx.framebufferHandle)) return;
-
-            Mtx4 mv = ctx.getModelView(Mtx4::Identity());
-            Mtx4 mvp = ctx.getModelViewProjection(Mtx4::Identity());
-
-            uint32_t x = ctx.getViewport().x;
-            uint32_t y = ctx.getViewport().y;
-            uint32_t width = ctx.getViewport().width;
-            uint32_t height = ctx.getViewport().height;
-
-            Target& target = registry.targets.get(ctx.framebufferHandle);
-
-            int verts[4][2] = {
-                {-1,-1},
-                { 1,-1},
-                { 1, 1},
-                {-1, 1},
-            };
-
-            Vec4 va(verts[0][0], verts[0][1], 0, 1);
-            Vec4 vb(verts[1][0], verts[1][1], 0, 1);
-            Vec4 vc(verts[2][0], verts[2][1], 0, 1);
-            Vec4 vd(verts[3][0], verts[3][1], 0, 1);
-
-            va = mvp * va;
-            vb = mvp * vb;
-            vc = mvp * vc;
-            vd = mvp * vd;
-
-            va.divideW();
-            vb.divideW();
-            vc.divideW();
-            vd.divideW();
-
-            auto viewportTransform = [&](Vec4& v) {
-                v.x = (v.x * 0.5f + 0.5f) * width + x;
-                v.y = (-v.y * 0.5f + 0.5f) * height + y;
-                };
-            viewportTransform(va);
-            viewportTransform(vb);
-            viewportTransform(vc);
-            viewportTransform(vd);
-
-            // FRONT (+)
-            RasterizatorDIB::drawQuad(
-                target,
-                va.x, va.y,
-                vb.x, vb.y,
-                vc.x, vc.y,
-                vd.x, vd.y,
-                Color::Grayscale(0.5f).toRGBA(),
-                false
-            );
-        }
 
         inline void clearScalar(uint32_t* dst, size_t size, uint32_t color) noexcept
         {

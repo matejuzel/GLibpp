@@ -71,11 +71,6 @@ namespace Render {
             static_cast<DerivedDevice*>(this)->drawAxisImpl(ctx, transform);
         }
 
-        void drawStaticTestMesh(const Context& ctx, float scaleFactor = 1.0f) noexcept
-        {
-            static_cast<DerivedDevice*>(this)->drawStaticTestMeshImpl(ctx, scaleFactor);
-        }
-
         void clear(const Context& ctx) noexcept
         {
             static_cast<DerivedDevice*>(this)->clearImpl(ctx);
