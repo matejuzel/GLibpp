@@ -64,7 +64,23 @@ namespace GLibpp::Render {
 
     private:
 
-        using LogicStateFramePair = Core::ZeroAllocStateHistory<LogicState>;
+        // ---- ladeni snapshot interpolace ----
+        // rezerva: o kolik logickych tiku se vizualni cas drzi za simulaci.
+        // Vetsi hodnota = odolnost proti pozde prichozimu publishi (t > 1 ->
+        // opakovany snimek = mikrozaskub); cena = (k - 1) x 16,7 ms latence navic.
+        static constexpr double kInterpDelayTicks = 2.0;
+
+        // hloubka okna historie stavu: (N - 1) tiku musi pokryt rezervu, aby vzdy
+        // existoval par stavu obklopujici visualTime -> strop(rezervy) + 1.
+        // Odvozuje se automaticky - pri zmene kInterpDelayTicks se prizpusobi.
+        static constexpr size_t kInterpHistoryDepth =
+            static_cast<size_t>(kInterpDelayTicks)
+            + ((kInterpDelayTicks > static_cast<double>(static_cast<size_t>(kInterpDelayTicks))) ? 1u : 0u) // strop
+            + 1u;
+        static_assert(static_cast<double>(kInterpHistoryDepth - 1) >= kInterpDelayTicks,
+            "okno historie musi pokryvat interpolacni rezervu");
+
+        using LogicStateHistory = Core::ZeroAllocStateHistory<LogicState, kInterpHistoryDepth>;
 
         Device device;
         Viewport viewport;
@@ -165,16 +181,10 @@ namespace GLibpp::Render {
             device.present(framebufferHandle);
         }
 
-        // rezerva interpolace: o kolik logickych tiku se vizualni cas drzi za simulaci.
-        // Vetsi hodnota = odolnost proti pozde prichozimu publishi (t > 1 -> opakovany
-        // snimek = mikrozaskub); cena = (k − 1) × 16,7 ms vizualni latence navic.
-        // Pri k > 1 obcas t < 0 -> clamp na prev stav (plynule, jen o tick pozadu).
-        static constexpr double kInterpDelayTicks = 1.5;
-
         void runLoop()
         {
             LogicState logicStateInterpolated;
-            LogicStateFramePair logicStateFramePair;
+            LogicStateHistory logicStateHistory;
 
             // diagnostika clampu interpolacni alfy (1 Hz vypis, jen kdyz k necemu doslo)
             uint32_t interpClampHi = 0; // t > 1: stav prisel pozde, snimek se opakuje
@@ -207,42 +217,40 @@ namespace GLibpp::Render {
                     }
                 }
 
-                if (logicStateBuffered.update_reader()) 
+                if (logicStateBuffered.update_reader())
                 {
-                    // z tripple bufferu (App -> Renderer) si vezmeme posledni neprecteny stav a 
-                    // ulozime ho do logicStateFramePair (aktualizace puvodni current posuneme na previous a ulozime novy current)
-                    logicStateFramePair.advance_and_load_current(logicStateBuffered.get_read_buffer());
+                    // z tripple bufferu (App -> Renderer) si vezmeme posledni neprecteny stav
+                    // a zaradime ho do ringu historie (nejstarsi stav vypadne)
+                    logicStateHistory.advance_and_load_current(logicStateBuffered.get_read_buffer());
                 }
-
-                auto& logicStateCurrent = logicStateFramePair.get_current();
-                auto& logicStatePrevious = logicStateFramePair.get_previous();
 
                 timer.tickAndFlush();
 
-                double t;
-                if (false) 
+                // 1. Vizualni cas = aktualni cas minus rezerva (viz kInterpDelayTicks)
+                double visualTime = timer.sinceStart() - timer.getFixedDelta() * kInterpDelayTicks;
+
+                // 2. Snapshot interpolace: z historie vybereme dvojici stavu, ktera
+                //    visualTime skutecne obklopuje. Zaciname u nejnovejsiho paru; kdyz je
+                //    visualTime starsi nez starsi clen paru, posuneme se o krok do minulosti.
+                //    Mimo okno historie (start, dlouhy zasek) se t nize clampne.
+                const LogicState* older = &logicStateHistory.get(1);
+                const LogicState* newer = &logicStateHistory.get(0);
+                for (size_t age = 1; age + 1 < logicStateHistory.capacity(); ++age)
                 {
-                    t = (timer.sinceStart() - logicStateCurrent.tickInfo.lastLogicTick) / timer.getFixedDelta();
+                    if (visualTime >= logicStateHistory.get(age).tickInfo.lastLogicTick) break;
+                    older = &logicStateHistory.get(age + 1);
+                    newer = &logicStateHistory.get(age);
                 }
-                else
-                {
-                    // 1. Zjistíme přesné časové značky obou stavů z Triple Bufferu
-                    double timePrev = logicStatePrevious.tickInfo.lastLogicTick;
-                    double timeCurr = logicStateCurrent.tickInfo.lastLogicTick;
 
-                    // 2. Skutečný časový rozdíl mezi stavy (chráníme proti dělení nulou)
-                    double stateDelta = timeCurr - timePrev;
-                    if (stateDelta <= 0.0001) {
-                        stateDelta = timer.getFixedDelta(); // fallback
-                    }
-
-                    // 3. Vypočítáme Vizuální Čas = aktuální čas mínus rezerva (viz kInterpDelayTicks)
-                    // Tím se držíme bezpečně MEZI timePrev a timeCurr i pri pozdnim publishi
-                    double visualTime = timer.sinceStart() - timer.getFixedDelta() * kInterpDelayTicks;
-
-                    // 4. Výpočet alfa na základě skutečného rozpětí
-                    t = (visualTime - timePrev) / stateDelta;
+                // 3. Casove znacky vybraneho paru (ochrana proti deleni nulou)
+                double timeOlder = older->tickInfo.lastLogicTick;
+                double stateDelta = newer->tickInfo.lastLogicTick - timeOlder;
+                if (stateDelta <= 0.0001) {
+                    stateDelta = timer.getFixedDelta(); // fallback (start, duplicitni stavy)
                 }
+
+                // 4. Vypocet alfa na zaklade skutecneho rozpeti vybraneho paru
+                double t = (visualTime - timeOlder) / stateDelta;
                 // logujeme jen skutecne zaseky logiky (chybejici stav > pul ticku);
                 // drobne pretece t se tise clampne - cout na render vlakne je drahy
                 if (t >= 1.5) std::cout << "Zaskub: t = " << t << std::endl;
@@ -250,8 +258,8 @@ namespace GLibpp::Render {
                 double tClamped = std::clamp(t, 0.0, 1.0);
 
                 logicStateInterpolated.scene = Slerp(
-                    logicStatePrevious.scene,
-                    logicStateCurrent.scene,
+                    older->scene,
+                    newer->scene,
                     static_cast<float>(tClamped)
                 );
 

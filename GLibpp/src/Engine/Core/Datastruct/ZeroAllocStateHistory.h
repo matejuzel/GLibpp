@@ -1,20 +1,25 @@
 ﻿#pragma once
 
+#include <cstddef>
 #include <utility>
 
 namespace GLibpp::Core {
 
-template <typename T>
+// Ring poslednich N stavu (bez alokaci) - historie pro snapshot interpolaci.
+// N = 2 je klasicky prev/curr par; vetsi N umoznuje vybrat par stavu, ktery
+// cilovy (vizualni) cas skutecne obklopuje, i kdyz se render drzi vic nez
+// jeden tick za simulaci (viz kInterpDelayTicks v Rendereru).
+template <typename T, size_t N = 2>
 class ZeroAllocStateHistory {
+    static_assert(N >= 2, "historie potrebuje aspon dva stavy (prev/curr)");
+
 public:
     ZeroAllocStateHistory() {
-        history[0] = T();
-        history[1] = T();
+        for (size_t i = 0; i < N; ++i) history[i] = T();
     }
 
     explicit ZeroAllocStateHistory(const T& initial_value) {
-        history[0] = initial_value;
-        history[1] = initial_value;
+        for (size_t i = 0; i < N; ++i) history[i] = initial_value;
     }
 
     // Zakážeme kopírování/přesouvání držáku historie
@@ -25,39 +30,44 @@ public:
 
     // --- MANIPULACE A ZÁPIS ---
 
-    // Posune historii a rovnou vrátí referenci na nový aktuální stav pro zápis
+    // Posune ring a vrátí referenci na nový aktuální stav pro zápis
     T& advance_and_get_current() {
-        std::swap(previous_idx, current_idx);
-        return history[current_idx];
+        head = (head + 1) % N;
+        return history[head];
     }
 
     void advance_and_load_current(const T& state)
     {
-        std::swap(previous_idx, current_idx);
-        history[current_idx] = state;
+        advance_and_get_current() = state;
     }
 
     void advance_and_load_current(T&& state)
     {
-        std::swap(previous_idx, current_idx);
-        history[current_idx] = std::move(state);
+        advance_and_get_current() = std::move(state);
     }
-
 
     // --- PŘÍSTUP PRO ČTENÍ ---
 
-    const T& get_previous() const {
-        return history[previous_idx];
+    // stav podle stari: age 0 = nejnovejsi, age 1 = predchozi, ... age N-1 = nejstarsi
+    const T& get(size_t age) const {
+        return history[(head + N - (age % N)) % N];
     }
 
     const T& get_current() const {
-        return history[current_idx];
+        return get(0);
+    }
+
+    const T& get_previous() const {
+        return get(1);
+    }
+
+    static constexpr size_t capacity() {
+        return N;
     }
 
 private:
-    T history[2];
-    int previous_idx = 0;
-    int current_idx = 1;
+    T history[N];
+    size_t head = 0; // index nejnovejsiho stavu
 };
 
 }
