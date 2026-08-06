@@ -165,10 +165,20 @@ namespace GLibpp::Render {
             device.present(framebufferHandle);
         }
 
+        // rezerva interpolace: o kolik logickych tiku se vizualni cas drzi za simulaci.
+        // Vetsi hodnota = odolnost proti pozde prichozimu publishi (t > 1 -> opakovany
+        // snimek = mikrozaskub); cena = (k − 1) × 16,7 ms vizualni latence navic.
+        // Pri k > 1 obcas t < 0 -> clamp na prev stav (plynule, jen o tick pozadu).
+        static constexpr double kInterpDelayTicks = 1.5;
+
         void runLoop()
         {
             LogicState logicStateInterpolated;
             LogicStateFramePair logicStateFramePair;
+
+            // diagnostika clampu interpolacni alfy (1 Hz vypis, jen kdyz k necemu doslo)
+            uint32_t interpClampHi = 0; // t > 1: stav prisel pozde, snimek se opakuje
+            uint32_t interpClampLo = 0; // t < 0: vizualni cas pred prev, hraje se prev
 
             Core::TimeManager timer(logicHz, true);
             Core::TimeManager timer1Hz(1.0); // pro výpočet FPS každou sekundu
@@ -226,11 +236,9 @@ namespace GLibpp::Render {
                         stateDelta = timer.getFixedDelta(); // fallback
                     }
 
-                    // 3. Vypočítáme Vizuální Čas = aktuální čas mínus jedno logické okno
-                    // Tím se vždy držíme bezpečně MEZI timePrev a timeCurr
-                    // faktor 1.1 = mala rezerva na latenci publishe (pollEvents + updateLogic),
-                    // aby t tesne nepretekalo pres 1.0
-                    double visualTime = timer.sinceStart() - timer.getFixedDelta() * 1.1;
+                    // 3. Vypočítáme Vizuální Čas = aktuální čas mínus rezerva (viz kInterpDelayTicks)
+                    // Tím se držíme bezpečně MEZI timePrev a timeCurr i pri pozdnim publishi
+                    double visualTime = timer.sinceStart() - timer.getFixedDelta() * kInterpDelayTicks;
 
                     // 4. Výpočet alfa na základě skutečného rozpětí
                     t = (visualTime - timePrev) / stateDelta;
@@ -238,6 +246,7 @@ namespace GLibpp::Render {
                 // logujeme jen skutecne zaseky logiky (chybejici stav > pul ticku);
                 // drobne pretece t se tise clampne - cout na render vlakne je drahy
                 if (t >= 1.5) std::cout << "Zaskub: t = " << t << std::endl;
+                if (t > 1.0) ++interpClampHi; else if (t < 0.0) ++interpClampLo;
                 double tClamped = std::clamp(t, 0.0, 1.0);
 
                 logicStateInterpolated.scene = Slerp(
@@ -250,6 +259,10 @@ namespace GLibpp::Render {
 
                 timer1Hz.tickAndDispatchAction([&](double dt) {
                     device.getWindow().postMessageSetTitle(timer, frameIndex);
+                    if (interpClampHi || interpClampLo) {
+                        std::cout << "Interp clamp/s: t>1: " << interpClampHi << " | t<0: " << interpClampLo << std::endl;
+                        interpClampHi = 0; interpClampLo = 0;
+                    }
                 });
 
                 // Synchronizace s kompozitorem: DwmFlush() blokuje do dalsi kompozice (vblank),

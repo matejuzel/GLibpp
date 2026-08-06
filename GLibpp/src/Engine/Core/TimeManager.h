@@ -17,6 +17,15 @@
 
 #pragma comment(lib, "winmm.lib")
 
+// Presny pacing pres high-resolution waitable timer (Windows 10 1803+): spanek
+// prestreluje jen o desitky mikrosekund, takze staci maly dorovnavaci spin.
+// Vypnout lze definici GLIB_TIMER_HIGHRES 0 pred includem; na starsich Windows
+// selze vytvoreni timeru za behu a automaticky se pouzije fallback
+// (sleep_for + vetsi slack = puvodni chovani).
+#ifndef GLIB_TIMER_HIGHRES
+#define GLIB_TIMER_HIGHRES 1
+#endif
+
 namespace GLibpp::Core {
 
 class TimeManager {
@@ -86,8 +95,13 @@ public:
 
 
     ~TimeManager() {
+        if (m_waitTimer) CloseHandle(m_waitTimer);
         timeEndPeriod(1);
 	}
+
+    // instance vlastni HANDLE -> kopie by vedla na double-close
+    TimeManager(const TimeManager&) = delete;
+    TimeManager& operator=(const TimeManager&) = delete;
 
     // Změří čas a aktualizuje historii pro FPS
     double tick(double limit = 0.25) {
@@ -221,31 +235,44 @@ public:
         return m_accumulator; 
     }
 
-    void waitUntilNextStep(double slack = 0.002) { // Zvednutý slack na 2 ms!
-        static bool precisionSet = false;
-        if (!precisionSet) {
-            timeBeginPeriod(1);
-            precisionSet = true;
-        }
+    // Uspí vlákno do začátku dalšího kroku: nejdřív OS spánek s rezervou (slack),
+    // zbytek dorovná krátký spin pro mikrosekundovou přesnost.
+    void waitUntilNextStep() {
+
+        // high-res timer přestřeluje o desítky µs -> stačí malá rezerva;
+        // sleep_for s timeBeginPeriod(1) umí přestřelit až ~1,5 ms -> 2 ms
+        const double slack = m_waitTimer ? 0.0005 : 0.002;
 
         double timeToWait = m_fixedDelta - m_accumulator;
 
-        // 1. FÁZE: OS Sleep (uvolnění CPU pro ostatní procesy)
-        // Pokud máme k dobru více než 2 ms, můžeme si dovolit riskantní usnutí
+        // 1. FÁZE: OS spánek (uvolnění CPU pro ostatní procesy)
         if (timeToWait > slack) {
             double sleepTime = timeToWait - slack;
-            std::this_thread::sleep_for(
-                std::chrono::microseconds(static_cast<long long>(sleepTime * 1000000.0))
-            );
+
+            bool slept = false;
+            if (m_waitTimer) {
+                LARGE_INTEGER due;
+                due.QuadPart = -static_cast<LONGLONG>(sleepTime * 1.0e7); // záporné = relativní čas, jednotky 100 ns
+                if (SetWaitableTimer(m_waitTimer, &due, 0, nullptr, nullptr, FALSE)) {
+                    // timeout = pojistka, kdyby timer nevystřelil (nemělo by nastat)
+                    WaitForSingleObject(m_waitTimer, static_cast<DWORD>(sleepTime * 1000.0) + 5);
+                    slept = true;
+                }
+            }
+            if (!slept) {
+                std::this_thread::sleep_for(
+                    std::chrono::microseconds(static_cast<long long>(sleepTime * 1000000.0))
+                );
+            }
 
             // Po probuzení zjistíme, kde přesně jsme
             updateAccumulatorOnly();
         }
 
-        // 2. FÁZE: Spin-lock (Absolutní přesnost na mikrosekundy)
+        // 2. FÁZE: Spin-lock (absolutní přesnost na mikrosekundy)
         // Tady už nesmíme usnout, zbytek času "protopíme" aktivním čekáním
         while (m_accumulator < m_fixedDelta) {
-            // _mm_pause() řekne procesoru, že jde o spin-lock. 
+            // _mm_pause() řekne procesoru, že jde o spin-lock.
             // Drasticky to snižuje spotřebu a zahřívání CPU během prázdné smyčky.
             _mm_pause();
 
@@ -292,6 +319,19 @@ public:
     }
 
 private:
+
+    // high-res waitable timer pro presny pacing; nullptr (stare Windows nebo
+    // GLIB_TIMER_HIGHRES=0) -> fallback na sleep_for ve waitUntilNextStep
+    static HANDLE createHighResTimer() noexcept {
+#if GLIB_TIMER_HIGHRES && defined(CREATE_WAITABLE_TIMER_HIGH_RESOLUTION)
+        return CreateWaitableTimerExW(nullptr, nullptr, CREATE_WAITABLE_TIMER_HIGH_RESOLUTION, TIMER_ALL_ACCESS);
+#else
+        return nullptr;
+#endif
+    }
+
+    // NSDMI -> inicializuje se ve vsech trech konstruktorech
+    HANDLE m_waitTimer = createHighResTimer();
 
     // Pomocná metoda pro aktualizaci vnitřního času bez ovlivnění FPS historie
     void updateAccumulatorOnly() {
