@@ -17,6 +17,8 @@
 
 #pragma comment(lib, "winmm.lib")
 
+namespace GLibpp::Core {
+
 class TimeManager {
 public:
 
@@ -319,3 +321,5 @@ private:
     // mutable umožňuje modifikaci tmp pole i v const metodách (pro výpočet percentilu)
     mutable std::vector<double> m_tmpFrameTimes;
 };
+
+}

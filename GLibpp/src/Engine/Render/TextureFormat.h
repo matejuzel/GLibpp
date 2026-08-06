@@ -1,8 +1,8 @@
-#pragma once 
+﻿#pragma once 
 
 #include <cstdint>
 
-namespace Render {
+namespace GLibpp::Render {
 
     enum class TextureFormat : uint8_t {
         RGBA32F,

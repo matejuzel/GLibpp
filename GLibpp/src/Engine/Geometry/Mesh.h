@@ -5,6 +5,8 @@
 // loadery modelu (GLibpp::Assets) plni Mesh vyhradne pres MeshAccess
 namespace GLibpp::Assets { struct MeshAccess; }
 
+namespace GLibpp::Geometry {
+
 class Mesh {
 
 	friend class MeshFactory;
@@ -47,4 +49,6 @@ private:
 	std::vector<uint32_t> indexBuffer;
 	//AABB boundingBox;
 };
+
+}
 

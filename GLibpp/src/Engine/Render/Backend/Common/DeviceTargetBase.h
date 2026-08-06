@@ -1,8 +1,8 @@
-#pragma once
+﻿#pragma once
 
 #include "DeviceContext.h"
 
-namespace Render {
+namespace GLibpp::Render {
 
     template<typename Device>
     class DeviceTargetBase

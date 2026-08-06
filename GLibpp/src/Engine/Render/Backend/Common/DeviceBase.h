@@ -5,7 +5,7 @@
 #include "Mesh.h"
 #include "ResourceHandles.h"
 
-namespace Render {
+namespace GLibpp::Render {
 
     // trails - cpp koncept pro predavani informaci o typu (compile-time)
     // potreba, aby DeviceBase mohl deklarovat VertexBuffer (a dalsi) jako sablonu a kazdy backend tyto typy musel poskytovat
@@ -21,14 +21,14 @@ namespace Render {
     {
 
     protected:
-        WindowWin32& window;
+        Platform::WindowWin32& window;
 
     public:
 
         using Context = DeviceContext<DerivedDevice>;
         using Target = DerivedTarget;
 
-        using TargetRegistry = StableRegistry<Target>;
+        using TargetRegistry = Core::StableRegistry<Target>;
         using TargetHandle = typename TargetRegistry::Handle;
         static constexpr TargetHandle TARGET_INVALID = TargetRegistry::INVALID;
 
@@ -39,10 +39,10 @@ namespace Render {
         using UVBuffer = typename DeviceTraits<DerivedDevice>::GpuBuffer2D;
         using IndexBuffer = typename DeviceTraits<DerivedDevice>::GpuIndexBuffer;
 
-        DeviceBase(WindowWin32& window) : window(window) {}
+        DeviceBase(Platform::WindowWin32& window) : window(window) {}
         ~DeviceBase() = default;
 
-		WindowWin32& getWindow() const noexcept { return window; }
+		Platform::WindowWin32& getWindow() const noexcept { return window; }
 
         TargetHandle targetCreate(const RenderTargetDescriptor& descriptor) noexcept
         {
@@ -61,7 +61,7 @@ namespace Render {
         
         // handle-based kresleni - backend cerpa z vlastni residency (identita = MeshHandle);
         // nevalidni/nezaregistrovany handle se tise preskoci
-        void drawMesh(const Context& ctx, MeshHandle h, const Mtx4& transform, const Color& color = Color::Grayscale(0.3f), bool wiredFlag = false) noexcept
+        void drawMesh(const Context& ctx, Assets::MeshHandle h, const Mtx4& transform, const Color& color = Color::Grayscale(0.3f), bool wiredFlag = false) noexcept
         {
             static_cast<DerivedDevice*>(this)->drawMeshImpl(ctx, h, transform, color, wiredFlag);
         }
@@ -84,13 +84,13 @@ namespace Render {
         // registrace geometrie v backendu - identita = MeshHandle (razi ho ResourceManager)
         // backend si pod handlem uklada vlastni residency (kopie ve velkych polich, offsety, VBO, ...)
         // vola se z upload walku na zacatku runLoop (render vlakno - u GL tu bude aktivni context)
-        void meshRegister(MeshHandle h, const Mesh& mesh) noexcept
+        void meshRegister(Assets::MeshHandle h, const Geometry::Mesh& mesh) noexcept
         {
             static_cast<DerivedDevice*>(this)->meshRegisterImpl(h, mesh);
         }
 
         // notifikace o zmene dat meshe (dynamicke meshe, napr. GridWave) - backend si obnovi svou kopii
-        void meshUpdate(MeshHandle h, const Mesh& mesh) noexcept
+        void meshUpdate(Assets::MeshHandle h, const Geometry::Mesh& mesh) noexcept
         {
             static_cast<DerivedDevice*>(this)->meshUpdateImpl(h, mesh);
         }
@@ -102,8 +102,8 @@ namespace Render {
     protected:
 
         // default no-op - backend, ktery zadnou vlastni residency nepotrebuje, nic neimplementuje
-        void meshRegisterImpl(MeshHandle, const Mesh&) noexcept {}
-        void meshUpdateImpl(MeshHandle, const Mesh&) noexcept {}
+        void meshRegisterImpl(Assets::MeshHandle, const Geometry::Mesh&) noexcept {}
+        void meshUpdateImpl(Assets::MeshHandle, const Geometry::Mesh&) noexcept {}
 
     };
 

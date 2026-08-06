@@ -2,6 +2,8 @@
 
 #include <utility>
 
+namespace GLibpp::Core {
+
 template <typename T>
 class ZeroAllocStateHistory {
 public:
@@ -57,3 +59,5 @@ private:
     int previous_idx = 0;
     int current_idx = 1;
 };
+
+}

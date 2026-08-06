@@ -1,11 +1,11 @@
-#pragma once
+﻿#pragma once
 
 #include <cstdint>
 #include "Viewport.h"
 #include "Mtx4.h"
 #include "Color.h"
 
-namespace Render {
+namespace GLibpp::Render {
 	
     template<typename Device>
     class DeviceContext {

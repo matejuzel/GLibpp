@@ -1,9 +1,8 @@
 ﻿#pragma once
 
-#include "RasterizatorDIB.h"
+#include "RasterizerDIB.h"
 #include "Color.h"
 #include "DeviceBase.h"
-#include "VertexBuffer.h"
 #include "WindowWin32.h"
 #include "Win32Dc.h"
 
@@ -11,7 +10,7 @@
 #include <algorithm>
 #include <immintrin.h> // AVX2
 
-namespace Render {
+namespace GLibpp::Render {
 
     // range zaregistrovaneho meshe v residency polich backendu
     // offsety urcuje VYHRADNE backend (jiny backend = jiny layout); ResourceManager zna jen identitu = handle
@@ -122,8 +121,8 @@ namespace Render {
         */
     public:
 
-        DeviceDIB(WindowWin32& window) 
-            : Base(window) 
+        DeviceDIB(Platform::WindowWin32& window)
+            : Base(window)
         {
         }
 
@@ -215,7 +214,7 @@ namespace Render {
 
         // handle-based kresleni z vlastni residency - po uploadu je backend sobestacny,
         // na kanonicka data v ResourceManageru uz nesaha
-        void drawMeshImpl(const Context& ctx, MeshHandle h, const Mtx4& transform, const Color& color, bool wiredFlag) noexcept
+        void drawMeshImpl(const Context& ctx, Assets::MeshHandle h, const Mtx4& transform, const Color& color, bool wiredFlag) noexcept
         {
             if (h.index >= registry.meshRanges.size()) return;
             const MeshRangeDIB& range = registry.meshRanges[h.index];
@@ -384,7 +383,7 @@ namespace Render {
                 bool skip = fabs(az) < 10e-6 || fabs(bz) < 10e-6 || fabs(cz) < 10e-6;
 
                 if (!skip)
-                RasterizatorDIB::drawTriangle(
+                RasterizerDIB::drawTriangle(
                     target,
                     ax, ay,
                     bx, by,
@@ -455,7 +454,7 @@ namespace Render {
             Target& target = registry.targets.get(ctx.framebufferHandle);
 
             // X axis (red)
-            RasterizatorDIB::drawLine(
+            RasterizerDIB::drawLine(
                 target,
                 (int)axisVerts[0].x, (int)axisVerts[0].y,
                 (int)axisVerts[1].x, (int)axisVerts[1].y,
@@ -463,7 +462,7 @@ namespace Render {
             );
 
             // Y axis (green)
-            RasterizatorDIB::drawLine(
+            RasterizerDIB::drawLine(
                 target,
                 (int)axisVerts[2].x, (int)axisVerts[2].y,
                 (int)axisVerts[3].x, (int)axisVerts[3].y,
@@ -471,7 +470,7 @@ namespace Render {
             );
 
             // Z axis (blue)
-            RasterizatorDIB::drawLine(
+            RasterizerDIB::drawLine(
                 target,
                 (int)axisVerts[4].x, (int)axisVerts[4].y,
                 (int)axisVerts[5].x, (int)axisVerts[5].y,
@@ -562,7 +561,7 @@ namespace Render {
         }
 
         // upload geometrie do residency poli - vola se z upload walku na zacatku runLoop
-        void meshRegisterImpl(MeshHandle h, const Mesh& mesh) noexcept
+        void meshRegisterImpl(Assets::MeshHandle h, const Geometry::Mesh& mesh) noexcept
         {
             const auto& vb = mesh.getVertexBuffer();
             const auto& ib = mesh.getIndexBuffer();
@@ -585,7 +584,7 @@ namespace Render {
 
         // re-upload dat po mutaci kanonickeho meshe (dynamicke meshe - GridWave)
         // velikosti se menit nesmi - range je v polich pevne dany
-        void meshUpdateImpl(MeshHandle h, const Mesh& mesh) noexcept
+        void meshUpdateImpl(Assets::MeshHandle h, const Geometry::Mesh& mesh) noexcept
         {
             if (h.index >= registry.meshRanges.size()) return;
             const MeshRangeDIB& range = registry.meshRanges[h.index];

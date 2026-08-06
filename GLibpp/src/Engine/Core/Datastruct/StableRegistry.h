@@ -8,6 +8,8 @@
 #include <iostream>
 #include <string>
 
+namespace GLibpp::Core {
+
 template<typename T>
 class StableRegistry {
 public:
@@ -105,4 +107,6 @@ private:
     std::vector<uint32_t> generations;
     std::vector<uint32_t> freeList;
 };
+
+}
 

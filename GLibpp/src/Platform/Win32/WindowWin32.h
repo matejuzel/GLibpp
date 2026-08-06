@@ -9,10 +9,12 @@
 #include <type_traits>
 #include <functional>
 #include <memory>
-#include "math/Vec4.h"
-#include "core/input/Keymap.h"
+#include "Vec4.h"
+#include "Keymap.h"
 #include "Win32DC.h"
 #include "TimeManager.h"
+
+namespace GLibpp::Platform {
 
 class WindowWin32;
 
@@ -27,7 +29,7 @@ class WindowWin32
 	friend LRESULT CALLBACK WindowProc(HWND, UINT, WPARAM, LPARAM); // pouziva clenske metody tridy WindowWin32 -> proto friend
 
 private:
-	std::function<void(KeyMap, bool)> onKeyEvent;
+	std::function<void(Core::KeyMap, bool)> onKeyEvent;
 	std::function<void()> onClose;
 	std::function<void(uint32_t width, uint32_t height)> onResize;
 
@@ -75,7 +77,7 @@ public:
 
 	void postMessageSetTitle(const std::string& title);
 
-	void postMessageSetTitle(const TimeManager& timer, long frameIndex)
+	void postMessageSetTitle(const Core::TimeManager& timer, long frameIndex)
 	{
 		postMessageSetTitle(std::format(
 			"FPS: {:.0f} ||| 1% Low: {:.0f} ||| 0.1% Low: {:.0f} ||| Min/Max: {:.0f}/{:.0f} [Frame: {}]",
@@ -123,13 +125,13 @@ public:
 	void waitEvents() const noexcept;
 	void pollEvents() const noexcept;
 
-	void setKeyCallback(std::function<void(KeyMap, bool)> cb) noexcept;
+	void setKeyCallback(std::function<void(Core::KeyMap, bool)> cb) noexcept;
 	void setOnCloseCallback(std::function<void()> cb) noexcept;
 	void setOnResizeCallback(std::function<void(uint32_t, uint32_t)> cb) noexcept;
 
 	void removeOverlapProperty();
 	void resizeWindowToFillScreen();
-	void glibRegisterRawInputDevices();
+	void registerRawInputDevices();
 
 	HWND getHwnd() const noexcept;
 	uint32_t getWidth() const noexcept { return static_cast<uint32_t>(width); }
@@ -211,3 +213,5 @@ private:
 	LRESULT handleMessage(UINT msg, WPARAM wParam, LPARAM lParam);
 	void setHwnd(HWND hwnd) { this->hwnd = hwnd; }
 };
+
+}

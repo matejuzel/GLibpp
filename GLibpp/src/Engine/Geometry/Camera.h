@@ -5,6 +5,8 @@
 #include <cmath>
 #include <algorithm>
 
+namespace GLibpp::Geometry {
+
 struct Camera {
     // --- Data ---
 
@@ -139,3 +141,5 @@ public:
         return res;
     }
 };
+
+}

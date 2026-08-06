@@ -1,8 +1,8 @@
-#pragma once
+﻿#pragma once
 
 #include <cstdint>
 
-namespace Render {
+namespace GLibpp::Render {
 
     enum class TextureUsage : uint8_t {
         ColorAttachment,

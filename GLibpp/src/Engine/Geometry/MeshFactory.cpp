@@ -4,6 +4,8 @@
 #include "MeshModifier.h"
 #include "Mathematics.h"
 
+namespace GLibpp::Geometry {
+
 Mesh MeshFactory::CreateQuad(float size)
 {
     Mesh msh;
@@ -386,6 +388,8 @@ void MeshFactory::UpdateGridWave(Mesh& msh, uint32_t size, float waveHeight, flo
             msh.vertexBuffer[i].z = waveHeight * std::sin(dist * frequency - time * speed);
         }
     }
+}
+
 }
 
 

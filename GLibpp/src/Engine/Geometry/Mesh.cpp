@@ -1,7 +1,8 @@
-#include "Mesh.h"
+﻿#include "Mesh.h"
 #include "Mathematics.h"
 #include <algorithm> // std::min, std::max
 
+namespace GLibpp::Geometry {
 
 const std::vector<Vec4>& Mesh::getVertexBuffer() const
 {
@@ -11,4 +12,6 @@ const std::vector<Vec4>& Mesh::getVertexBuffer() const
 const std::vector<uint32_t>& Mesh::getIndexBuffer() const
 {
     return indexBuffer;
+}
+
 }

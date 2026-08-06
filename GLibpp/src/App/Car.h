@@ -8,12 +8,11 @@
 #include "Mathematics.h"
 #include "BicycleModel.h"
 
-// transformace auta a kol - herni stav nad fyzikalnim BicycleModelem
-// (vytazeno z App.h, aby Scene.h byla self-contained)
+// auto a jeho kola - herni stav a chovani nad fyzikalnim BicycleModelem
 
-struct WheelTransformation {
+struct CarWheel {
 
-    WheelTransformation(float zPos, float xPos)
+    CarWheel(float zPos, float xPos)
         : position(Vec4(xPos, 0.0f, zPos, 1.0f))
     {
     }
@@ -34,7 +33,7 @@ struct WheelTransformation {
         return m_pos * m_steer * m_roll;
     }
 
-    static WheelTransformation Lerp(const WheelTransformation& a, const WheelTransformation& b, float t) {
+    static CarWheel Lerp(const CarWheel& a, const CarWheel& b, float t) {
 
         auto interpolated = b;
 
@@ -58,21 +57,21 @@ private:
 };
 
 
-struct CarTransformation
+struct Car
 {
     // fyzikální model – poloha = střed zadní nápravy
     GLibpp::Physics::BicycleModel model;
 
     // wheel transformace
-    WheelTransformation wheelFrontLeft;
-    WheelTransformation wheelFrontRight;
-    WheelTransformation wheelBackLeft;
-    WheelTransformation wheelBackRight;
+    CarWheel wheelFrontLeft;
+    CarWheel wheelFrontRight;
+    CarWheel wheelBackLeft;
+    CarWheel wheelBackRight;
 
     // geometrie uz zde neni - meshe vlastni ResourceManager (App::setupDemoResources),
     // Scene nese jen handly (SceneRenderables) a transformace -> kopie Scene nealokuji
 
-    CarTransformation()
+    Car()
         : model(GLibpp::Physics::BicycleModel::Basic())
         , wheelFrontLeft(model.params.wheelBase, -model.params.wheelTrack * 0.5f)
         , wheelFrontRight(model.params.wheelBase, model.params.wheelTrack * 0.5f)
@@ -167,16 +166,16 @@ struct CarTransformation
     Mtx4 getBackRight()  const { return getCarMatrix() * wheelBackRight.get(); }
 
 
-    friend CarTransformation Slerp(const CarTransformation& a, const CarTransformation& b, float t) {
+    friend Car Slerp(const Car& a, const Car& b, float t) {
 
-        CarTransformation interpolated = a;
+        Car interpolated = a;
 
         interpolated.model.heading = Quaternion::Slerp(a.model.heading, b.model.heading, t);
         interpolated.model.position = Vec4::Lerp(a.model.position, b.model.position, t);
-        interpolated.wheelFrontLeft = WheelTransformation::Lerp(a.wheelFrontLeft, b.wheelFrontLeft, t);
-        interpolated.wheelFrontRight = WheelTransformation::Lerp(a.wheelFrontRight, b.wheelFrontRight, t);
-        interpolated.wheelBackLeft = WheelTransformation::Lerp(a.wheelBackLeft, b.wheelBackLeft, t);
-        interpolated.wheelBackRight = WheelTransformation::Lerp(a.wheelBackRight, b.wheelBackRight, t);
+        interpolated.wheelFrontLeft = CarWheel::Lerp(a.wheelFrontLeft, b.wheelFrontLeft, t);
+        interpolated.wheelFrontRight = CarWheel::Lerp(a.wheelFrontRight, b.wheelFrontRight, t);
+        interpolated.wheelBackLeft = CarWheel::Lerp(a.wheelBackLeft, b.wheelBackLeft, t);
+        interpolated.wheelBackRight = CarWheel::Lerp(a.wheelBackRight, b.wheelBackRight, t);
 
         return interpolated;
     }

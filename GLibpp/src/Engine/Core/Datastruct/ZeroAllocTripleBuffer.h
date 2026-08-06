@@ -5,6 +5,8 @@
 #include <format>
 #include <new>
 
+namespace GLibpp::Core {
+
 template <typename T>
 class ZeroAllocTripleBuffer {
 public:
@@ -70,3 +72,5 @@ private:
     // je novinka od producenta, nebo jen starý odložený buffer.
     alignas(cache_line) std::atomic<bool> has_new_data;
 };
+
+}

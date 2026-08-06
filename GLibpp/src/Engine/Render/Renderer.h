@@ -34,7 +34,7 @@
 #include "Mathematics.h"
 #include "MeshFactory.h"
 
-namespace Render {
+namespace GLibpp::Render {
 
     struct ResizeRequest {
 
@@ -64,14 +64,14 @@ namespace Render {
 
     private:
 
-        using LogicStateFramePair = ZeroAllocStateHistory<LogicState>;
+        using LogicStateFramePair = Core::ZeroAllocStateHistory<LogicState>;
 
         Device device;
         Viewport viewport;
         ResizeRequest resizeRequest;
 
         // kanonicke uloziste assetu - vlastni ho App, renderer je jen konzument/orchestrator
-        ResourceManager& resources;
+        Assets::ResourceManager& resources;
 
         // render targety vlastni Renderer - jsou to stavy render pipeline, ne assety
         typename Device::TargetHandle framebufferHandle;
@@ -79,12 +79,12 @@ namespace Render {
 
         float logicHz;
 
-        LogicStateBuffered& logicStateBuffered;
-        RunState running;
+        BufferedLogicState& logicStateBuffered;
+        Core::RunState running;
 
     public:
 
-        Renderer(WindowWin32& window, ResourceManager& resources, LogicStateBuffered& logicStateBuffered, float logicHz)
+        Renderer(Platform::WindowWin32& window, Assets::ResourceManager& resources, BufferedLogicState& logicStateBuffered, float logicHz)
             : device(window)
 			, viewport{ 0, 0, window.getClientWidth(), window.getClientHeight() }
 			, resources(resources)
@@ -128,8 +128,8 @@ namespace Render {
                 // (parametry vlny musi sedet s registraci v App::setupDemoResources)
                 if (resources.meshInstanceIsValid(scene.renderables.gridWave))
                 {
-                    MeshHandle waveMesh = resources.meshInstanceGet(scene.renderables.gridWave).mesh;
-                    MeshFactory::UpdateGridWave(resources.meshGetDynamic(waveMesh), 60, 0.2f, static_cast<float>(frameIndex), 0.05f);
+                    Assets::MeshHandle waveMesh = resources.meshInstanceGet(scene.renderables.gridWave).mesh;
+                    Geometry::MeshFactory::UpdateGridWave(resources.meshGetDynamic(waveMesh), 60, 0.2f, static_cast<float>(frameIndex), 0.05f);
                     device.meshUpdate(waveMesh, resources.meshGet(waveMesh));
                 }
                 drawInstance(ctx, scene.renderables.gridWave, Mtx4::Identity());
@@ -170,9 +170,9 @@ namespace Render {
             LogicState logicStateInterpolated;
             LogicStateFramePair logicStateFramePair;
 
-            TimeManager timer(logicHz, true);
-            TimeManager timer1Hz(1.0); // pro výpočet FPS každou sekundu
-			TimeManager timerSyncV(logicHz); // fallback pacing, pouzije se jen kdyz selze DwmFlush()
+            Core::TimeManager timer(logicHz, true);
+            Core::TimeManager timer1Hz(1.0); // pro výpočet FPS každou sekundu
+			Core::TimeManager timerSyncV(logicHz); // fallback pacing, pouzije se jen kdyz selze DwmFlush()
 
 			uint32_t frameIndex = 0;
 
@@ -181,7 +181,7 @@ namespace Render {
 
             // upload point - render vlakno (u GL backendu tady bude aktivni context);
             // backend si z kanonickych dat postavi vlastni residency (kopie, offsety, VBO, ...)
-            resources.meshForEach([&](MeshHandle h, const Mesh& m) { device.meshRegister(h, m); });
+            resources.meshForEach([&](Assets::MeshHandle h, const Geometry::Mesh& m) { device.meshRegister(h, m); });
 
             running.start();
 
@@ -279,10 +279,10 @@ namespace Render {
 
         // kresli instanci pres handle; INVALID se tise preskoci
         // (napr. prvni framy, kdy triple buffer jeste drzi default-konstruovany stav)
-        void drawInstance(const typename Device::Context& ctx, MeshInstanceHandle h, const Mtx4& world)
+        void drawInstance(const typename Device::Context& ctx, Assets::MeshInstanceHandle h, const Mtx4& world)
         {
             if (!resources.meshInstanceIsValid(h)) return;
-            const MeshInstance& inst = resources.meshInstanceGet(h);
+            const Geometry::MeshInstance& inst = resources.meshInstanceGet(h);
             device.drawMesh(ctx, inst.mesh, world * inst.localTransform, inst.color, inst.wireframe);
         }
 

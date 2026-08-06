@@ -10,7 +10,7 @@
 #include <cassert>
 #include <utility>
 
-namespace Render {
+namespace GLibpp::Assets {
 
     // Kanonicke uloziste assetu (meshe, instance) + jejich identita (handly).
     // Netemplatovana trida bez znalosti backendu - residency (kopie geometrie,
@@ -26,20 +26,20 @@ namespace Render {
     struct ResourceManager {
 
         // vraci handle okamzite; volajici nesmi predpokladat synchronni rezidenci dat v backendu
-        MeshHandle meshRegister(Mesh mesh)
+        MeshHandle meshRegister(Geometry::Mesh mesh)
         {
             assert(!frozen && "registrace resources jen pred startem render smycky (runLoop)");
             return meshes.add(std::move(mesh));
         }
 
-        const Mesh& meshGet(MeshHandle h) const
+        const Geometry::Mesh& meshGet(MeshHandle h) const
         {
             return meshes.get(h);
         }
 
         // mutable pristup pro dynamicke meshe (napr. GridWave) - jen render vlakno,
         // in-place mutace dat bez alokaci; po zmene je nutne notifikovat backend (device.meshUpdate)
-        Mesh& meshGetDynamic(MeshHandle h)
+        Geometry::Mesh& meshGetDynamic(MeshHandle h)
         {
             return meshes.get(h);
         }
@@ -65,15 +65,15 @@ namespace Render {
 
         MeshInstanceHandle meshInstanceRegister(MeshHandle mesh,
                                                 const Mtx4& localTransform = Mtx4::Identity(),
-                                                Color color = Color::Grayscale(0.3f),
+                                                Render::Color color = Render::Color::Grayscale(0.3f),
                                                 bool wireframe = false)
         {
             assert(!frozen && "registrace resources jen pred startem render smycky (runLoop)");
             assert(meshes.isValid(mesh));
-            return instances.add(MeshInstance{ mesh, localTransform, color, wireframe });
+            return instances.add(Geometry::MeshInstance{ mesh, localTransform, color, wireframe });
         }
 
-        const MeshInstance& meshInstanceGet(MeshInstanceHandle h) const
+        const Geometry::MeshInstance& meshInstanceGet(MeshInstanceHandle h) const
         {
             return instances.get(h);
         }
@@ -91,8 +91,8 @@ namespace Render {
 
     private:
 
-        StableRegistry<Mesh> meshes;
-        StableRegistry<MeshInstance> instances;
+        Core::StableRegistry<Geometry::Mesh> meshes;
+        Core::StableRegistry<Geometry::MeshInstance> instances;
         bool frozen = false;
     };
 

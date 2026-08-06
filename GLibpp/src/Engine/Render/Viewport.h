@@ -1,6 +1,6 @@
-#pragma once
+﻿#pragma once
 
-namespace Render {
+namespace GLibpp::Render {
 
 	struct Viewport {
 		uint32_t x;

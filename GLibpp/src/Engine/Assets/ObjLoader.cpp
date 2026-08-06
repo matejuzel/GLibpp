@@ -72,7 +72,7 @@ namespace GLibpp::Assets {
 		return ext == ".obj";
 	}
 
-	Mesh ObjLoader::LoadFromString(const std::string& text)
+	Geometry::Mesh ObjLoader::LoadFromString(const std::string& text)
 	{
 		std::vector<Vec4> positions;
 		std::vector<uint32_t> indices;

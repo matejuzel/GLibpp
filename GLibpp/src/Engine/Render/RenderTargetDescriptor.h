@@ -1,10 +1,10 @@
-#pragma once
+﻿#pragma once
 
 #include <cstdint>
 #include "TextureFormat.h"
 #include "TextureUsage.h"
 
-namespace Render {
+namespace GLibpp::Render {
 
     struct RenderTargetDescriptor {
         uint32_t width;

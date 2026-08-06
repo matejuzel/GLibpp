@@ -1,6 +1,8 @@
-#pragma once
+﻿#pragma once
 
 #include "Mesh.h"
+
+namespace GLibpp::Geometry {
 
 class MeshFactory {
 
@@ -19,5 +21,7 @@ public:
 
 	// aktualizuje in-place vysku vlny meshe vytvoreneho pres CreateGridWave (stejne size!) - zadne alokace
 	static void UpdateGridWave(Mesh& msh, uint32_t size, float waveHeight, float time, float speed);
-	
+
 };
+
+}

@@ -10,15 +10,15 @@ namespace GLibpp::Assets {
 	// vysledek nacteni modelu - dnes jen geometrie; pozdeji sem pribudou
 	// materialy (.mtl), submeshe/usemtl range apod.
 	struct ModelData {
-		Mesh mesh;
+		Geometry::Mesh mesh;
 	};
 
 	// jediny friend Meshe za vsechny loadery - novy format uz Mesh.h needituje;
 	// loader si naparsuje lokalni buffery a tady je presune do Meshe (zadne kopie)
 	struct MeshAccess {
-		static Mesh Create(std::vector<Vec4>&& positions, std::vector<uint32_t>&& indices)
+		static Geometry::Mesh Create(std::vector<Vec4>&& positions, std::vector<uint32_t>&& indices)
 		{
-			Mesh msh;
+			Geometry::Mesh msh;
 			msh.vertexBuffer = std::move(positions);
 			msh.indexBuffer = std::move(indices);
 			return msh;

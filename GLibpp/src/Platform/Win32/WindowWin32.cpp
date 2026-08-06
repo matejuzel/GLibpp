@@ -1,4 +1,4 @@
-#ifndef NOMINMAX
+﻿#ifndef NOMINMAX
 #define NOMINMAX
 #endif
 #include <windows.h>
@@ -6,9 +6,11 @@
 #include <iostream>
 #include <vector>
 #include "WindowWin32.h"
-#include "core/input/Keymap.h"
+#include "Keymap.h"
 
-void WindowWin32::setKeyCallback(std::function<void(KeyMap, bool)> cb) noexcept
+namespace GLibpp::Platform {
+
+void WindowWin32::setKeyCallback(std::function<void(Core::KeyMap, bool)> cb) noexcept
 {
     onKeyEvent = std::move(cb);
 }
@@ -50,11 +52,11 @@ LRESULT WindowWin32::handleMessage(UINT msg, WPARAM wParam, LPARAM lParam)
 
         /*
     case WM_KEYDOWN:
-        if (onKeyEvent) onKeyEvent(KEYMAP[wParam], true);
+        if (onKeyEvent) onKeyEvent(Core::KEYMAP[wParam], true);
         return 0;
 
     case WM_KEYUP:
-        if (onKeyEvent) onKeyEvent(KEYMAP[wParam], false);
+        if (onKeyEvent) onKeyEvent(Core::KEYMAP[wParam], false);
         return 0;
         */
 
@@ -80,14 +82,14 @@ LRESULT WindowWin32::handleMessage(UINT msg, WPARAM wParam, LPARAM lParam)
 
                 bool isUp = (flags & RI_KEY_BREAK) != 0;
 
-                KeyMap key = KEYMAP[vk];
+                Core::KeyMap key = Core::KEYMAP[vk];
 
                 if (isUp) {
-                    onKeyEvent(KEYMAP[vk], false);
+                    onKeyEvent(Core::KEYMAP[vk], false);
                 }
                 else
                 {
-                    onKeyEvent(KEYMAP[vk], true);
+                    onKeyEvent(Core::KEYMAP[vk], true);
                 }
 
             }
@@ -225,7 +227,7 @@ bool WindowWin32::build(std::wstring preferedMonitor)
         return false;
     }
 
-    this->glibRegisterRawInputDevices();
+    this->registerRawInputDevices();
 
     auto winShowMode = SW_SHOWNORMAL;
     if (maximized) winShowMode = SW_MAXIMIZE;
@@ -264,7 +266,7 @@ void WindowWin32::showCursor() const noexcept
     while (ShowCursor(TRUE) < 0) {}
 }
 
-void WindowWin32::glibRegisterRawInputDevices()
+void WindowWin32::registerRawInputDevices()
 {
     // registrace Raw Input Devices - pro lepsi odchytavani stisku klaves
 
@@ -325,4 +327,6 @@ LRESULT WindowProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
     if (window) return window->handleMessage(msg, wParam, lParam);
 
     return DefWindowProc(hwnd, msg, wParam, lParam);
+}
+
 }

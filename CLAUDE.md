@@ -36,13 +36,13 @@ New `.cpp`/`.h` files must be added to `GLibpp/GLibpp.vcxproj` by hand — MSBui
 This is the central design and everything else follows from it.
 
 - **Logic thread** (`App::run`, `src/App/App.h`) — owns the window, pumps `pollEvents()`, and steps `updateLogic()` at a fixed 60 Hz via `TimeManager`. Runs at `THREAD_PRIORITY_HIGHEST`.
-- **Render thread** (`Renderer::runLoop`, `src/Engine/Renderer/Renderer.h`) — renders as fast as it can, unthrottled. `THREAD_PRIORITY_ABOVE_NORMAL`.
+- **Render thread** (`Renderer::runLoop`, `src/Engine/Render/Renderer.h`) — renders as fast as it can, unthrottled. `THREAD_PRIORITY_ABOVE_NORMAL`.
 
 They share exactly one thing: `ZeroAllocTripleBuffer<LogicState>`. It is strictly SPSC — the logic thread is the only writer (`publish()`), the render thread the only reader (`update_reader()`). The producer never blocks; the consumer always gets the newest published state and may skip intermediate ones. Do not add a second reader or writer.
 
 Because render rate ≠ logic rate, the renderer **interpolates between two logic states**. It keeps previous/current in a render-thread-local `ZeroAllocStateHistory`, computes alpha from the states' own `tickInfo.lastLogicTick` timestamps, and calls `Slerp(prev, curr, t)`. Both threads share a clock epoch (`TimeManager` constructed with `useGlobalStart=true`) so those timestamps are comparable.
 
-**Consequence for any new scene state:** if you add a field to `Scene` that moves over time, extend the `friend Scene Slerp(...)` in `src/App/Scene.h`. Unhandled fields default to the current state and will visibly stutter. `Scene::Slerp` delegates into `CarTransformation`/`WheelTransformation`/`Camera` Slerp/Lerp overloads — follow that pattern.
+**Consequence for any new scene state:** if you add a field to `Scene` that moves over time, extend the `friend Scene Slerp(...)` in `src/App/Scene.h`. Unhandled fields default to the current state and will visibly stutter. `Scene::Slerp` delegates into `Car`/`CarWheel`/`Camera` Slerp/Lerp overloads (`src/App/Car.h`, `src/Engine/Geometry/Camera.h`) — follow that pattern.
 
 **Shutdown** is one-directional and explicit: `App` and `Renderer` hold *separate* `RunState` instances. ESC stops App's; App's loop then exits and calls `renderer->stop()`, which stops the Renderer's, then joins. The renderer has no way to stop the app.
 
@@ -50,7 +50,7 @@ Because render rate ≠ logic rate, the renderer **interpolates between two logi
 
 `Renderer<Device>` is a template; the backend is chosen at compile time by the `RENDER_BACKEND_DIB` macro in `App.h` and baked in. `DeviceBase<Device, Target>` (`Backend/Common/DeviceBase.h`) dispatches through `static_cast<Device*>(this)->xxxImpl(...)` — there is no vtable and no runtime backend switching.
 
-A new backend needs: a `Render::DeviceTraits<YourDevice>` specialization (`GpuBuffer3D`/`GpuBuffer2D`/`GpuIndexBuffer`), a target deriving from `DeviceTargetBase<Device>` constructible from a `RenderTargetDescriptor`, a `YourDevice(WindowWin32&)` constructor, and private `...Impl` methods with `friend class DeviceBase<D,T>`. `Renderer` itself only calls `createContext`, `clear`, `drawMesh`, `drawAxis`, `present`, `targetCreate`, `targetResize`, `meshRegister`, `meshUpdate`, `getWindow`. `meshRegisterImpl`/`meshUpdateImpl` have default no-op implementations in `DeviceBase` — a backend that reads canonical data directly implements nothing.
+A new backend needs: a `GLibpp::Render::DeviceTraits<YourDevice>` specialization (`GpuBuffer3D`/`GpuBuffer2D`/`GpuIndexBuffer`), a target deriving from `DeviceTargetBase<Device>` constructible from a `RenderTargetDescriptor`, a `YourDevice(WindowWin32&)` constructor, and private `...Impl` methods with `friend class DeviceBase<D,T>`. `Renderer` itself only calls `createContext`, `clear`, `drawMesh`, `drawAxis`, `present`, `targetCreate`, `targetResize`, `meshRegister`, `meshUpdate`, `getWindow`. `meshRegisterImpl`/`meshUpdateImpl` have default no-op implementations in `DeviceBase` — a backend that reads canonical data directly implements nothing.
 
 Handles are `StableRegistry<T>::Handle{index, generation}` (both `uint32_t`; a default-constructed handle equals `INVALID`, never slot 0). `targetResize` recreates the object in place **without bumping generation**, so handles survive a resize; only `remove()` invalidates them.
 
@@ -58,7 +58,7 @@ Handles are `StableRegistry<T>::Handle{index, generation}` (both `uint32_t`; a d
 
 ### Resource management: canonical storage + per-backend residency
 
-- **`Render::ResourceManager`** (`src/Engine/Renderer/ResourceManager.h`) is a **non-templated** pure store owned by **`App`** (assets are application content): `StableRegistry<Mesh>` + `StableRegistry<MeshInstance>` behind the handle aliases from `ResourceHandles.h` (`MeshHandle`, `MeshInstanceHandle`, `MESH_*_INVALID`). It knows nothing about any Device.
+- **`GLibpp::Assets::ResourceManager`** (`src/Engine/Assets/ResourceManager.h`) is a **non-templated** pure store owned by **`App`** (assets are application content): `StableRegistry<Mesh>` + `StableRegistry<MeshInstance>` behind the handle aliases from `ResourceHandles.h` (`MeshHandle`, `MeshInstanceHandle`, `MESH_HANDLE_INVALID`, `MESH_INSTANCE_HANDLE_INVALID`). It knows nothing about any Device.
 - **Registration happens only before the render thread starts** (`App::setupDemoResources`, called in `App::run` before the thread spawns). `Renderer::runLoop` then calls `resources.freeze()` — after that every registration method asserts. Runtime creation from the logic thread is a planned future feature via an SPSC upload queue consumed at the top of `runLoop` (seam is marked there next to `resizeRequest.consume`); `meshRegister` already returns the handle immediately so that queue can be added without changing the API.
 - **Upload walk**: at the top of `runLoop` (render thread — a future GL backend has its context live here) the Renderer iterates `resources.meshForEach` and calls `device.meshRegister(h, mesh)`. The DIB backend copies all geometry into big arrays in `RegistryDIB` (`meshPositions`/`meshIndices`) with a `meshRanges` table indexed by `handle.index` — offsets are the backend's private residency detail, never the ResourceManager's.
 - **Drawing is handle-based**: `device.drawMesh(ctx, MeshHandle, world, color, wired)`; there is no `const Mesh&` draw path. `Renderer::drawInstance` resolves a `MeshInstance` (mesh handle + baked `localTransform` + color + wireframe; world transform is passed per-draw because logic computes it every tick) and silently skips INVALID handles — the first frames legitimately carry default-constructed Scenes.
@@ -76,6 +76,12 @@ Handles are `StableRegistry<T>::Handle{index, generation}` (both `uint32_t`; a d
 
 Comments and commit messages are in **Czech**; match that when editing existing code. Commit subjects follow `vyvoj - <co>`.
 
+### Namespaces: directory = namespace, rooted at `GLibpp`
+
+Engine code lives in a namespace matching its directory: `GLibpp::Core` (`Engine/Core`, incl. `Datastruct/`, `Input/`), `GLibpp::Geometry`, `GLibpp::Assets`, `GLibpp::Physics`, `GLibpp::Render` (`Engine/Render`), `GLibpp::Platform` (`Platform/Win32`), `GLibpp::Math` (free functions). Cross-subsystem references inside the engine use relative qualification (`Geometry::Mesh`, `Assets::MeshHandle`, `Core::TimeManager`) — lookup ascends to the common `GLibpp` root.
+
+Two deliberate exceptions to the rule: **math types** (`Mtx4`, `Vec4`, `Quaternion`) are global for ergonomics — they appear in nearly every file; and the **application layer** (`App`, `Scene`, `Car`, `LogicState` in `src/App/`) is global, being the leaf consumer. `App.h` pulls short names in via file-level `using` declarations — fine there, don't do that in engine headers.
+
 Project skills in `.claude/skills/` use the **`glib-` prefix** (`glib-add-file`, `glib-check-encoding`, `glib-commit`) so they never collide with built-in skill names (`run`, `review`, `init`, ...). Names that are an upstream protocol contract are the deliberate exception and stay canonical: `verifier-gui` follows the bundled `/verify` protocol's `verifier-*` convention (checked first as the repo's evidence-capture recipe); the same would apply to future `run-*` skills or a persisted `verify` recipe.
 
 ### Source encoding — read this before editing any file with Czech comments
@@ -86,6 +92,6 @@ This matters because the history here was mixed: most files were Windows-1250 (t
 
 Two places are still CP1250 on purpose or by neglect: `GLibpp/_old/` (reference-only, never compiled, never edit it) and the `worktree-remove_jitter` branch, whose `Renderer.h` already has mojibake committed.
 
-Math (`src/math/`) is row-vector style with chained mutating builders — `Mtx4::Identity().translate(x,y,z).rotateY(a)` — and `Quaternion` for orientation. `Mtx4::Identity()` returns a value, so the chain mutates a temporary, not a shared identity.
+Math (`src/Math/`) is row-vector style with chained mutating builders — `Mtx4::Identity().translate(x,y,z).rotateY(a)` — and `Quaternion` for orientation. `Mtx4::Identity()` returns a value, so the chain mutates a temporary, not a shared identity.
 
 `App.h` contains `if (0)` / `if (false)` scratch blocks used as ad-hoc debug probes. They're intentional; leave them unless asked.

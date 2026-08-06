@@ -2,6 +2,8 @@
 #include <cstddef>
 #include <Windows.h>
 
+namespace GLibpp::Core {
+
 // Interní engine klávesy
 enum KeyMap : size_t
 {
@@ -74,3 +76,5 @@ static constexpr KeyMap KEYMAP[256] =
 };
 
 static_assert(sizeof(KEYMAP) / sizeof(KEYMAP[0]) == 256, "KEYMAP must have 256 entries");
+
+}

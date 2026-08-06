@@ -3,7 +3,7 @@
 #include <array>
 #include <algorithm>
 
-namespace GLibpp {
+namespace GLibpp::Core {
 
 
     class Keyboard {

@@ -1,7 +1,7 @@
 ﻿#pragma once
 
 #include "Camera.h"
-#include "CarTransformation.h"
+#include "Car.h"
 #include "ResourceHandles.h"
 #include "ZeroAllocTripleBuffer.h"
 #include <type_traits>
@@ -9,19 +9,19 @@
 // handly demo renderables - trivialne kopirovatelne, zadne alokace pri publish/Slerp
 // jedna instance se smi kreslit vicekrat (wheel je sdilena vsemi 4 koly)
 struct SceneRenderables {
-	MeshInstanceHandle gridWave  = MESH_INSTANCE_INVALID;
-	MeshInstanceHandle carBody   = MESH_INSTANCE_INVALID;
-	MeshInstanceHandle wheel     = MESH_INSTANCE_INVALID;
-	MeshInstanceHandle icosphere = MESH_INSTANCE_INVALID;
-	MeshInstanceHandle icrBeam   = MESH_INSTANCE_INVALID;
-	MeshInstanceHandle test = MESH_INSTANCE_INVALID;
+	GLibpp::Assets::MeshInstanceHandle gridWave  = GLibpp::Assets::MESH_INSTANCE_HANDLE_INVALID;
+	GLibpp::Assets::MeshInstanceHandle carBody   = GLibpp::Assets::MESH_INSTANCE_HANDLE_INVALID;
+	GLibpp::Assets::MeshInstanceHandle wheel     = GLibpp::Assets::MESH_INSTANCE_HANDLE_INVALID;
+	GLibpp::Assets::MeshInstanceHandle icosphere = GLibpp::Assets::MESH_INSTANCE_HANDLE_INVALID;
+	GLibpp::Assets::MeshInstanceHandle icrBeam   = GLibpp::Assets::MESH_INSTANCE_HANDLE_INVALID;
+	GLibpp::Assets::MeshInstanceHandle test      = GLibpp::Assets::MESH_INSTANCE_HANDLE_INVALID;
 };
 
 struct Scene {
 
-	Camera camera;
+	GLibpp::Geometry::Camera camera;
 
-	CarTransformation car;
+	Car car;
 
 	SceneRenderables renderables;
 
@@ -54,4 +54,4 @@ struct LogicState {
 };
 
 // SPSC most mezi logickym a render vlaknem (jediny sdileny stav App <-> Renderer)
-using LogicStateBuffered = ZeroAllocTripleBuffer<LogicState>;
+using BufferedLogicState = GLibpp::Core::ZeroAllocTripleBuffer<LogicState>;

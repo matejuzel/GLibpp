@@ -3,6 +3,8 @@
 #include <cstdint>
 #include <algorithm>
 
+namespace GLibpp::Render {
+
 struct Color {
     uint8_t r;
     uint8_t g;
@@ -52,4 +54,6 @@ struct Color {
 
 
 };
+
+}
 

@@ -1,9 +1,9 @@
-#pragma once
+﻿#pragma once
 
 #include "DeviceTargetBase.h"
 #include "RenderTargetDescriptor.h"
 
-namespace Render {
+namespace GLibpp::Render {
 
     class DeviceDIB; // forward
     class DeviceTargetDIB; // forward

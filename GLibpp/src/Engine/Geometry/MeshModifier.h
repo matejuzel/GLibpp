@@ -5,6 +5,8 @@
 #include <algorithm>
 #include <cstdint>
 
+namespace GLibpp::Geometry {
+
 class MeshModifier {
 
 public:
@@ -67,3 +69,5 @@ public:
 
 
 };
+
+}

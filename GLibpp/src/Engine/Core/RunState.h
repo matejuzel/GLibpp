@@ -1,5 +1,9 @@
 ﻿#pragma once
 
+#include <atomic>
+
+namespace GLibpp::Core {
+
 class RunState {
     std::atomic<bool> m_running{ false };
 
@@ -25,3 +29,5 @@ public:
         return m_running.load(std::memory_order_relaxed);
     }
 };
+
+}

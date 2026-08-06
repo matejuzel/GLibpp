@@ -28,10 +28,19 @@
 
 #if defined(RENDER_BACKEND_DIB)
 #include "DeviceDIB.h"
-using RenderDevice = Render::DeviceDIB;
+using RenderDevice = GLibpp::Render::DeviceDIB;
 #else
 #error "Neni definovan backend!"
 #endif
+
+// aliasy do engine namespacu - App je listova aplikacni vrstva, muze si dovolit kratka jmena
+using GLibpp::Platform::WindowWin32;
+using GLibpp::Core::TimeManager;
+using GLibpp::Core::RunState;
+using GLibpp::Core::KeyMap;
+using GLibpp::Geometry::Camera;
+using GLibpp::Geometry::MeshFactory;
+using GLibpp::Render::Color;
 
 /*
 Implementovat nekdy v budoucnu:
@@ -43,32 +52,31 @@ Implementovat nekdy v budoucnu:
 class App {
 private:
 
-    using RendererEngine = Render::Renderer<RenderDevice>;
+    using RendererEngine = GLibpp::Render::Renderer<RenderDevice>;
 
     std::unique_ptr<WindowWin32> window;
 
     // kanonicke uloziste assetu (meshe, instance) - obsah vlastni App, renderer dostava referenci
     // deklarovano PRED rendererem: renderer drzi referenci, musi tedy zaniknout driv
-    Render::ResourceManager resources;
+    GLibpp::Assets::ResourceManager resources;
 
 	//std::unique_ptr<RendererEngine> renderer; // obecny renderer, ktery pouziva RenderDevice (DIB, Stencil, ...), ktery se zvoli definici makra RENDER_BACKEND_XXX
-    std::unique_ptr<Render::Renderer<Render::DeviceDIB>> renderer; // pro vyvoj pouzijeme takhle explicitne, kvuli napovidani v IDE...
+    std::unique_ptr<GLibpp::Render::Renderer<GLibpp::Render::DeviceDIB>> renderer; // pro vyvoj pouzijeme takhle explicitne, kvuli napovidani v IDE...
 
     bool fullscreen = false;
     RunState running;
 
-    GLibpp::Input input;
+    GLibpp::Core::Input input;
 
     float logicHz = 60;
 
-    bool checkWindowInitialized() const {
+    void requireWindowInitialized() const {
         if (window.get() == nullptr) {
             throw std::runtime_error("Window is not initialized");
         }
-        return true;
 	}
 
-    LogicStateBuffered logicStateBuffered;
+    BufferedLogicState logicStateBuffered;
 
 public:
 
@@ -76,7 +84,7 @@ public:
 	~App() = default;
 
 	void setFullscreenMode(bool fullscreen) {
-		checkWindowInitialized();
+		requireWindowInitialized();
 		window->setFullscreenMode(fullscreen);
     }
 
@@ -139,7 +147,7 @@ public:
                 }
             });
 
-            window->glibRegisterRawInputDevices();
+            window->registerRawInputDevices();
         }
 
         {

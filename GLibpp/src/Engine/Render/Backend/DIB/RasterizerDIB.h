@@ -6,9 +6,9 @@
 #include "DeviceTargetDIB.h"
 
 
-namespace Render {
+namespace GLibpp::Render {
 
-    class RasterizatorDIB {
+    class RasterizerDIB {
 
     public:
 

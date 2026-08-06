@@ -3,6 +3,8 @@
 
 #include <windows.h>
 
+namespace GLibpp::Platform {
+
 class Win32DC {
 
 private:
@@ -52,4 +54,6 @@ public:
     }
 
 };
+
+}
 

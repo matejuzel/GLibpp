@@ -27,7 +27,7 @@ namespace GLibpp::Assets {
 		ModelData load(const std::string& path) const override;
 
 		// parsovani primo z textu (testy, generovana / embedded data)
-		static Mesh LoadFromString(const std::string& text);
+		static Geometry::Mesh LoadFromString(const std::string& text);
 	};
 
 }
