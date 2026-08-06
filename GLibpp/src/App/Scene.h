@@ -14,6 +14,7 @@ struct SceneRenderables {
 	MeshInstanceHandle wheel     = MESH_INSTANCE_INVALID;
 	MeshInstanceHandle icosphere = MESH_INSTANCE_INVALID;
 	MeshInstanceHandle icrBeam   = MESH_INSTANCE_INVALID;
+	MeshInstanceHandle test = MESH_INSTANCE_INVALID;
 };
 
 struct Scene {

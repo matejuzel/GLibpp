@@ -134,6 +134,10 @@ namespace Render {
                 }
                 drawInstance(ctx, scene.renderables.gridWave, Mtx4::Identity());
 
+                // testovaci model nacteny z .obj (data/models) - kresleny pred autem,
+                // aby auto bez depth bufferu zustalo viditelne pri prujezdu kolem
+                drawInstance(ctx, scene.renderables.test, Mtx4::Identity());
+
                 // Car
                 drawInstance(ctx, scene.renderables.carBody, scene.car.getCarMatrix());
 

@@ -6,6 +6,7 @@ class Mesh {
 
 	friend class MeshFactory;
     friend class MeshModifier;
+    friend class ObjLoader;
 
 public:
 

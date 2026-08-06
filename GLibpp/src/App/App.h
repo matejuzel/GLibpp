@@ -12,6 +12,8 @@
 #include "Quaternion.h"
 #include "Mesh.h"
 #include "MeshFactory.h"
+#include "ObjLoader.h"
+#include <fstream>
 
 #include "Scene.h"
 #include "Camera.h"
@@ -234,13 +236,24 @@ public:
         auto waveMesh = resources.meshRegister(MeshFactory::CreateGridWave(60, 0.2f, 0.0f, 0.05f));
         auto icrMesh = resources.meshRegister(MeshFactory::CreateCube(0.1f).applyTransformation(Mtx4::Scaling(0.01f, 8.0f, 0.01f)));
 
+        // testovaci model z .obj - cesta funguje pri spusteni z korene repa
+        // i z GLibpp/ (VS debugger ma working directory = ProjectDir)
+        const char* objPath = "data/models/line.obj";
+        if (!std::ifstream(objPath).good()) objPath = "../data/models/line.obj";
+        auto testMesh = resources.meshRegister(ObjLoader::LoadFromFile(objPath));
+
         Mtx4 gridWaveModel = Mtx4::Identity().rotateX(GLibpp::Math::deg2rad(90.0f)).translate(-25.0f, -25.0f, 0.0f).scale(0.5f);
+
+        // umisteny do originu (0,0,0) - souradnice z .obj se prebiraji 1:1
+        Mtx4 testModel = Mtx4::Identity();
 
         scene.renderables.gridWave  = resources.meshInstanceRegister(waveMesh, gridWaveModel, Color::Grayscale(0.3f), true);
         scene.renderables.carBody   = resources.meshInstanceRegister(bodyMesh);
         scene.renderables.wheel     = resources.meshInstanceRegister(wheelMesh);
         scene.renderables.icosphere = resources.meshInstanceRegister(sphereMesh, Mtx4::Identity(), Color::Grayscale(0.7f), true);
         scene.renderables.icrBeam   = resources.meshInstanceRegister(icrMesh);
+        scene.renderables.test      = resources.meshInstanceRegister(testMesh, testModel, Color::Grayscale(0.55f), false);
+		
     }
 
     void scenePublish(const LogicState& logicState, double lastLogicTick) {
