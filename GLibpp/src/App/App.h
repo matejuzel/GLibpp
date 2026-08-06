@@ -12,7 +12,7 @@
 #include "Quaternion.h"
 #include "Mesh.h"
 #include "MeshFactory.h"
-#include "ObjLoader.h"
+#include "ModelImporter.h"
 #include <fstream>
 
 #include "Scene.h"
@@ -210,7 +210,7 @@ public:
         constexpr float followDistance = 12.0f; // za autem (podel -forward)
         constexpr float followHeight   = 5.0f;  // vyska kamery nad pozici auta
         constexpr float lookAtHeight   = 1.5f;  // cil mirne nad podvozkem
-        constexpr float stiffness      = 1.0f;  // rychlost dotahovani pozice [1/s]
+        constexpr float stiffness      = 2.0f;  // rychlost dotahovani pozice [1/s]
 
         Vec4 carPos = scene.car.model.getPosition();
         Vec4 forward = scene.car.model.getHeading() * Vec4(0.0f, 0.0f, 1.0f, 0.0f);
@@ -240,7 +240,10 @@ public:
         // i z GLibpp/ (VS debugger ma working directory = ProjectDir)
         const char* objPath = "data/models/line.obj";
         if (!std::ifstream(objPath).good()) objPath = "../data/models/line.obj";
-        auto testMesh = resources.meshRegister(ObjLoader::LoadFromFile(objPath));
+
+        // importer vybere loader podle pripony (dnes jen .obj)
+        GLibpp::Assets::ModelImporter importer;
+        auto testMesh = resources.meshRegister(importer.load(objPath).mesh);
 
         Mtx4 gridWaveModel = Mtx4::Identity().rotateX(GLibpp::Math::deg2rad(90.0f)).translate(-25.0f, -25.0f, 0.0f).scale(0.5f);
 

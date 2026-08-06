@@ -55,6 +55,9 @@
     <Filter Include="Zdrojové soubory\Engine\Geometry">
       <UniqueIdentifier>{c91b9ffa-7ea2-4392-bc47-0083ea158a51}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Zdrojové soubory\Engine\Assets">
+      <UniqueIdentifier>{7f3d2a91-4c58-4b6e-9a15-3de8c02b61f4}</UniqueIdentifier>
+    </Filter>
     <Filter Include="Zdrojové soubory\Engine\Physics">
       <UniqueIdentifier>{a2e63ca8-8a0d-4c64-831d-acbdf8eb72ff}</UniqueIdentifier>
     </Filter>
@@ -81,8 +84,8 @@
     <ClCompile Include="src\Engine\Geometry\MeshFactory.cpp">
       <Filter>Zdrojové soubory\Engine\Geometry</Filter>
     </ClCompile>
-    <ClCompile Include="src\Engine\Geometry\ObjLoader.cpp">
-      <Filter>Zdrojové soubory\Engine\Geometry</Filter>
+    <ClCompile Include="src\Engine\Assets\ObjLoader.cpp">
+      <Filter>Zdrojové soubory\Engine\Assets</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -197,8 +200,14 @@
     <ClInclude Include="src\Engine\Geometry\MeshModifier.h">
       <Filter>Zdrojové soubory\Engine\Geometry</Filter>
     </ClInclude>
-    <ClInclude Include="src\Engine\Geometry\ObjLoader.h">
-      <Filter>Zdrojové soubory\Engine\Geometry</Filter>
+    <ClInclude Include="src\Engine\Assets\IModelLoader.h">
+      <Filter>Zdrojové soubory\Engine\Assets</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Engine\Assets\ModelImporter.h">
+      <Filter>Zdrojové soubory\Engine\Assets</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Engine\Assets\ObjLoader.h">
+      <Filter>Zdrojové soubory\Engine\Assets</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

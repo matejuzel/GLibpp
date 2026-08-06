@@ -2,11 +2,14 @@
 #include <vector>
 #include "Mtx4.h"
 
+// loadery modelu (GLibpp::Assets) plni Mesh vyhradne pres MeshAccess
+namespace GLibpp::Assets { struct MeshAccess; }
+
 class Mesh {
 
 	friend class MeshFactory;
     friend class MeshModifier;
-    friend class ObjLoader;
+    friend struct GLibpp::Assets::MeshAccess;
 
 public:
 
