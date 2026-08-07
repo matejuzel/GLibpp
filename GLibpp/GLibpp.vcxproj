@@ -53,6 +53,7 @@
     <ClInclude Include="src\Engine\Render\Backend\DIB\DeviceDIB.h" />
     <ClInclude Include="src\Engine\Render\Backend\DIB\DeviceTargetDIB.h" />
     <ClInclude Include="src\Engine\Render\Color.h" />
+    <ClInclude Include="src\Engine\Render\DrawCommand.h" />
     <ClInclude Include="src\Engine\Render\Renderer.h" />
     <ClInclude Include="src\Engine\Assets\ResourceHandles.h" />
     <ClInclude Include="src\Engine\Assets\ResourceManager.h" />

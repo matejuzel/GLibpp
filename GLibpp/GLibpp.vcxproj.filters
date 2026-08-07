@@ -116,6 +116,9 @@
     <ClInclude Include="src\Engine\Render\Color.h">
       <Filter>Zdrojové soubory\Engine\Render</Filter>
     </ClInclude>
+    <ClInclude Include="src\Engine\Render\DrawCommand.h">
+      <Filter>Zdrojové soubory\Engine\Render</Filter>
+    </ClInclude>
     <ClInclude Include="src\Engine\Render\Backend\Common\DeviceContext.h">
       <Filter>Zdrojové soubory\Engine\Render\Backend\Common</Filter>
     </ClInclude>

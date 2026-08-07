@@ -3,6 +3,7 @@
 #include "RenderTargetDescriptor.h"
 #include "Viewport.h"
 #include "Color.h"
+#include "DrawCommand.h"
 #include "WindowWin32.h"
 #include <cstdint>
 #include <cstring>
@@ -30,6 +31,7 @@
 #include "RunState.h"
 #include "TimeManager.h"
 #include "ZeroAllocStateHistory.h"
+#include <iterator>
 #include <utility>
 #include "Mathematics.h"
 #include "MeshFactory.h"
@@ -82,9 +84,18 @@ namespace GLibpp::Render {
 
         using LogicStateHistory = Core::ZeroAllocStateHistory<LogicState, kInterpHistoryDepth>;
 
+        // ---- draw command stream ----
+        // kapacita command listu; demo emituje ~21 commandu na frame, zbytek rezerva
+        static constexpr size_t kDrawListCapacity = 256;
+
+        using DrawCmd = DrawCommand<Device>;
+
         Device device;
         Viewport viewport;
         ResizeRequest resizeRequest;
+
+        // command list - plni ho build faze, prehrava submit faze (reuse, zadne alokace za behu)
+        DrawList<Device, kDrawListCapacity> drawList;
 
         // kanonicke uloziste assetu - vlastni ho App, renderer je jen konzument/orchestrator
         Assets::ResourceManager& resources;
@@ -119,64 +130,24 @@ namespace GLibpp::Render {
         }
 
         void renderFrame(const Scene& scene, uint32_t frameIndex)
-        {   
-			auto fovRad = scene.camera.fovRad;
-			auto aspect = viewport.computeAspectRatio();
-			auto nearZ = scene.camera.nearZ;
-			auto farZ = scene.camera.farZ;
+        {
+            // Ground - dynamicka vlna: in-place mutace kanonickych dat (zero-alloc)
+            // + re-upload zmeneneho range do residency backendu; je to sprava resourcu,
+            // ne draw command (dvirka: budouci UpdateMesh command)
+            // (parametry vlny musi sedet s registraci v App::setupDemoResources)
+            if (resources.meshInstanceIsValid(scene.renderables.gridWave))
+            {
+                Assets::MeshHandle waveMesh = resources.meshInstanceGet(scene.renderables.gridWave).mesh;
+                Geometry::MeshFactory::UpdateGridWave(resources.meshGetDynamic(waveMesh), 60, 0.2f, static_cast<float>(frameIndex), 0.05f);
+                device.meshUpdate(waveMesh, resources.meshGet(waveMesh));
+            }
 
             auto ctx = device.createContext();
-
             ctx.frameIndex = frameIndex;
-            ctx.clearColor = Color::Grayscale(0.4f);
-            ctx.setView(scene.camera.calculateViewMatrix());
-            ctx.setProjection(Mtx4::Perspective(fovRad, aspect, nearZ, farZ));
-            ctx.setViewport(viewport);
-            ctx.framebufferHandle = framebufferHandle;
-                
-            device.clear(ctx);
 
-            {
-                // Drawing commands
-
-                // Ground - dynamicka vlna: in-place mutace kanonickych dat (zero-alloc)
-                // + re-upload zmeneneho range do residency backendu
-                // (parametry vlny musi sedet s registraci v App::setupDemoResources)
-                if (resources.meshInstanceIsValid(scene.renderables.gridWave))
-                {
-                    Assets::MeshHandle waveMesh = resources.meshInstanceGet(scene.renderables.gridWave).mesh;
-                    Geometry::MeshFactory::UpdateGridWave(resources.meshGetDynamic(waveMesh), 60, 0.2f, static_cast<float>(frameIndex), 0.05f);
-                    device.meshUpdate(waveMesh, resources.meshGet(waveMesh));
-                }
-                drawInstance(ctx, scene.renderables.gridWave, Mtx4::Identity());
-
-                // testovaci model nacteny z .obj (data/models) - kresleny pred autem,
-                // aby auto bez depth bufferu zustalo viditelne pri prujezdu kolem
-                drawInstance(ctx, scene.renderables.test, Mtx4::Identity());
-
-                // Car
-                drawInstance(ctx, scene.renderables.carBody, scene.car.getCarMatrix());
-
-                // shpere
-                drawInstance(ctx, scene.renderables.icosphere, scene.car.model.getTransformation());
-
-                // ICR
-                drawInstance(ctx, scene.renderables.icrBeam, scene.car.getIcrTransformation());
-
-                // wheels - jedna sdilena instance kreslena 4x s ruznymi world maticemi
-                drawInstance(ctx, scene.renderables.wheel, scene.car.getFrontLeft());
-                drawInstance(ctx, scene.renderables.wheel, scene.car.getFrontRight());
-                drawInstance(ctx, scene.renderables.wheel, scene.car.getBackLeft());
-                drawInstance(ctx, scene.renderables.wheel, scene.car.getBackRight());
-
-                // axis of local object spaces
-                device.drawAxis(ctx, scene.car.getCarMatrix());
-                device.drawAxis(ctx, Mtx4::Identity());
-                device.drawAxis(ctx, scene.car.getFrontLeft().scale(scene.car.model.params.wheelRadius));
-                device.drawAxis(ctx, scene.car.getFrontRight().scale(scene.car.model.params.wheelRadius));
-                device.drawAxis(ctx, scene.car.getBackLeft().scale(scene.car.model.params.wheelRadius));
-                device.drawAxis(ctx, scene.car.getBackRight().scale(scene.car.model.params.wheelRadius));
-            }
+            drawList.reset();
+            buildDrawList(scene);
+            submitDrawList(ctx);
 
             device.present(framebufferHandle);
         }
@@ -298,14 +269,131 @@ namespace GLibpp::Render {
 
     private:
 
-        // kresli instanci pres handle; INVALID se tise preskoci
-        // (napr. prvni framy, kdy triple buffer jeste drzi default-konstruovany stav)
-        void drawInstance(const typename Device::Context& ctx, Assets::MeshInstanceHandle h, const Mtx4& world)
+        // build faze (extract): interpolovana Scene -> linearni command list.
+        // Bez depth bufferu je poradi kresleni = viditelnost, poradi emitu se
+        // nesmi menit bez rozmyslu. Budouci hierarchicky graf nahradi prave
+        // tuhle metodu (flat uzly -> propagace worldu -> emit do tehoz listu).
+        void buildDrawList(const Scene& scene)
         {
-            if (!resources.meshInstanceIsValid(h)) return;
-            const Geometry::MeshInstance& inst = resources.meshInstanceGet(h);
-            device.drawMesh(ctx, inst.mesh, world * inst.localTransform, inst.color, inst.wireframe);
+            // stav framu - drawy nasleduji az za nim (viz poznamka o razeni v DrawCommand.h)
+            drawList.setFramebuffer(framebufferHandle);
+            drawList.setDepthbuffer(depthbufferHandle);
+            drawList.setView(scene.camera.calculateViewMatrix());
+            drawList.setProjection(Mtx4::Perspective(scene.camera.fovRad, viewport.computeAspectRatio(), scene.camera.nearZ, scene.camera.farZ));
+            drawList.setViewport(viewport);
+            drawList.clear(Color::Grayscale(0.4f));
+
+            // world matice se pocitaji jednou a sdili je mesh i axis command
+            const Mtx4 carM = scene.car.getCarMatrix();
+            const Mtx4 wheelFL = scene.car.getFrontLeft();
+            const Mtx4 wheelFR = scene.car.getFrontRight();
+            const Mtx4 wheelBL = scene.car.getBackLeft();
+            const Mtx4 wheelBR = scene.car.getBackRight();
+
+            // Ground
+            drawList.drawMesh(Mtx4::Identity(), scene.renderables.gridWave);
+
+            // testovaci model nacteny z .obj (data/models) - kresleny pred autem,
+            // aby auto bez depth bufferu zustalo viditelne pri prujezdu kolem
+            drawList.drawMesh(Mtx4::Identity(), scene.renderables.test);
+
+            // Car
+            drawList.drawMesh(carM, scene.renderables.carBody);
+
+            // sphere (stejny world jako telo auta)
+            drawList.drawMesh(carM, scene.renderables.icosphere);
+
+            // ICR
+            drawList.drawMesh(scene.car.getIcrTransformation(), scene.renderables.icrBeam);
+
+            // wheels - jedna sdilena instance kreslena 4x s ruznymi world maticemi
+            drawList.drawMesh(wheelFL, scene.renderables.wheel);
+            drawList.drawMesh(wheelFR, scene.renderables.wheel);
+            drawList.drawMesh(wheelBL, scene.renderables.wheel);
+            drawList.drawMesh(wheelBR, scene.renderables.wheel);
+
+            // osy lokalnich prostoru objektu (Mtx4::scale je mutujici builder -> skaluje se kopie)
+            const float wheelR = scene.car.model.params.wheelRadius;
+            drawList.drawAxis(carM);
+            drawList.drawAxis(Mtx4::Identity());
+            drawList.drawAxis(Mtx4(wheelFL).scale(wheelR));
+            drawList.drawAxis(Mtx4(wheelFR).scale(wheelR));
+            drawList.drawAxis(Mtx4(wheelBL).scale(wheelR));
+            drawList.drawAxis(Mtx4(wheelBR).scale(wheelR));
         }
+
+        // submit faze: linearni prehrani command listu do Device pres dispatch tabulku
+        void submitDrawList(typename Device::Context& ctx)
+        {
+            for (const DrawCmd& cmd : drawList)
+            {
+                kDispatch[static_cast<size_t>(cmd.kind)](*this, ctx, cmd);
+            }
+        }
+
+        // ---- executory draw commandu ----
+        // jednotna signatura (Renderer&, Context&, command) kvuli dispatch tabulce
+
+        static void execDrawMesh(Renderer& r, typename Device::Context& ctx, const DrawCmd& c)
+        {
+            // INVALID se tise preskoci
+            // (napr. prvni framy, kdy triple buffer jeste drzi default-konstruovany stav)
+            if (!r.resources.meshInstanceIsValid(c.drawMesh.instance)) return;
+            const Geometry::MeshInstance& inst = r.resources.meshInstanceGet(c.drawMesh.instance);
+            r.device.drawMesh(ctx, inst.mesh, c.drawMesh.world * inst.localTransform, inst.color, inst.wireframe);
+        }
+
+        static void execDrawAxis(Renderer& r, typename Device::Context& ctx, const DrawCmd& c)
+        {
+            r.device.drawAxis(ctx, c.drawAxis.world);
+        }
+
+        static void execSetView(Renderer& r, typename Device::Context& ctx, const DrawCmd& c)
+        {
+            ctx.setView(c.matrix.matrix);
+        }
+
+        static void execSetProjection(Renderer& r, typename Device::Context& ctx, const DrawCmd& c)
+        {
+            ctx.setProjection(c.matrix.matrix);
+        }
+
+        static void execSetViewport(Renderer& r, typename Device::Context& ctx, const DrawCmd& c)
+        {
+            ctx.setViewport(c.viewport.viewport);
+        }
+
+        static void execSetFramebuffer(Renderer& r, typename Device::Context& ctx, const DrawCmd& c)
+        {
+            ctx.framebufferHandle = c.target.target;
+        }
+
+        static void execSetDepthbuffer(Renderer& r, typename Device::Context& ctx, const DrawCmd& c)
+        {
+            ctx.depthbufferHandle = c.target.target;
+        }
+
+        static void execClear(Renderer& r, typename Device::Context& ctx, const DrawCmd& c)
+        {
+            ctx.clearColor = c.clear.color;
+            r.device.clear(ctx);
+        }
+
+        using ExecuteFn = void (*)(Renderer&, typename Device::Context&, const DrawCmd&);
+
+        // dispatch tabulka: index = DrawCmd::Kind, poradi radku musi sedet s enumem
+        static constexpr ExecuteFn kDispatch[] = {
+            &Renderer::execDrawMesh,
+            &Renderer::execDrawAxis,
+            &Renderer::execSetView,
+            &Renderer::execSetProjection,
+            &Renderer::execSetViewport,
+            &Renderer::execSetFramebuffer,
+            &Renderer::execSetDepthbuffer,
+            &Renderer::execClear,
+        };
+        static_assert(std::size(kDispatch) == static_cast<size_t>(DrawCmd::Kind::Count),
+            "dispatch tabulka musi pokryvat vsechny druhy commandu");
 
         // Metoda resize(w, h) nesmi byt volana z jineho threadu
         void resize(uint32_t width, uint32_t height)
