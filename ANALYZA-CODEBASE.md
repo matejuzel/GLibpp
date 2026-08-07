@@ -1,88 +1,126 @@
 # Analýza codebase GLibpp
 
-> **Stav k commitu:** `0adc39a` (`0adc39a41bcbd3b62d71850af67ea23e3d6ba6b4`) — *Claude skills*, 2026-08-04, větev `main`
-> **Datum analýzy:** 2026-08-04
-> **Rozsah:** kompletní čtení všech podstatných zdrojových souborů (~6 600 řádků pod `GLibpp/src/`)
+> **Stav k commitu:** `2fabb29` — *vyvoj - draw commandy: tagged union DrawCommand + DrawList, dispatch tabulka*, 2026-08-07, větev `main`
+> **Datum analýzy:** 2026-08-07
+> **Rozsah:** tříčlenný hloubkový audit celého `GLibpp/src/` (render backend + common; Core/Platform/App; Math/Geometry/Physics/Assets)
+> **Předchozí analýza:** commit `0adc39a`, 2026-08-04 (viz git historie tohoto souboru)
 
 ---
 
 # Celkové zhodnocení
 
-Jádro projektu je architektonicky **nadprůměrně dobře navržené** — vláknový model, handle systém a resource management jsou promyšlené a správně implementované věci, které v hobby enginech běžně chybí. Kolem tohoto zdravého jádra se ale nabalila vrstva mrtvého kódu, experimentů a nedotažených míst, která zhoršuje čitelnost a nese pár skutečných chyb. Odhadovaný poměr: ~60 % kódu je kvalitní jádro, ~25 % je funkční ale nedotažené demo/scaffolding, ~15 % je mrtvý kód.
+**Architektura je kvalitní a udržitelná (8/10), implementace pod ní je nevyrovnaná (4–5/10). Celkem ~6/10.**
+
+| Subsystém | Skóre | Poznámka |
+|---|---|---|
+| Core / Platform / App | **7/10** | SPSC most prokazatelně korektní; sráží ho Win32 error handling a hromadící se mrtvý kód |
+| Render backend (DIB + common) | **5/10** | Švy (CRTP, handly, residency) 7–8; vnitřek rasterizéru prototyp s reálnými chybami |
+| Math / Geometry / Physics | **5/10** | Staré vrstvy nikdy nerevidované; Mtx4 je slabý základ |
+| — z toho Assets samostatně | **8/10** | Nejlepší kus repa; jediná vada: tři mechanismy signalizace chyb |
+
+Vzorec, který se opakuje napříč: **posledních 10 % se přeskočí.** Freshness flag triple bufferu sedí mimo RMW, které by ho udělalo neprůstřelným; `ResizeRequest` používá `relaxed` přesně tam, kde je potřeba `release`; Win32 povrch skoro nikde nekontroluje návratové hodnoty. Nic z toho není hluboká hniloba — každá položka níže je lokalizovaná, dobře pochopená oprava.
+
+## Co se od minulé analýzy (0adc39a) vyřešilo
+
+- Namespace konvence (adresář = namespace, kořen `GLibpp`) + migrace adresářů; zapsáno v CLAUDE.md.
+- `CarTransformation` vytažena do `Car.h`, Scene.h je self-contained (bývalá největší fragilita).
+- Mrtvá pole Scene, mrtvé větve `updateLogic`, duplicitní Camera, `RenderCommand/`+`Stencil/` — smazáno.
+- `rollAngle` wrapován do [0, 2π) s wrap-aware Lerp přes `std::remainder` (audit to dnes uvádí jako silnou stránku).
+- `Mtx4::inverse` fallback dosažitelný, `setIdentity` opraveno, `catch` by value opraven.
+- Nové: **Assets modul** (IModelLoader/ModelImporter/ObjLoader/MeshAccess), follow kamera, high-res timer, snapshot interpolace s ringem N stavů, **draw command stream** (build→submit, dispatch tabulka).
+- Hardcoded scéna v renderFrame (minule bod 4) je **z poloviny vyřešená**: submit fáze je generická, demo znalost zůstává v `buildDrawList` — zbytek čeká na MeshInstance/scene-object redesign.
 
 ## Co je silné (a čeho se držet)
 
-- **Vláknový model** — `ZeroAllocTripleBuffer` je korektně napsaný SPSC (správné acquire/release ordering, cache-line padding), interpolace mezi logickými stavy s timestampy z logického času (ne wall-clock) je řešení, které eliminuje jitter scheduleru u zdroje. Tohle je nejcennější část enginu.
-- **Handle systém** — `StableRegistry` s generacemi, default-invalid handly, typová bezpečnost přes vnořený typ (`ResourceHandles.h`). Čisté.
-- **Separace canonical storage vs. residency** — `ResourceManager` (App vlastní data) vs. `RegistryDIB` (backend má privátní kopie s offsety) přesně kopíruje flow budoucího GL backendu (register/update/draw-by-handle). Příprava na GL je reálná, ne jen deklarovaná.
-- **Vynucené invarianty** — `static_assert(std::is_trivially_copyable_v<Scene>)` je přesně ten typ ochrany, který udrží zero-alloc publish i při dalším vývoji. Asserty na `freeze()` kontrakt taktéž.
-- **Input** — double-buffering klávesnice s jasným kontraktem (raw schránka z window vlákna, překlopení v logickém kroku) je správný návrh.
-- **Komentáře vysvětlují „proč"**, ne „co" — vláknové kontrakty jsou zdokumentované přímo u kódu.
+- **Vláknový model** — ownership invariant `ZeroAllocTripleBuffer` je formálně ověřitelný (permutace indexů přes atomický exchange; reader a writer se nikdy nepotkají na stejném bufferu). Interpolace je samoopravná: alfa z reálných timestampů, `kInterpHistoryDepth` odvozená ze `kInterpDelayTicks` se `static_assert`, vlastní clamp diagnostika.
+- **Assets** — loader seam (`IModelLoader` + `MeshAccess` jako jediný friend za všechny loadery), typed handly zdarma přes `StableRegistry<T>::Handle`, `freeze()` kontrakt vynucený, locale-odolný `from_chars`, ošetřené záporné indexy/`v//vn`/CRLF v .obj.
+- **Render švy** — CRTP device bez vtable, generací validovaná residency (`meshRanges`), vlastnické pravidlo „offsety určuje výhradně backend" zapsané přímo u kódu, command stream s type-safe emit API.
+- **Poctivé komentáře** — resize footgun je zdokumentovaný, ne schovaný; `static_assert(is_trivially_copyable_v<Scene>)` je strojově vynucený kontrakt publish cesty.
 
 ---
 
 # Skutečné chyby (opravit)
 
-1. **`Mtx4::inverse()` — mrtvý fallback pro singulární matici** (`Mtx4.cpp:278-291`). Když `det == 0`, nastaví se `*this` na nulovou matici, ale kód pokračuje: `invDet = 1.0f / det` → inf, a `(*this) = inv` na konci **fallback přepíše maticí plnou inf/NaN**. Fallback je fakticky nedosažitelný.
+## Concurrency (nejvyšší priorita — malé opravy, UB dopady)
 
-2. **`Mtx4::setIdentity()` je rozbité** (`Mtx4.cpp:128-137`). Nemodifikuje `this` — vrací referenci na **sdílenou mutable statickou matici**. Kdokoli by výsledek zmutoval (a mutující buildery jsou zde idiom!), poškodí „identitu" pro celý proces. Nikde se nevolá, takže to zatím nic nerozbilo — o důvod víc to smazat nebo opravit hned.
+1. **`ResizeRequest` je datový race** (`Renderer.h:41-62`). `width`/`height` nejsou atomické; `active.store(false, relaxed)` po čtení → logické vlákno může začít zapisovat, zatímco render čte (UB, roztržený pár w/h), a `set()` doručený v okně mezi load a store se **tiše spolkne** (okno zůstane na staré velikosti). Při drag-resize se WM_SIZE sype nepřetržitě. **Fix:** jeden `std::atomic<uint64_t>` s pakovaným w|h, `exchange(0)` při konzumaci.
 
-3. **`static std::vector<float> viewPos` v `rasterizeMesh`** (`DeviceDIB.h:256`). Function-local static = skrytý globální stav sdílený všemi instancemi device. Sousední `floatBuffer` je přitom member — nekonzistence naznačuje, že to je pozůstatek. Dnes to funguje (jedno render vlákno), ale je to nášlapná mina pro druhý device/thread. Přesunout na member.
+2. **Triple buffer — ztracená notifikace** (`ZeroAllocTripleBuffer.h`). `has_new_data` je druhý atomic mimo RMW: interleaving `R.exchange < P.exchange < P.set(flag) < R.clear(flag)` nechá v `dirty_idx` čerstvý nepřečtený stav s flagem `false` → další publish ho vytáhne zpět a **jeden logický tick se tiše zahodí**. Vzácné (okno pár instrukcí), samoléčivé, ale je to díra v komponentě, jejíž jediná práce je korektnost — a clamp diagnostika v Rendereru ho neumí odlišit od jitteru scheduleru (instrumentace může částečně měřit tenhle bug). **Fix:** freshness bit pakovaný do `dirty_idx` (`idx | FRESH_BIT`), druhý atomic zmizí.
 
-4. **Scene.h není self-contained** — používá `CarTransformation`, kterou nedefinuje ani neincluduje. Kompiluje se jen proto, že `App.h` definuje `CarTransformation` **před** `#include "Scene.h"` uprostřed souboru (`App.h:188`). Kterýkoli TU, který by includnul `Renderer.h` nebo `Scene.h` samostatně, se nezkompiluje. Tohle je největší strukturální fragilita v projektu.
+3. **`stop()` před `start()` = hang procesu** (`Renderer.h` runLoop + `App::run`). `running.start()` běží až po freeze + upload walku (v Debugu desítky ms); ESC/WM_CLOSE doručené dřív → `start()` přepíše `stop()`, smyčka běží věčně, `join()` se nevrátí. **Fix:** latch (stop je terminální), nebo `start()` v konstruktoru.
 
-5. **`WheelTransformation::rollAngle` roste bez omezení** (`App.h:21-23`). Po delší jízdě ztratí float přesnost (u hodnot ~10⁵ je rozlišení už jen ~0.01 rad) → viditelný jitter rotace kol, který interpolace nezachrání. Wrapovat do [0, 2π) — a pak pozor, `Lerp` úhlů musí být wrap-aware.
+## Math / fyzika
 
-6. **`main.cpp:18` — `catch (std::runtime_error error)` by value** (slicing + kopie). Má být `const std::exception&`. Mimochodem `main.cpp:15` žádá `DISPLAY1`, zatímco CLAUDE.md tvrdí `DISPLAY2` — drift dokumentace.
+4. **`Vec4::cross` je mutátor tvářící se jako čistá funkce** (`Vec4.h:28`, `Vec4.cpp:48-52`) — `a.cross(b)` přepíše `a`. Důsledek: `Mtx4::Slerp` (`Mtx4.h:113-114`) čte zničené `fwd` a **vrací nesmysl** (mrtvý, ale nabitý — 52 řádků inline v široce includovaném headeru); `Camera.h:92-93` přežívá jen náhodou. **Fix:** `Vec4 cross(const Vec4&) const` — opravit API, ne call sites.
 
-7. **Formálně UB data race v `Keyboard::setKeyState`** (`Input.h:23-27`) — zápis do `bool` z window vlákna, čtení z logického (zde je to totéž vlákno, ale kontrakt v komentáři výslovně počítá s asynchronním zápisem). Komentář „na x86 je to atomické" je prakticky pravdivý, ale `std::array<std::atomic<bool>, 256>` by stál stejně a byl korektní. Podobně `ResizeRequest` může teoreticky utrhnout w/h při dvou rychlých `set()` po sobě — u resize eventů prakticky neškodné, ale stojí za komentář nebo spakování do jednoho `atomic<uint64_t>`.
+5. **`brake()` je pro velký faktor no-op** (`BicycleModel.h:116-117`): dva sekvenční `if`y (ne `else if`), první zmutuje hodnotu, kterou druhý testuje — `speed=0.15, faktor=1.0` skončí zpět na `0.15`. Plné brzdění nedělá nic.
+
+6. **`speedDown(0.01f)` není škálované dt** (`App.h:191`) — absolutní dekrement per tick mezi čtyřmi dt-škálovanými sousedy; změna `logicHz` změní jízdní chování. Parametr `brake(float faktor)` je navíc absolutní hodnota, ne faktor (a česky pojmenovaný identifikátor mimo konvenci).
+
+7. **Unsigned underflow v grid builderech** (`MeshFactory.cpp:294`, `:353`): `size == 0` → `size - 1 == 4294967295` → OOM smyčka. `UpdateGridWave` má overflow fix (`size_t(size) * size`), sousední `reserve(size * size)` ne — oprava aplikovaná na 1 ze 3 míst. Příbuzné: `CreateCylinder` — modulo `% (segments * 2)` bez guardu = crash při `segments == 0`.
+
+8. **`Perspective` a `Orthographic` nesouhlasí v clip-space Z** (`Mtx4.cpp:503` vs `:513`): GL konvence [-1,1] vs [0,1] bez flipu. Projeví se jako „záhadný" bug při prvním použití ortho nebo depth bufferu. `inverseAffine` dělí nulou bez kontroly (`Mtx4.cpp:309`), zatímco `inverse` kontroluje — opačné bezpečnostní postoje v jedné třídě.
+
+## Rasterizér / backend
+
+9. **`drawAxisImpl`: NaN → `(int)NaN` = UB** (`DeviceDIB.h:193-196` → `:443-459`). Když oba konce úsečky padnou mimo, nastaví se `w=0`, `divideW()` vyrobí NaN a `(int)` je UB; garbage souřadnice pak krmí **neclipnutý** Bresenham (multi-sekundový stall). A to „Clipping (jen jednou!)" (`:436-440`) kliupuje proti rovině `x + 0.5w` — **near-plane clipping v repu neexistuje nikde**, komentář lže (nejhorší komentář v celém repu).
+
+10. **Nevalidované čtení index bufferu** (`DeviceDIB.h:320-335`, `:371-381`): indexy z .obj jdou přímo do scratch bufferů, které jen rostou → vadný index čte **stale data předchozího meshe** (tichá vizuální korupce, nejhůř diagnostikovatelný failure mód). Fix: `if (ia >= vertexCount) continue;`.
+
+11. **`noexcept` lži → `std::terminate`** (`DeviceDIB.h:135-150`): `targetCreateImpl`/`targetResizeImpl` jsou `noexcept`, uvnitř `make_unique` + ctor, který hází. `StableRegistry::reset` navíc dělá `items[i].reset()` **před** `make_unique` → při throwu roztržené registry a pak terminate.
+
+12. **Neinicializovaná čtení**: `RenderTargetDescriptor` bez default member initializerů (default-constructed = garbage width/format); `LPVOID buf` v error handleru `DeviceTargetDIB.h:66-74` — při selhání `FormatMessageA` konstruuje `std::string` z neinicializovaného pointeru (crash uvnitř hlášení chyby). `Depthbuffer24bit` deklaruje `TextureUsage::ColorAttachment` (copy-paste), `FramebufferRGBA32bit` žádá `RGBA32F` (128 bpp) — obě hodnoty dnes ignorované, obě špatně.
+
+13. **`DeviceTargetDIB` porušuje rule of five**: vlastní HBITMAP/HDC/raw pointer, má destruktor, nemá `= delete` copy/move → náhodná kopie = double-free GDI handlů. (Vedlejší `Win32DC.h` to má učebnicově správně — a je celý nepoužitý.)
+
+## Win32 povrch
+
+14. **Návratové hodnoty se skoro nikde nekontrolují.** Nejzávažnější: `CreateWindowEx` (selhání po WM_NCCREATE → non-null handle na zničené okno, projde null checkem), `GetDC` (null HDC → `BitBlt(nullptr,…)` → trvale černé okno bez hlášky), `RegisterRawInputDevices` + `RIDEV_NOLEGACY` (selhání = **žádná klávesnice včetně ESC** = nezabitelné okno). `KEYMAP[vk]` indexované `USHORT` bez bounds checku (`WindowWin32.cpp:85`; zařízení umí poslat 0xFFFF).
+
+15. **Release build je nechráněný**: `StableRegistry::get`/freeze kontrakt jsou jen asserty → v Release je stale handle null-deref bez diagnostiky. `execDrawMesh` validuje instanci, ale ne její `inst.mesh`.
 
 ---
 
-# Architektonické problémy (předělat)
+# Systémové problémy (předělat)
 
-## 1. Renderer má hardcoded demo scénu — nejdůležitější refactor
+## 1. Mrtvý kód se hromadí rychleji, než se maže
 
-`Renderer::renderFrame` (`Renderer.h:106-163`) jmenovitě zná `gridWave`, `carBody`, `wheel`, `icosphere`, `icrBeam` a volá `scene.car.getFrontLeft()` atd. **Renderer je tím svázaný s konkrétním demem** — každá nová scéna znamená editaci enginu. Navíc parametry vlny (60, 0.2f, 0.05f) jsou duplikované mezi `App::setupDemoResources` a `renderFrame` (komentář to přiznává), a Renderer kvůli tomu includuje `MeshFactory`.
+- **Mtx4.cpp: ~230 z 642 řádků bez volajícího** (inverse/transpose rodina, Orthographic, aritmetické operátory, file-static třetí kopie multiply smyčky) — a právě v mrtvé třetině žijí chyby 4 a 8.
+- **Depth-buffer plumbing horší než absence**: 4 vrstvy (descriptor → Renderer → DrawCommand `SetDepthbuffer` → ctx) s nulovým konzumentem, alokující plnou 32bpp DIB sekci + HDC + HBITMAP při každém resize.
+- `Win32DC.h` (kompletní správná RAII třída, nepoužitá), mrtvé AVX2 clear path (`clearMode` nemá setter; `__cpuid(7)` je navíc špatně — leaf 7 chce `__cpuidex`), `drawQuad`, `Vec4::Slerp`, `Mathematics::reciprocal*` (pesimizace s `cout` v headeru), mrtvé `MeshFactory::CreateGrid/Quad/Triangle/Sphere`, 8 mrtvých public metod WindowWin32/Keyboard, `timer10Hz` živící prázdnou lambdu.
+- Header hygiena: většina headerů není self-contained (kompilují se jen díky pořadí includů v Renderer.h); `StableRegistry.h` tahá `<iostream>` do celého enginu kvůli debug `operator<<`.
 
-**Jak:** do `Scene` přidat fixní pole draw itemů — `struct DrawItem { MeshInstanceHandle handle; Mtx4 world; }; std::array<DrawItem, N> items; uint32_t count;` — které naplní `updateLogic` (tam se ty world matice stejně počítají), a `renderFrame` degraduje na smyčku `for (…) drawInstance(ctx, item.handle, item.world)`. Scene zůstane trivially copyable, Slerp world matic už existuje (`Mtx4::Slerp` — dnes mrtvý, tady by ožil; anebo interpolovat dál na úrovni Car a draw list stavět až z interpolovaného stavu na render vlákně, což je čistší). Dynamickou vlnu vyjádřit obecně (např. flag/callback u meshe registrovaný v App), ať parametry žijí na jednom místě. **Tohle udělat před GL backendem** — jinak GL backend zdědí demo natvrdo zadrátované do smyčky.
+## 2. Tři mechanismy signalizace chyb v jednom modulu
 
-## 2. App.h je god-header
+Assets: výjimky (loader), asserty (registry, v Release zmizí), INVALID sentinel (deklarovaný, ale nikdy nevracený jako chyba). Volající nemá jednotný způsob, jak se zeptat „povedlo se?". **Doporučený kontrakt** (zapsat do CLAUDE.md): výjimky jen v init/load fázi, asserty na programátorské chyby + levná runtime validace handle v Release (return/skip), tiché skipy jen v render hot-path.
 
-610 řádků: `WheelTransformation` + `CarTransformation` (herní/fyzikální kód), pak uprostřed souboru blok includů (`App.h:188-199`), výběr backendu makrem, a třída App s ~90 řádky `updateLogic`, z nichž **zhruba polovina je mrtvá** (manipulace `matrixVehicle`, `matrixWheel01-04`, `scene.speed`, `scene.test`; duplicitní KEY_ENTER handler na řádcích 379 a 454). Navíc backend-macro mechanismus je napůl obejitý — member je natvrdo `Renderer<Render::DeviceDIB>` (`App.h:233`) kvůli IDE, takže přepnutí makra by ve skutečnosti backend nezměnilo.
+## 3. Duplikace přes hranici vláken a modulů
 
-**Jak:** vytáhnout `CarTransformation`/`WheelTransformation` do `src/App/CarTransformation.h` (přes `glib-add-file` skill), Scene.h ho includne → vyřeší se i fragilita č. 4 výše. Mrtvé větve v `updateLogic` smazat spolu s mrtvými poli Scene.
+- Parametry vlny `(60, 0.2f, 0.05f)` v `App.h:244` i `Renderer.h:141` — komentář přiznává, že musí sedět ručně. Fix se sveze s extrakcí `setupDemoResources` (níže).
+- 4×4 multiply smyčka 3× (`Mtx4.cpp`), grid triangulace 2× verbatim, wave vzorec 2×, dva fullscreen paths, `toWideString` reimplementovaný inline.
+- **π v pěti pravopisech** (`3.1415926535f`, `3.14159265f`, `3.14159f` 2×, dvě definice `kTwoPi`), zatímco `Math::pi` sedí nepoužité — chybí `float` alias a `two_pi`.
 
-## 3. Scene nese ~550 B mrtvých dat kopírovaných 60× za sekundu
+## 4. Konvence interpolace je nahodilá
 
-`modelMatrix/2/3`, `matrixVehicle`, `matrixWheel01-04`, `matrixSteer`, `speed`, `rotationSpeed`, `cameraSpeed`, `cameraRotationSpeed`, `test` (`Scene.h:27-46`) — 9 mrtvých matic + 5 floatů. Funkčně to nevadí (publish je memcpy), ale mate to čtenáře: není poznat, co je živý stav. Smazat.
+Šest typů, čtyři konvence (static member vs friend free function; `Camera::Slerp` je ve skutečnosti Lerp — jméno lže, a je **živé** v `Scene::Slerp`). Sjednotit na friend free `Slerp/Lerp` (forma, kterou používá Scene→Car→Camera řetěz) a mrtvé `Mtx4::Slerp`/`Vec4::Slerp` smazat.
 
-## 4. Mrtvý kód je roztroušený všude
+## 5. BicycleModel: správná kinematika, hardcoded tuning
 
-Ověřeno grepem, tohle nikdo nevolá / nikam nevede:
+Quaternion heading + rotace kolem ICR je správný přístup. Ale `BicycleParams` má 4 pole a model hardcoduje ≥5 dalších tunables (steer return rate `4.0f`, tři různé epsilon „jedu rovně/stojím", žádný `maxSpeed` — `accelerate` je neomezený integrátor). Dvě nesynchronizované definice „jedu rovně" (`:84` epsilon vs `Car.h:138` isfinite). `getIcr()` + `tan()` se počítá 3–4× za frame.
 
-- `Backend/RenderCommand/` (5 hlaviček) a `Backend/Stencil/` (fakticky prázdné soubory) — pořád visí ve vcxproj
-- `DoubleBuffer.h` (includován v Renderer.h, nepoužit), `drawTriangle_` (kopie drawTriangle), `drawStaticTestMesh*`, `Mtx4::Slerp` (zatím), `setIdentity`, `sleepIfIdle`, `waitUntilNextStep__`, `fastDiv`/`reciprocal`, `Material` (stub), zakomentovaný `render()` na konci App.h
-- `Camera.h` obsahuje **dvě kompletní implementace** přepínané trikem `/* … /*/ … //*/` (`Camera.h:17-192` je neaktivní quaternionová verze). Neaktivní smazat — drží ji git.
-- V `CarTransformation::run` mrtvé lokály `object`, `dRoll`; v `rollAllWheels` mrtvý `eps`.
+## 6. App.h má 9 os změny
 
-Mazání je zadarmo a je to největší poměr přínos/riziko v celém seznamu.
+Okno/fullscreen, input+ESC policy, gameplay mapping, kamera, asset authoring, priority vláken, thread lifecycle, publish protokol, debug scaffolding — 349 řádků. **Pořadí extrakce podle výnosu:** ① `setupDemoResources` → `DemoScene.h` (zabije i duplikaci vlny), ② `updateFollowCamera` → controller vedle Camery, ③ `updateLogic` mapping → `CarController` (přirozené místo pro fix chyby 6), ④ window/OS bootstrap. Po ①–③ je App ~140 řádků čisté orchestrace.
 
-## 5. Chybí testy — a tenhle kód je na ně ideální
+## 7. Chybí testy — pořád, a chyby to potvrzují
 
-Matematika (`Mtx4::inverse` — viz chyba č. 1, `Quaternion::Slerp`, `LookAt`/`Perspective`) a datové struktury (`TripleBuffer`, `StableRegistry`, `ZeroAllocStateHistory`) jsou čisté, deterministické, bez závislostí na Win32 — perfektní kandidáti. Chybu č. 1 by jednořádkový test odhalil okamžitě. **Jak:** druhý console projekt v solution (`GLibppTests`) s ručním mini-runnerem (žádný framework není potřeba — pár `assert` funkcí stačí), spouštěný před commitem (šel by přidat do `glib-commit` rituálu).
+Chyby 4, 5, 7, 8 (cross, brake, underflow, projekce) jsou přesně to, co jednořádkové unit testy chytí. Math + datastruct jsou deterministické, bez Win32 závislostí. **Jak:** druhý console projekt `GLibppTests` s mini-runnerem (pár assert funkcí, žádný framework), zapojený do `glib-commit` rituálu.
 
-## 6. Nekonzistentní error handling a konvence
+## 8. Výhled: co budou stát plánované kroky
 
-- `targetGetImpl` a `DeviceTargetDIB` ctor házejí výjimky; `drawMeshImpl`/`clearImpl` tiše returnují; registry používá asserty; `checkWindowInitialized` vrací bool, ale ve skutečnosti hází. Doporučený explicitní kontrakt: **výjimky jen v init fázi, asserty na programátorské chyby, tiché skipy jen v render hot-path** — a napsat ho do CLAUDE.md.
-- `std::cout` roztroušený po celém kódu (i v hot path — „Zaskub" log je aspoň komentářem obhájený). Časem jednoduchá log fasáda.
-- `Mtx4::Perspective` je GL-konvence (z ∈ −1..1), `Orthographic` D3D-konvence (z ∈ 0..1) — až se začne používat ortho nebo depth buffer, tohle se projeví jako „záhadný" bug.
-- `Vec4` konfluje bod a směr (default w=1, `normalized()` dělí i w, `cross` w ignoruje, `operator+` sčítá w → 1+1=2). Kód to obchází disciplínou (w=0 u směrů), ale je to trvalý zdroj chyb. Dlouhodobě: `Vec3` + explicitní `toPoint()/toDir()`, krátkodobě aspoň zdokumentovat konvenci.
-- `TimeManager` má `#include <immintrin.h>` **uvnitř těla třídy** (`TimeManager.h:235`) — funguje, ale patří nahoru; tři překrývající se konstruktory by šly sloučit.
-
-## 7. Známé stuby brát vážně při plánování
-
-Bez depth bufferu a bez clippingu (all-or-nothing frustum test per-triangle) je každé rozšíření scény riziko — větší ground plane = viditelné mizení trojúhelníků na okrajích. Depth buffer + aspoň near-plane clipping **změní API rasterizeru** (potřebuje interpolovat z, dělit trojúhelníky), takže je lepší je udělat před tím, než na rasterizer naváže víc kódu. Rasterizer sám má celočíselný `edgeInterp` bez subpixel přesnosti → „vertex crawling" při pomalém pohybu; to je akceptovatelné pro demo, ale při ladění stutteru to může mást měření.
+- **Depth buffer** (~den práce): ctx handle už na backend doteče, ale současné plumbing aktivně mate — depth target je HBITMAP-backed, descriptor má špatné enum hodnoty, `drawTriangle` bere jen x,y (chybí barycentrika/1w interpolace) a off-by-one v scanline smyčce (`y1` kreslený 2×, inclusive spany) se stane viditelným artefaktem hned s prvním Z-testem.
+- **Near-plane clipping** (těžší): dnešní per-vertex sentinel `z=0` + fixed-stride scratch buffery indexované původním vertex ID neumí vyjádřit nové vrcholy z clipu → přepis kroků 3–5 `rasterizeMesh`, ne vsuvka. Stávající `clipSegmentWithPlane`/`intersection` nejsou reusable (segment-only, špatná rovina, NaN bug).
+- **GL backend**: šev je správně, kontrakt nevynucený — chybí C++20 `concept RenderDevice` (nejvyšší páka: promění scavenger hunt v jeden čitelný blok), `DeviceTraits` je dnes fikce (definuje typy, které nic nepoužívá a DIB je kontradikuje), `present(TargetHandle)` je DIB-shaped (GL chce SwapBuffers bez targetu) a `ctx.depthbufferHandle` je DIB-ismus (GL chce attachment na FBO).
 
 ---
 
@@ -90,11 +128,12 @@ Bez depth bufferu a bez clippingu (all-or-nothing frustum test per-triangle) je 
 
 | # | Co | Proč v tomhle pořadí |
 |---|----|----|
-| 1 | Smazat mrtvý kód (Scene pole, updateLogic větve, Camera duplikát, RenderCommand/Stencil, drobnosti) | Zadarmo, zmenší kognitivní zátěž pro všechno další |
-| 2 | Vytáhnout CarTransformation do vlastního headeru; opravit chyby 1, 2, 3, 5, 6 | Malé, izolované, odstraní fragilitu includů |
-| 3 | Testovací projekt pro math + datastruct | Pojistka pro kroky 4–5 |
-| 4 | Data-driven draw list ve Scene (zrušit hardcoded scénu v renderFrame) | Odemyká GL backend a nové scény; největší strukturální změna |
-| 5 | Depth buffer + near-plane clipping | Před dalším růstem scén; mění rasterizer API |
-| 6 | GL backend | Až na připravený, otestovaný základ |
+| 1 | Concurrency trojice: `ResizeRequest` → atomic<u64>, freshness bit do `dirty_idx`, `RunState` latch | Nejvyšší závažnost/nejmenší diff; UB a hang pryč |
+| 2 | `Vec4::cross` const, `brake()` else-if+clamp, `speedDown` dt-scale, bounds check indexů v rasterizéru, drawAxis NaN path | Malé izolované opravy skutečných chyb |
+| 3 | Velký úklid mrtvého kódu (Mtx4 třetina, depth plumbing zmrazit/zúžit, Win32DC rozhodnout, mrtvé factory/metody) + `= delete` na DeviceTargetDIB | Zadarmo; odstraní zavádějící scaffolding před kroky 5–6 |
+| 4 | Testovací projekt math + datastruct; sjednotit error kontrakt (zapsat do CLAUDE.md); π/two_pi konstanty; Slerp/Lerp konvence | Pojistka pro všechno další |
+| 5 | Extrakce z App.h (DemoScene → zabije wave duplikaci; FollowCamera; CarController) + MeshInstance/scene-object redesign + bake draw listu | Odemyká data-driven scény; build fáze přestane znát demo |
+| 6 | Depth buffer + near-plane clipping (mění rasterizer API) | Před dalším růstem scén |
+| 7 | C++20 `concept RenderDevice`, srovnat `DeviceTraits` s realitou, pak GL backend | Až na vynucený, otestovaný kontrakt |
 
-**Shrnuto:** základy jsou solidní a směr (GL-shaped residency, handle systém, zero-alloc publish) je správný — projekt netrpí špatnou architekturou, ale **nedokončeným úklidem po evoluci**. Největší reálná rizika jsou fragilní include-order závislost Scene↔CarTransformation, hardcoded scéna v Rendereru a neexistence testů nad matematikou, kde už teď leží dvě skutečné chyby.
+**Shrnuto:** projekt netrpí špatnou architekturou — švy jsou správně a nový kód (Assets, interpolace, command stream) na nich staví dobře. Trpí **prototypovými listovými vrstvami, které nikdo nerevidoval** (rasterizér, vnitřek Mtx4, Win32 error handling) a **mrtvým kódem, který aktivně mate** (falešný „clipping", fiktivní DeviceTraits, depth plumbing bez konzumenta). Kroky 1–3 jsou dohromady víkend práce a zvednou celek z ~6 na ~7,5; testy (krok 4) jsou jediná ochrana, aby se skóre už nepropadalo.
