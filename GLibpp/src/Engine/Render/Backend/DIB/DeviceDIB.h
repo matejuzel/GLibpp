@@ -156,58 +156,23 @@ namespace GLibpp::Render {
 		}
 
 
-        static float intersection(float Ax, float Ay, float Az, float Aw, float Bx, float By, float Bz, float Bw, float a, float b, float c, float d, float& px, float& py, float& pz, float& pw) {
-            
-            // usecka (Ax,Ay,Az) (Bx,By,Bz)
-            // rovina a,b,c,d
-
-            auto r = [a,b,c,d](float x, float y, float z, float w) {
-                return a * x + b * y + c * z + d * w;
-            };
-
-            float ra = r(Ax, Ay, Az, Aw);
-            float rb = r(Bx, By, Bz, Bw);
-            float dr = rb - ra;
-            if (fabs(dr) < 10e-6f) {
-                px = py = pz = pw = 0.0f;
-                return -1.0f;
-            }
-
-            float t = - ra / dr;
-            
-            px = Ax + t * (Bx - Ax);
-            py = Ay + t * (By - Ay);
-            pz = Az + t * (Bz - Az);
-            pw = Aw + t * (Bw - Aw);
-
-            return t;
-        }
-
-        inline void clipSegmentWithPlane(Vec4& A, Vec4& B, const Vec4& plane)
+        // orizne homogenni usecku AB rovinou v clip space (uvnitr = dot(plane, P) >= 0);
+        // vraci false, kdyz je usecka cela venku - volajici ji pak nesmi kreslit.
+        // Deleni je bezpecne: do vypoctu t se jde jen kdyz maji ra/rb opacna znamenka,
+        // takze jmenovatel neni nikdy nula (zadna NaN cesta jako u drivejsi verze,
+        // ktera pri "cela venku" vracela degenerovany bod {0,0,0,0}).
+        static bool clipSegmentWithPlane(Vec4& A, Vec4& B, const Vec4& plane) noexcept
         {
-            // Hodnoty roviny v bodech
             float ra = plane.x * A.x + plane.y * A.y + plane.z * A.z + plane.w * A.w;
             float rb = plane.x * B.x + plane.y * B.y + plane.z * B.z + plane.w * B.w;
 
-            // Oba venku -> úsečka zmizí
-            if (ra < 0 && rb < 0) {
-                A = B = { 0,0,0,0 };
-                return;
-            }
+            if (ra < 0.0f && rb < 0.0f) return false; // cela venku
+            if (ra >= 0.0f && rb >= 0.0f) return true; // cela uvnitr
 
-            // A venku, B uvnitr -> posun A
-            if (ra < 0 && rb >= 0) {
-                float px, py, pz, pw;
-                intersection(A.x, A.y, A.z, A.w, B.x, B.y, B.z, B.w, plane.x, plane.y, plane.z, plane.w, px, py, pz, pw);
-                A = { px, py, pz, pw };
-            }
-
-            // B venku, A uvnitr -> posun B
-            if (rb < 0 && ra >= 0) {
-                float px, py, pz, pw;
-                intersection(A.x, A.y, A.z, A.w, B.x, B.y, B.z, B.w, plane.x, plane.y, plane.z, plane.w, px, py, pz, pw);
-                B = { px, py, pz, pw };
-            }
+            float t = ra / (ra - rb); // parametr pruseciku s rovinou
+            Vec4 P = A + (B - A) * t;
+            if (ra < 0.0f) A = P; else B = P;
+            return true;
         }
 
 
@@ -401,8 +366,6 @@ namespace GLibpp::Render {
             if (!registry.targets.isValid(ctx.framebufferHandle))
                 return;
 
-            // MVP
-            Mtx4 mv = ctx.getModelView(transform);
             Mtx4 mvp = ctx.getModelViewProjection(transform);
 
             uint32_t x = ctx.getViewport().x;
@@ -425,57 +388,57 @@ namespace GLibpp::Render {
                 {0,0,0,1}, {0,0,1,1}
             };
 
-
-            // Transformace + viewport
             // 1) MVP transform
-            for (int i = 0; i < 6; i++) 
+            for (int i = 0; i < 6; i++)
             {
                 axisVerts[i] = mvp * axisVerts[i];
             }
 
-            // 2) Clipping (jen jednou!)
-            Vec4 planeX = { 1.0f, 0.0f, 0.0f, 0.5f };
-            clipSegmentWithPlane(axisVerts[0], axisVerts[1], planeX);
-            clipSegmentWithPlane(axisVerts[2], axisVerts[3], planeX);
-            clipSegmentWithPlane(axisVerts[4], axisVerts[5], planeX);
+            // 2) Clipping proti vsem 6 rovinam frustumu v clip space (GL konvence
+            //    -w <= x,y,z <= w; stejny test jako per-vertex "inside" v rasterizeMesh).
+            //    Dela dve veci najednou:
+            //    - near rovina {0,0,1,1} zaruci w >= nearZ > 0 pro vse, co prezije
+            //      -> divideW nikdy nedeli nulou (drivejsi cesta k NaN -> (int)NaN = UB)
+            //    - x/y roviny omezi NDC na [-1,1] -> Bresenham dostane souradnice
+            //      uvnitr viewportu (drive dostaval garbage a stalloval na obrich usecich)
+            const Vec4 frustumPlanes[6] = {
+                { 1.0f,  0.0f,  0.0f, 1.0f },  // x >= -w (leva)
+                {-1.0f,  0.0f,  0.0f, 1.0f },  // x <=  w (prava)
+                { 0.0f,  1.0f,  0.0f, 1.0f },  // y >= -w (spodni)
+                { 0.0f, -1.0f,  0.0f, 1.0f },  // y <=  w (horni)
+                { 0.0f,  0.0f,  1.0f, 1.0f },  // z >= -w (near)
+                { 0.0f,  0.0f, -1.0f, 1.0f },  // z <=  w (far)
+            };
 
-            // 3) Divide W
-            for (int i = 0; i < 6; i++)
-            {
-                axisVerts[i].divideW();
-            }
-            
-            // 4) Viewport transform
-            for (int i = 0; i < 6; i++)
-            {
-                viewportTransform(axisVerts[i]);
-            }
-                
             Target& target = registry.targets.get(ctx.framebufferHandle);
 
-            // X axis (red)
-            RasterizerDIB::drawLine(
-                target,
-                (int)axisVerts[0].x, (int)axisVerts[0].y,
-                (int)axisVerts[1].x, (int)axisVerts[1].y,
-                0xFFFF0000
-            );
+            const uint32_t axisColors[3] = { 0xFFFF0000, 0xFF00FF00, 0xFF0000FF }; // X, Y, Z
 
-            // Y axis (green)
-            RasterizerDIB::drawLine(
-                target,
-                (int)axisVerts[2].x, (int)axisVerts[2].y,
-                (int)axisVerts[3].x, (int)axisVerts[3].y,
-                0xFF00FF00
-            );
+            for (int seg = 0; seg < 3; ++seg)
+            {
+                Vec4 A = axisVerts[2 * seg];
+                Vec4 B = axisVerts[2 * seg + 1];
 
-            // Z axis (blue)
-            RasterizerDIB::drawLine(
-                target,
-                (int)axisVerts[4].x, (int)axisVerts[4].y,
-                (int)axisVerts[5].x, (int)axisVerts[5].y,
-                0xFF0000FF
-            );
+                bool visible = true;
+                for (const Vec4& plane : frustumPlanes)
+                {
+                    if (!clipSegmentWithPlane(A, B, plane)) { visible = false; break; }
+                }
+                if (!visible) continue;
+
+                // 3) Divide W + viewport - po oriznuti je w >= nearZ a NDC v [-1,1]
+                A.divideW();
+                B.divideW();
+                viewportTransform(A);
+                viewportTransform(B);
+
+                RasterizerDIB::drawLine(
+                    target,
+                    (int)A.x, (int)A.y,
+                    (int)B.x, (int)B.y,
+                    axisColors[seg]
+                );
+            }
         }
 
 

@@ -4,7 +4,7 @@
 > **Datum analýzy:** 2026-08-07
 > **Rozsah:** tříčlenný hloubkový audit celého `GLibpp/src/` (render backend + common; Core/Platform/App; Math/Geometry/Physics/Assets)
 > **Předchozí analýza:** commit `0adc39a`, 2026-08-04 (viz git historie tohoto souboru)
-> **Aktualizace 2026-08-08:** opravena concurrency trojice — krok 1 doporučeného pořadí (chyby 1–3 níže označeny ✅). Nový sdílený primitiv `Core::AtomicMailbox<T>` (`Engine/Core/Datastruct/AtomicMailbox.h`).
+> **Aktualizace 2026-08-08:** opravena concurrency trojice — krok 1 doporučeného pořadí (chyby 1–3 níže označeny ✅). Nový sdílený primitiv `Core::AtomicMailbox<T>` (`Engine/Core/Datastruct/AtomicMailbox.h`). Dále opravena chyba 9 (drawAxis NaN/UB) — osy se nyní klipují proti všem 6 rovinám frustumu.
 
 ---
 
@@ -64,7 +64,7 @@ Vzorec, který se opakuje napříč: **posledních 10 % se přeskočí.** Freshn
 
 ## Rasterizér / backend
 
-9. **`drawAxisImpl`: NaN → `(int)NaN` = UB** (`DeviceDIB.h:193-196` → `:443-459`). Když oba konce úsečky padnou mimo, nastaví se `w=0`, `divideW()` vyrobí NaN a `(int)` je UB; garbage souřadnice pak krmí **neclipnutý** Bresenham (multi-sekundový stall). A to „Clipping (jen jednou!)" (`:436-440`) kliupuje proti rovině `x + 0.5w` — **near-plane clipping v repu neexistuje nikde**, komentář lže (nejhorší komentář v celém repu).
+9. ✅ **OPRAVENO 2026-08-08** — **`drawAxisImpl`: NaN → `(int)NaN` = UB** (`DeviceDIB.h:193-196` → `:443-459`). Když oba konce úsečky padnou mimo, nastaví se `w=0`, `divideW()` vyrobí NaN a `(int)` je UB; garbage souřadnice pak krmí **neclipnutý** Bresenham (multi-sekundový stall). A to „Clipping (jen jednou!)" (`:436-440`) kliupuje proti rovině `x + 0.5w` — **near-plane clipping v repu neexistuje nikde**, komentář lže (nejhorší komentář v celém repu). *Provedený fix:* každý segment osy se klipuje proti všem 6 rovinám frustumu v clip space (GL konvence, stejný poloprostor jako per-vertex test v `rasterizeMesh`) — near rovina garantuje `w ≥ nearZ > 0` (dělení nulou nemůže nastat), x/y roviny omezí NDC na [-1,1] (Bresenham dostává souřadnice uvnitř viewportu, stall nemožný). `clipSegmentWithPlane` přepsán na korektní kontrakt (vrací `bool` „celá venku" → segment se přeskočí; žádný degenerovaný `{0,0,0,0}`), `intersection` smazán. Platí ovšem stále: **trojúhelníky** near-plane clipping pořád nemají (viz Výhled).
 
 10. **Nevalidované čtení index bufferu** (`DeviceDIB.h:320-335`, `:371-381`): indexy z .obj jdou přímo do scratch bufferů, které jen rostou → vadný index čte **stale data předchozího meshe** (tichá vizuální korupce, nejhůř diagnostikovatelný failure mód). Fix: `if (ia >= vertexCount) continue;`.
 
@@ -120,7 +120,7 @@ Chyby 4, 5, 7, 8 (cross, brake, underflow, projekce) jsou přesně to, co jedno�
 ## 8. Výhled: co budou stát plánované kroky
 
 - **Depth buffer** (~den práce): ctx handle už na backend doteče, ale současné plumbing aktivně mate — depth target je HBITMAP-backed, descriptor má špatné enum hodnoty, `drawTriangle` bere jen x,y (chybí barycentrika/1w interpolace) a off-by-one v scanline smyčce (`y1` kreslený 2×, inclusive spany) se stane viditelným artefaktem hned s prvním Z-testem.
-- **Near-plane clipping** (těžší): dnešní per-vertex sentinel `z=0` + fixed-stride scratch buffery indexované původním vertex ID neumí vyjádřit nové vrcholy z clipu → přepis kroků 3–5 `rasterizeMesh`, ne vsuvka. Stávající `clipSegmentWithPlane`/`intersection` nejsou reusable (segment-only, špatná rovina, NaN bug).
+- **Near-plane clipping** (těžší): dnešní per-vertex sentinel `z=0` + fixed-stride scratch buffery indexované původním vertex ID neumí vyjádřit nové vrcholy z clipu → přepis kroků 3–5 `rasterizeMesh`, ne vsuvka. `clipSegmentWithPlane` je od 2026-08-08 korektní (bool kontrakt, bez NaN), ale je segment-only — pro trojúhelníky (Sutherland–Hodgman, vznik nových vrcholů) je potřeba nový kód.
 - **GL backend**: šev je správně, kontrakt nevynucený — chybí C++20 `concept RenderDevice` (nejvyšší páka: promění scavenger hunt v jeden čitelný blok), `DeviceTraits` je dnes fikce (definuje typy, které nic nepoužívá a DIB je kontradikuje), `present(TargetHandle)` je DIB-shaped (GL chce SwapBuffers bez targetu) a `ctx.depthbufferHandle` je DIB-ismus (GL chce attachment na FBO).
 
 ---
@@ -130,7 +130,7 @@ Chyby 4, 5, 7, 8 (cross, brake, underflow, projekce) jsou přesně to, co jedno�
 | # | Co | Proč v tomhle pořadí |
 |---|----|----|
 | 1 | ✅ **hotovo 2026-08-08** — Concurrency trojice: `ResizeRequest` → `AtomicMailbox<T>` (atomic<u64>), freshness bit do `dirty_idx`, `RunState` latch | Nejvyšší závažnost/nejmenší diff; UB a hang pryč |
-| 2 | `Vec4::cross` const, `brake()` else-if+clamp, `speedDown` dt-scale, bounds check indexů v rasterizéru, drawAxis NaN path | Malé izolované opravy skutečných chyb |
+| 2 | `Vec4::cross` const, `brake()` else-if+clamp, `speedDown` dt-scale, bounds check indexů v rasterizéru, ~~drawAxis NaN path~~ (✅ hotovo 2026-08-08) | Malé izolované opravy skutečných chyb |
 | 3 | Velký úklid mrtvého kódu (Mtx4 třetina, depth plumbing zmrazit/zúžit, Win32DC rozhodnout, mrtvé factory/metody) + `= delete` na DeviceTargetDIB | Zadarmo; odstraní zavádějící scaffolding před kroky 5–6 |
 | 4 | Testovací projekt math + datastruct; sjednotit error kontrakt (zapsat do CLAUDE.md); π/two_pi konstanty; Slerp/Lerp konvence | Pojistka pro všechno další |
 | 5 | Extrakce z App.h (DemoScene → zabije wave duplikaci; FollowCamera; CarController) + MeshInstance/scene-object redesign + bake draw listu | Odemyká data-driven scény; build fáze přestane znát demo |
