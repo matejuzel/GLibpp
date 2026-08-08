@@ -37,7 +37,13 @@ Injektáž kláves (`keybd_event`) a screenshot (`CopyFromScreen`) fungují jen 
 
 ## 3. Interpretace
 
-- **Zdravé:** FPS 60, 1% Low ≥ 52. Skript končí exit 0 / `PASS`.
-- **1% Low ~31** = vynechané vblanky (33ms framy) — regrese pacingu.
+Zdravé hodnoty závisí na stroji — DwmFlush pacuje framy na refresh rate monitoru. Před/po měření srovnávej vždy na tomtéž stroji, proti odpovídající baseline:
+
+| Stroj | Zdravé | Regrese pacingu | Práh |
+|---|---|---|---|
+| **Laptop** — Ryzen 7 5825U, 60Hz displej | FPS 60, 1% Low ≥ 52 | 1% Low ~31 = vynechané vblanky (33ms framy) | default `-MinLow 52` |
+| **Desktop** — Ryzen 7 9700X, 64GB DDR5, RTX 5070 Ti 16GB, 2560×1080 @ 199 Hz | FPS ~190–200, 1% Low ~95–105 (Debug, změřeno 2026-08-08) | 1% Low výrazně pod ~90 = vynechané kompozice | předávej `-MinLow 90` |
+
+- Default `-MinLow 52` ve skriptu je kalibrovaný na laptop — na desktopu by prošla i reálná regrese, proto tam práh explicitně zvyš.
 - V konzoli aplikace hlídej řádky `Zaskub: t = ...` — skutečné zaseknutí logiky (interpolační alfa přeteklo).
-- Před/po měření srovnávej na stejném stroji (baseline: laptop Ryzen 7 5825U).
+- Skript končí exit 0 / `PASS` při splnění prahu.
