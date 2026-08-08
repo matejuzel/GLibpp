@@ -34,6 +34,7 @@
     <ClInclude Include="src\Engine\Assets\ModelImporter.h" />
     <ClInclude Include="src\Engine\Assets\ObjLoader.h" />
     <ClInclude Include="src\App\Scene.h" />
+    <ClInclude Include="src\Engine\Core\Datastruct\AtomicMailbox.h" />
     <ClInclude Include="src\Engine\Core\Datastruct\StableRegistry.h" />
     <ClInclude Include="src\Engine\Core\Datastruct\ZeroAllocStateHistory.h" />
     <ClInclude Include="src\Engine\Core\Datastruct\ZeroAllocTripleBuffer.h" />

@@ -2,7 +2,6 @@
 
 #include <atomic>
 #include <array>
-#include <format>
 #include <new>
 
 namespace GLibpp::Core {
@@ -14,10 +13,9 @@ public:
         : producer_idx(0) // Producer má buffer 0
         , consumer_idx(2) // Consumer má buffer 2
     {
-        // V "dirty" schránce leží buffer 1. 
-        // Schránka teď není "prázdná", ale drží ten třetí volný buffer.
+        // V "dirty" schránce leží třetí volný buffer (1) - bez FRESH bitu,
+        // takže consumer před prvním publish() nic nevyzvedne.
         dirty_idx.store(1, std::memory_order_relaxed);
-        has_new_data.store(false, std::memory_order_relaxed);
     }
 
     // --- PRODUCER API ---
@@ -26,25 +24,25 @@ public:
     }
 
     void publish() {
-        // Vyměníme náš dopsaný buffer za ten, který byl v dirty_idx (ten volný).
-        producer_idx = dirty_idx.exchange(producer_idx, std::memory_order_acq_rel);
-
-        // Signalizujeme, že v dirty_idx je teď čerstvé maso.
-        has_new_data.store(true, std::memory_order_release);
+        // Dopsaný buffer odložíme do dirty schránky označený jako čerstvý
+        // a vezmeme si ten, který tam ležel (starý odložený, případně čerstvý
+        // nepřečtený - ten se tím korektně zahodí, consumer bere jen nejnovější).
+        // Index i příznak čerstvosti cestují jedním exchange - nemůže nastat
+        // stav "čerstvý buffer bez příznaku" (dřívější oddělený flag uměl
+        // v úzkém okně tiše zahodit jeden publish).
+        producer_idx = stripFresh(dirty_idx.exchange(withFresh(producer_idx), std::memory_order_acq_rel));
     }
 
     // --- CONSUMER API ---
     bool update_reader() {
-        // Nejdřív levně zkontrolujeme, jestli producent vůbec něco poslal.
-        if (!has_new_data.load(std::memory_order_acquire)) {
+        // Levná kontrola bez RMW: leží v dirty schránce nepřečtený stav?
+        if (!isFresh(dirty_idx.load(std::memory_order_acquire))) {
             return false;
         }
 
-        // Pokud ano, vezmeme si to a v dirty_idx necháme náš starý (už přečtený) buffer.
-        consumer_idx = dirty_idx.exchange(consumer_idx, std::memory_order_acq_rel);
-
-        // Resetujeme příznak, protože jsme právě vybrali nejnovější data.
-        has_new_data.store(false, std::memory_order_release);
+        // Vyměníme náš starý (už přečtený) buffer za čerstvý; odkládáme
+        // bez FRESH bitu - příznak zaniká přesně v okamžiku vyzvednutí.
+        consumer_idx = stripFresh(dirty_idx.exchange(consumer_idx, std::memory_order_acq_rel));
 
         return true;
     }
@@ -54,6 +52,14 @@ public:
     }
 
 private:
+    // Příznak čerstvosti pakovaný přímo do dirty_idx: indexy 0-2 zabírají
+    // bity 0-1, FRESH sedí v bitu 2. Jeden atomik = žádná ztracená notifikace.
+    static constexpr int FRESH_BIT = 0b100;
+
+    static constexpr int  withFresh(int idx) noexcept { return idx | FRESH_BIT; }
+    static constexpr int  stripFresh(int v) noexcept { return v & ~FRESH_BIT; }
+    static constexpr bool isFresh(int v) noexcept { return (v & FRESH_BIT) != 0; }
+
 #ifdef __cpp_lib_hardware_interference_size
     static constexpr size_t cache_line = std::hardware_destructive_interference_size;
 #else
@@ -65,12 +71,9 @@ private:
     alignas(cache_line) int producer_idx;
     alignas(cache_line) int consumer_idx;
 
-    // dirty_idx teď slouží jako permanentní úschovna toho "třetího" bufferu.
+    // dirty_idx slouží jako permanentní úschovna toho "třetího" bufferu
+    // + nese FRESH bit (je to novinka od producenta, nebo odložený starý?).
     alignas(cache_line) std::atomic<int> dirty_idx;
-
-    // Příznak, abychom poznali, jestli to, co leží v dirty_idx, 
-    // je novinka od producenta, nebo jen starý odložený buffer.
-    alignas(cache_line) std::atomic<bool> has_new_data;
 };
 
 }

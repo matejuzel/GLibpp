@@ -4,6 +4,7 @@
 > **Datum analýzy:** 2026-08-07
 > **Rozsah:** tříčlenný hloubkový audit celého `GLibpp/src/` (render backend + common; Core/Platform/App; Math/Geometry/Physics/Assets)
 > **Předchozí analýza:** commit `0adc39a`, 2026-08-04 (viz git historie tohoto souboru)
+> **Aktualizace 2026-08-08:** opravena concurrency trojice — krok 1 doporučeného pořadí (chyby 1–3 níže označeny ✅). Nový sdílený primitiv `Core::AtomicMailbox<T>` (`Engine/Core/Datastruct/AtomicMailbox.h`).
 
 ---
 
@@ -43,11 +44,11 @@ Vzorec, který se opakuje napříč: **posledních 10 % se přeskočí.** Freshn
 
 ## Concurrency (nejvyšší priorita — malé opravy, UB dopady)
 
-1. **`ResizeRequest` je datový race** (`Renderer.h:41-62`). `width`/`height` nejsou atomické; `active.store(false, relaxed)` po čtení → logické vlákno může začít zapisovat, zatímco render čte (UB, roztržený pár w/h), a `set()` doručený v okně mezi load a store se **tiše spolkne** (okno zůstane na staré velikosti). Při drag-resize se WM_SIZE sype nepřetržitě. **Fix:** jeden `std::atomic<uint64_t>` s pakovaným w|h, `exchange(0)` při konzumaci.
+1. ✅ **OPRAVENO 2026-08-08** — **`ResizeRequest` je datový race** (`Renderer.h:41-62`). `width`/`height` nejsou atomické; `active.store(false, relaxed)` po čtení → logické vlákno může začít zapisovat, zatímco render čte (UB, roztržený pár w/h), a `set()` doručený v okně mezi load a store se **tiše spolkne** (okno zůstane na staré velikosti). Při drag-resize se WM_SIZE sype nepřetržitě. *Provedený fix:* `ResizeRequest` je čistá datová struktura (w, h) přenášená přes nový generický `Core::AtomicMailbox<T>` — celý payload pakovaný `std::bit_cast` do jednoho `atomic<uint64_t>`, konzumace `exchange(0)`; pár cestuje nedělitelně, novější požadavek přepíše starší.
 
-2. **Triple buffer — ztracená notifikace** (`ZeroAllocTripleBuffer.h`). `has_new_data` je druhý atomic mimo RMW: interleaving `R.exchange < P.exchange < P.set(flag) < R.clear(flag)` nechá v `dirty_idx` čerstvý nepřečtený stav s flagem `false` → další publish ho vytáhne zpět a **jeden logický tick se tiše zahodí**. Vzácné (okno pár instrukcí), samoléčivé, ale je to díra v komponentě, jejíž jediná práce je korektnost — a clamp diagnostika v Rendereru ho neumí odlišit od jitteru scheduleru (instrumentace může částečně měřit tenhle bug). **Fix:** freshness bit pakovaný do `dirty_idx` (`idx | FRESH_BIT`), druhý atomic zmizí.
+2. ✅ **OPRAVENO 2026-08-08** — **Triple buffer — ztracená notifikace** (`ZeroAllocTripleBuffer.h`). `has_new_data` je druhý atomic mimo RMW: interleaving `R.exchange < P.exchange < P.set(flag) < R.clear(flag)` nechá v `dirty_idx` čerstvý nepřečtený stav s flagem `false` → další publish ho vytáhne zpět a **jeden logický tick se tiše zahodí**. Vzácné (okno pár instrukcí), samoléčivé, ale je to díra v komponentě, jejíž jediná práce je korektnost — a clamp diagnostika v Rendereru ho neumí odlišit od jitteru scheduleru (instrumentace může částečně měřit tenhle bug). *Provedený fix:* freshness bit pakovaný přímo do `dirty_idx` (bit 2, indexy 0–2 v bitech 0–1; pojmenované helpery `withFresh`/`stripFresh`/`isFresh`), index i příznak cestují jedním `exchange`, druhý atomic zmizel.
 
-3. **`stop()` před `start()` = hang procesu** (`Renderer.h` runLoop + `App::run`). `running.start()` běží až po freeze + upload walku (v Debugu desítky ms); ESC/WM_CLOSE doručené dřív → `start()` přepíše `stop()`, smyčka běží věčně, `join()` se nevrátí. **Fix:** latch (stop je terminální), nebo `start()` v konstruktoru.
+3. ✅ **OPRAVENO 2026-08-08** — **`stop()` před `start()` = hang procesu** (`Renderer.h` runLoop + `App::run`). `running.start()` běží až po freeze + upload walku (v Debugu desítky ms); ESC/WM_CLOSE doručené dřív → `start()` přepíše `stop()`, smyčka běží věčně, `join()` se nevrátí. *Provedený fix:* `RunState` je tříhodnotový latch (`NotStarted/Running/Stopped`), `start()` = CAS jen z `NotStarted`, `stop()` je terminální — pozdější `start()` už stav neoživí.
 
 ## Math / fyzika
 
@@ -128,7 +129,7 @@ Chyby 4, 5, 7, 8 (cross, brake, underflow, projekce) jsou přesně to, co jedno�
 
 | # | Co | Proč v tomhle pořadí |
 |---|----|----|
-| 1 | Concurrency trojice: `ResizeRequest` → atomic<u64>, freshness bit do `dirty_idx`, `RunState` latch | Nejvyšší závažnost/nejmenší diff; UB a hang pryč |
+| 1 | ✅ **hotovo 2026-08-08** — Concurrency trojice: `ResizeRequest` → `AtomicMailbox<T>` (atomic<u64>), freshness bit do `dirty_idx`, `RunState` latch | Nejvyšší závažnost/nejmenší diff; UB a hang pryč |
 | 2 | `Vec4::cross` const, `brake()` else-if+clamp, `speedDown` dt-scale, bounds check indexů v rasterizéru, drawAxis NaN path | Malé izolované opravy skutečných chyb |
 | 3 | Velký úklid mrtvého kódu (Mtx4 třetina, depth plumbing zmrazit/zúžit, Win32DC rozhodnout, mrtvé factory/metody) + `= delete` na DeviceTargetDIB | Zadarmo; odstraní zavádějící scaffolding před kroky 5–6 |
 | 4 | Testovací projekt math + datastruct; sjednotit error kontrakt (zapsat do CLAUDE.md); π/two_pi konstanty; Slerp/Lerp konvence | Pojistka pro všechno další |

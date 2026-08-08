@@ -27,6 +27,7 @@
 #include "ResourceManager.h"
 #include "Scene.h"
 #include "Mesh.h"
+#include "AtomicMailbox.h"
 #include "StableRegistry.h"
 #include "RunState.h"
 #include "TimeManager.h"
@@ -38,27 +39,14 @@
 
 namespace GLibpp::Render {
 
+    // pozadavek na resize z logickeho vlakna (WM_SIZE); do render vlakna
+    // cestuje pres Core::AtomicMailbox - oba rozmery se prenaseji nedelitelne
+    // jednim atomikem a novejsi pozadavek prepise starsi (posledni vyhrava).
+    // Minimalizace (0x0) se pakuje na nulu = prazdna schranka; to nevadi,
+    // resize(0,0) se stejne ignoruje.
     struct ResizeRequest {
-
-        std::atomic<bool> active = { false };
         uint32_t width = 0;
         uint32_t height = 0;
-
-        void set(uint32_t w, uint32_t h) {
-            width = w;
-            height = h;
-            active.store(true, std::memory_order_release);
-        }
-
-        bool consume(uint32_t& outW, uint32_t& outH) {
-            if (active.load(std::memory_order_acquire)) {
-                outW = width;
-                outH = height;
-                active.store(false, std::memory_order_relaxed);
-                return true;
-            }
-            return false;
-        }
     };
 
     template <typename Device>
@@ -92,7 +80,7 @@ namespace GLibpp::Render {
 
         Device device;
         Viewport viewport;
-        ResizeRequest resizeRequest;
+        Core::AtomicMailbox<ResizeRequest> resizeRequest;
 
         // command list - plni ho build faze, prehrava submit faze (reuse, zadne alokace za behu)
         DrawList<Device, kDrawListCapacity> drawList;
@@ -182,9 +170,9 @@ namespace GLibpp::Render {
                 {
                     // budouci seam: resources.uploadQueueConsume() - SPSC fronta pro runtime tvorbu
                     // resources z logickeho vlakna (skutecne add() do registru probehne az tady, na render vlakne)
-                    if (uint32_t w, h; resizeRequest.consume(w, h))
+                    if (ResizeRequest rq; resizeRequest.consume(rq))
                     {
-                        this->resize(w, h);
+                        this->resize(rq.width, rq.height);
                     }
                 }
 
@@ -263,8 +251,8 @@ namespace GLibpp::Render {
 		}
   
         void resizeRequestSet(uint32_t width, uint32_t height)
-        {   
-            resizeRequest.set(width, height);
+        {
+            resizeRequest.set({ width, height });
         }
 
     private:
