@@ -42,32 +42,31 @@ namespace GLibpp::Render {
             }
         }
 
-        // Depth test se dela, jen kdyz je predan depth target (nullptr = kresli se
-        // v poradi jako dosud). Hloubka na vstupu je NDC z v [-1, 1] (-1 = near),
-        // test je "mensi vyhrava" a vyhra znamena zapis do framebufferu i do hloubky.
+        // ---- Rasterizace trojuhelniku: hranove funkce nad subpixelovou mrizkou ----
         //
-        // Interpolace je presna a levna: po perspektivnim deleni je NDC z afinni
-        // funkci obrazovkovych x, y, takze staci rovina z = zRef + dzdx*dx + dzdy*dy
-        // a v ramci radku se pricita dzdx. (1/w interpolace je potreba az pro
-        // atributy typu UV nebo barvy, ne pro hloubku.)
+        // Pokryti rozhoduje test STREDU pixelu proti trem hranovym funkcim (pixel
+        // s indexem x pokryva interval [x, x+1), takze jeho stred je x+0.5).
+        // Vrcholy se nezaokrouhluji na cele pixely - snapuji se na mrizku
+        // 1/kSubScale pixelu, takze hrany pri pohybu kamery necukaji.
+        //
+        // Proc fixed-point a ne float: hranova funkce musi byt EXAKTNI. Pro hranu
+        // sdilenou dvema trojuhelniky plati algebraicky E_AB(p) == -E_BA(p), a v
+        // celych cislech to plati na bit. Ve floatu by zaokrouhleni mohlo pixel
+        // lezici presne na hrane dat obema (dvojity zapis) nebo zadnemu (svy).
+        // Diky exaktnosti staci top-left fill rule a hranicni pixel patri PRESNE
+        // JEDNOMU trojuhelniku - sousedni plosky se uz o nej nehadaji.
+        //
+        // Hloubka: NDC z je po perspektivnim deleni afinni funkci obrazovkovych
+        // x, y, takze staci rovina z = zRef + dzdx*dx + dzdy*dy (1/w interpolace
+        // je potreba az pro atributy typu UV, ne pro hloubku). Rovina se pocita
+        // z tychze snapnutych souradnic jako pokryti a vzorkuje se rovnez ve
+        // stredu pixelu. Depth test je "mensi vyhrava"; bez depth targetu
+        // (nullptr) se kresli v poradi commandu jako dosud.
+        // Pozn.: u extremne tenkych trojuhelniku je jmenovatel roviny maly a
+        // gradient hloubky velky - presna matematika drzi z uvnitr [min z, max z]
+        // vrcholu, float zaokrouhleni se tam ale znatelne zesiluje.
         //
         // Obrys (wireframe) i drawLine hloubku ignoruji - cary jsou debug overlay.
-        //
-        // Pro sousedni trojuhelniky jsou kriticke dve veci:
-        //  1) rovina se pocita z NEZAOKROUHLENYCH souradnic vrcholu. Fitovana na cela
-        //     cisla dava dvema trojuhelnikum se spolecnou hranou meritelne odlisne
-        //     roviny - na sdilene hrane se pak hadaji o hloubku a vyhrava ten, ktery
-        //     se zaokrouhlenim posunul blize (viditelne artefakty na navazujicich
-        //     hranach). Z presnych souradnic obe roviny na sdilene hrane splynou.
-        //  2) hloubka se vzorkuje ve STREDU pixelu (x+0.5, y+0.5) - pixel s indexem x
-        //     pokryva interval [x, x+1). Vzorkovani v rohu zanasi systematickou chybu
-        //     0,5*(dzdx + dzdy), ktera je pro kazdy trojuhelnik jina, takze i dve
-        //     spravne roviny se na sdilene hrane rozejdou.
-        //
-        // Pokryti se porad urcuje ze zaokrouhlenych vrcholu (chybi subpixel presnost
-        // a exclusive fill rule - viz ANALYZA-CODEBASE.md), takze pixel na sdilene
-        // hrane kresli oba trojuhelniky. Se striktnim < ale vyhrava ten prvni a
-        // vysledek je deterministicky, ne per-pixel nahodny.
         static void inline drawTriangle(
             DeviceTargetDIB& target,
             DeviceTargetDIB* depth,
@@ -78,110 +77,169 @@ namespace GLibpp::Render {
             bool wireframe
         ) noexcept
         {
-            int x0 = static_cast<int>(fx0), y0 = static_cast<int>(fy0);
-            int x1 = static_cast<int>(fx1), y1 = static_cast<int>(fy1);
-            int x2 = static_cast<int>(fx2), y2 = static_cast<int>(fy2);
-
             if (wireframe)
             {
-                // jen obrys
-                drawLine(target, x0, y0, x1, y1, color);
-                drawLine(target, x1, y1, x2, y2, color);
-                drawLine(target, x2, y2, x0, y0, color);
+                // jen obrys - cary adresuji pixel obsahujici vrchol
+                const int lx0 = pixelOf(fx0), ly0 = pixelOf(fy0);
+                const int lx1 = pixelOf(fx1), ly1 = pixelOf(fy1);
+                const int lx2 = pixelOf(fx2), ly2 = pixelOf(fy2);
+
+                drawLine(target, lx0, ly0, lx1, ly1, color);
+                drawLine(target, lx1, ly1, lx2, ly2, color);
+                drawLine(target, lx2, ly2, lx0, ly0, color);
                 return;
             }
 
-            // Rovina hloubky - z presnych souradnic nesetridenych vrcholu; referencni
-            // bod se odlozi, takze nasledne serazeni podle Y se ji nedotkne
-            const float zRefX = fx0;
-            const float zRefY = fy0;
-            const float zRef = z0;
+            // --- 1) snap vrcholu na subpixelovou mrizku ---
+            int64_t vx[3] = { toFixed(fx0), toFixed(fx1), toFixed(fx2) };
+            int64_t vy[3] = { toFixed(fy0), toFixed(fy1), toFixed(fy2) };
+            float   vz[3] = { z0, z1, z2 };
+
+            // --- 2) vinuti: chceme "uvnitr" == vsechny hranove funkce >= 0 ---
+            const int64_t area2 = (vx[1] - vx[0]) * (vy[2] - vy[0])
+                                - (vy[1] - vy[0]) * (vx[2] - vx[0]);
+
+            if (area2 == 0) return; // nulova plocha - neni co rasterizovat
+
+            if (area2 < 0)
+            {
+                // obracene vinuti - prohodime dva vrcholy vcetne jejich hloubky
+                std::swap(vx[1], vx[2]);
+                std::swap(vy[1], vy[2]);
+                std::swap(vz[1], vz[2]);
+            }
+
+            // --- 3) hranove funkce ve tvaru E_i(p) = A_i*p.x + B_i*p.y + C_i ---
+            int64_t A[3], B[3], C[3];
+            for (int i = 0; i < 3; ++i)
+            {
+                const int j = (i + 1) % 3;
+                const int64_t dx = vx[j] - vx[i];
+                const int64_t dy = vy[j] - vy[i];
+
+                A[i] = -dy;
+                B[i] = dx;
+                C[i] = dy * vx[i] - dx * vy[i];
+
+                // top-left fill rule: pixel presne na hrane (E == 0) se pocita jen
+                // u horni a leve hrany. Sousedni trojuhelnik vidi tutez hranu s
+                // obracenym smerem, takze podminku splni presne jeden z nich.
+                const bool topLeft = (dy < 0) || (dy == 0 && dx > 0);
+                if (!topLeft) C[i] -= 1; // z ">= 0" se stane "> 0"
+            }
+
+            // --- 4) rovina hloubky z tychze snapnutych souradnic ---
+            const float px[3] = { fromFixed(vx[0]), fromFixed(vx[1]), fromFixed(vx[2]) };
+            const float py[3] = { fromFixed(vy[0]), fromFixed(vy[1]), fromFixed(vy[2]) };
+
             float dzdx = 0.0f;
             float dzdy = 0.0f;
 
             if (depth)
             {
-                const float e1x = fx1 - fx0, e1y = fy1 - fy0;
-                const float e2x = fx2 - fx0, e2y = fy2 - fy0;
-                const float denom = e1x * e2y - e2x * e1y; // dvojnasobek plochy
+                const float e1x = px[1] - px[0], e1y = py[1] - py[0];
+                const float e2x = px[2] - px[0], e2y = py[2] - py[0];
+                const float inv = 1.0f / (e1x * e2y - e2x * e1y); // != 0, viz area2
 
-                if (std::fabs(denom) < 1e-6f) return; // nulova plocha - neni co vzorkovat
-
-                const float inv = 1.0f / denom;
-                dzdx = ((z1 - z0) * e2y - (z2 - z0) * e1y) * inv;
-                dzdy = ((z2 - z0) * e1x - (z1 - z0) * e2x) * inv;
+                dzdx = ((vz[1] - vz[0]) * e2y - (vz[2] - vz[0]) * e1y) * inv;
+                dzdy = ((vz[2] - vz[0]) * e1x - (vz[1] - vz[0]) * e2x) * inv;
             }
 
-            // Seřadíme vrcholy podle Y (od nejnižšího)
-            if (y1 < y0) { std::swap(y0, y1); std::swap(x0, x1); }
-            if (y2 < y0) { std::swap(y0, y2); std::swap(x0, x2); }
-            if (y2 < y1) { std::swap(y1, y2); std::swap(x1, x2); }
+            // --- 5) obalka v pixelech (kandidati, jejichz stred muze byt uvnitr) ---
+            const float minX = std::min(px[0], std::min(px[1], px[2]));
+            const float maxX = std::max(px[0], std::max(px[1], px[2]));
+            const float minY = std::min(py[0], std::min(py[1], py[2]));
+            const float maxY = std::max(py[0], std::max(py[1], py[2]));
 
-            auto drawSpan = [&](int y, int xStart, int xEnd)
+            const int bxMin = std::max(0, static_cast<int>(std::floor(minX - 0.5f)));
+            const int bxMax = std::min(static_cast<int>(target.descriptor.width) - 1,
+                                       static_cast<int>(std::ceil(maxX - 0.5f)));
+            const int byMin = std::max(0, static_cast<int>(std::floor(minY - 0.5f)));
+            const int byMax = std::min(static_cast<int>(target.descriptor.height) - 1,
+                                       static_cast<int>(std::ceil(maxY - 0.5f)));
+
+            if (bxMin > bxMax || byMin > byMax) return;
+
+            // --- 6) prochazeni: hranove funkce se jen pricitaji ---
+            const int64_t stepX[3] = { A[0] * kSubScale, A[1] * kSubScale, A[2] * kSubScale };
+            const int64_t stepY[3] = { B[0] * kSubScale, B[1] * kSubScale, B[2] * kSubScale };
+
+            // stred prvniho pixelu obalky
+            const int64_t originX = int64_t(bxMin) * kSubScale + kSubScale / 2;
+            const int64_t originY = int64_t(byMin) * kSubScale + kSubScale / 2;
+
+            int64_t rowE[3];
+            for (int i = 0; i < 3; ++i)
+                rowE[i] = A[i] * originX + B[i] * originY + C[i];
+
+            const size_t stride = target.descriptor.width;
+            float* depthBase = depth ? depth->depthbuffer.data() : nullptr;
+
+            for (int y = byMin; y <= byMax; ++y)
+            {
+                int64_t e0 = rowE[0], e1 = rowE[1], e2 = rowE[2];
+
+                uint32_t* row = target.framebuffer + size_t(y) * stride;
+                float* depthRow = depthBase ? depthBase + size_t(y) * stride : nullptr;
+
+                float z = vz[0]
+                    + dzdx * ((float(bxMin) + 0.5f) - px[0])
+                    + dzdy * ((float(y) + 0.5f) - py[0]);
+
+                bool wasInside = false;
+
+                for (int x = bxMin; x <= bxMax; ++x)
                 {
-                    if (y < 0 || y >= (int)target.descriptor.height)
-                        return;
-
-                    if (xStart > xEnd)
-                        std::swap(xStart, xEnd);
-
-                    xStart = std::max(0, xStart);
-                    xEnd = std::min((int)target.descriptor.width - 1, xEnd);
-                    if (xStart > xEnd)
-                        return;
-
-                    const size_t stride = target.descriptor.width;
-                    uint32_t* row = target.framebuffer + size_t(y) * stride;
-
-                    if (!depth)
+                    // vsechny tri hranove funkce nezaporne (staci znamenkovy bit v OR)
+                    if ((e0 | e1 | e2) >= 0)
                     {
-                        for (int x = xStart; x <= xEnd; x++)
+                        wasInside = true;
+
+                        if (!depthRow)
+                        {
                             row[x] = color;
-                        return;
-                    }
-
-                    float* depthRow = depth->depthbuffer.data() + size_t(y) * stride;
-
-                    // vzorkuje se stred pixelu, ne jeho levy horni roh
-                    float z = zRef
-                        + dzdx * ((float(xStart) + 0.5f) - zRefX)
-                        + dzdy * ((float(y) + 0.5f) - zRefY);
-
-                    for (int x = xStart; x <= xEnd; x++, z += dzdx)
-                    {
-                        if (z < depthRow[x])
+                        }
+                        else if (z < depthRow[x])
                         {
                             depthRow[x] = z;
                             row[x] = color;
                         }
                     }
-                };
+                    else if (wasInside)
+                    {
+                        break; // trojuhelnik je konvexni - uz jsme z nej vyjeli
+                    }
 
-            auto edgeInterp = [&](int y, int x0, int y0, int x1, int y1)
-                {
-                    if (y1 == y0)
-                        return x0;
+                    e0 += stepX[0]; e1 += stepX[1]; e2 += stepX[2];
+                    z += dzdx;
+                }
 
-                    return x0 + (x1 - x0) * (y - y0) / (y1 - y0);
-                };
-
-            // Horní část (od y0 do y1)
-            for (int y = y0; y <= y1; y++)
-            {
-                int xa = edgeInterp(y, x0, y0, x2, y2);
-                int xb = edgeInterp(y, x0, y0, x1, y1);
-                drawSpan(y, xa, xb);
-            }
-
-            // Dolní část (od y1 do y2)
-            for (int y = y1; y <= y2; y++)
-            {
-                int xa = edgeInterp(y, x0, y0, x2, y2);
-                int xb = edgeInterp(y, x1, y1, x2, y2);
-                drawSpan(y, xa, xb);
+                rowE[0] += stepY[0]; rowE[1] += stepY[1]; rowE[2] += stepY[2];
             }
         }
 
+    private:
+
+        // 1 pixel = kSubScale jednotek mrizky; 8 bitu (1/256 px) je stejna
+        // presnost, jakou pro souradnice pouzivaji GPU pipeline
+        static constexpr int kSubBits = 8;
+        static constexpr int64_t kSubScale = int64_t(1) << kSubBits;
+
+        static int64_t inline toFixed(float v) noexcept
+        {
+            return static_cast<int64_t>(std::llround(v * float(kSubScale)));
+        }
+
+        static float inline fromFixed(int64_t v) noexcept
+        {
+            return static_cast<float>(v) / static_cast<float>(kSubScale);
+        }
+
+        // index pixelu, ktery dany spojity bod obsahuje
+        static int inline pixelOf(float v) noexcept
+        {
+            return static_cast<int>(std::floor(v));
+        }
 
     };
 
