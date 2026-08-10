@@ -111,10 +111,16 @@ namespace GLibpp::Physics {
                 speed = 0.0f;
         }
 
-        void brake(float faktor)
+        // ubere absolutni prirustek rychlosti smerem k nule, bez prestreleni
+        // (drive dva nezavisle ify: prvni mohl prehodit znamenko a druhy
+        // ubrani vratil zpet -> silne brzdeni bylo no-op; navic deadzone 0.1
+        // nechavala auto vecne dojizdet ~0.1 m/s)
+        void brake(float decrement)
         {
-            if (speed > 0.1f) speed -= faktor;
-            if (speed < -0.1f) speed += faktor;
+            if (fabs(speed) <= decrement)
+                speed = 0.0f;
+            else
+                speed -= copysign(decrement, speed);
         }
 
         void steer(float dAngle)

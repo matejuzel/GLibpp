@@ -5,6 +5,7 @@
 > **Rozsah:** tříčlenný hloubkový audit celého `GLibpp/src/` (render backend + common; Core/Platform/App; Math/Geometry/Physics/Assets)
 > **Předchozí analýza:** commit `0adc39a`, 2026-08-04 (viz git historie tohoto souboru)
 > **Aktualizace 2026-08-08:** opravena concurrency trojice — krok 1 doporučeného pořadí (chyby 1–3 níže označeny ✅). Nový sdílený primitiv `Core::AtomicMailbox<T>` (`Engine/Core/Datastruct/AtomicMailbox.h`). Dále opravena chyba 9 (drawAxis NaN/UB) — osy se nyní klipují proti všem 6 rovinám frustumu.
+> **Aktualizace 2026-08-10:** dokončen krok 2 — chyby 4, 5, 6 a 10 označeny ✅ (`Vec4::cross` čistý, `brake()` bez přestřelení a deadzone, `speedDown` škálované dt, bounds check indexů v `rasterizeMesh`).
 
 ---
 
@@ -52,11 +53,11 @@ Vzorec, který se opakuje napříč: **posledních 10 % se přeskočí.** Freshn
 
 ## Math / fyzika
 
-4. **`Vec4::cross` je mutátor tvářící se jako čistá funkce** (`Vec4.h:28`, `Vec4.cpp:48-52`) — `a.cross(b)` přepíše `a`. Důsledek: `Mtx4::Slerp` (`Mtx4.h:113-114`) čte zničené `fwd` a **vrací nesmysl** (mrtvý, ale nabitý — 52 řádků inline v široce includovaném headeru); `Camera.h:92-93` přežívá jen náhodou. **Fix:** `Vec4 cross(const Vec4&) const` — opravit API, ne call sites.
+4. ✅ **OPRAVENO 2026-08-10** — **`Vec4::cross` je mutátor tvářící se jako čistá funkce** (`Vec4.h:28`, `Vec4.cpp:48-52`) — `a.cross(b)` přepíše `a`. Důsledek: `Mtx4::Slerp` (`Mtx4.h:113-114`) čte zničené `fwd` a **vrací nesmysl** (mrtvý, ale nabitý — 52 řádků inline v široce includovaném headeru); `Camera.h:92-93` přežívá jen náhodou. *Provedený fix:* `Vec4 cross(const Vec4&) const` — čistá funkce, žádná mutace příjemce; call sites beze změny (hodnotově identické), `Mtx4::Slerp` je tím matematicky správně, `Camera.h` už nespoléhá na náhodu.
 
-5. **`brake()` je pro velký faktor no-op** (`BicycleModel.h:116-117`): dva sekvenční `if`y (ne `else if`), první zmutuje hodnotu, kterou druhý testuje — `speed=0.15, faktor=1.0` skončí zpět na `0.15`. Plné brzdění nedělá nic.
+5. ✅ **OPRAVENO 2026-08-10** — **`brake()` je pro velký faktor no-op** (`BicycleModel.h:116-117`): dva sekvenční `if`y (ne `else if`), první zmutuje hodnotu, kterou druhý testuje — `speed=0.15, faktor=1.0` skončí zpět na `0.15`. Plné brzdění nedělá nic. *Provedený fix:* dekrement směrem k nule bez přestřelení (`fabs(speed) <= decrement → 0`, jinak `copysign`), vzor shodný se `steerReset`. Zrušena i deadzone 0.1, kvůli které auto věčně dojíždělo ~0.1 m/s; parametr přejmenován `faktor` → `decrement` (je to absolutní hodnota).
 
-6. **`speedDown(0.01f)` není škálované dt** (`App.h:191`) — absolutní dekrement per tick mezi čtyřmi dt-škálovanými sousedy; změna `logicHz` změní jízdní chování. Parametr `brake(float faktor)` je navíc absolutní hodnota, ne faktor (a česky pojmenovaný identifikátor mimo konvenci).
+6. ✅ **OPRAVENO 2026-08-10** — **`speedDown(0.01f)` není škálované dt** (`App.h:191`) — absolutní dekrement per tick mezi čtyřmi dt-škálovanými sousedy; změna `logicHz` změní jízdní chování. *Provedený fix:* `speedDown(0.6f * dt)` — pasivní dojezd ~0.6 m/s² nezávislý na `logicHz`; při 60 Hz je chování shodné s původním.
 
 7. **Unsigned underflow v grid builderech** (`MeshFactory.cpp:294`, `:353`): `size == 0` → `size - 1 == 4294967295` → OOM smyčka. `UpdateGridWave` má overflow fix (`size_t(size) * size`), sousední `reserve(size * size)` ne — oprava aplikovaná na 1 ze 3 míst. Příbuzné: `CreateCylinder` — modulo `% (segments * 2)` bez guardu = crash při `segments == 0`.
 
@@ -66,7 +67,7 @@ Vzorec, který se opakuje napříč: **posledních 10 % se přeskočí.** Freshn
 
 9. ✅ **OPRAVENO 2026-08-08** — **`drawAxisImpl`: NaN → `(int)NaN` = UB** (`DeviceDIB.h:193-196` → `:443-459`). Když oba konce úsečky padnou mimo, nastaví se `w=0`, `divideW()` vyrobí NaN a `(int)` je UB; garbage souřadnice pak krmí **neclipnutý** Bresenham (multi-sekundový stall). A to „Clipping (jen jednou!)" (`:436-440`) kliupuje proti rovině `x + 0.5w` — **near-plane clipping v repu neexistuje nikde**, komentář lže (nejhorší komentář v celém repu). *Provedený fix:* každý segment osy se klipuje proti všem 6 rovinám frustumu v clip space (GL konvence, stejný poloprostor jako per-vertex test v `rasterizeMesh`) — near rovina garantuje `w ≥ nearZ > 0` (dělení nulou nemůže nastat), x/y roviny omezí NDC na [-1,1] (Bresenham dostává souřadnice uvnitř viewportu, stall nemožný). `clipSegmentWithPlane` přepsán na korektní kontrakt (vrací `bool` „celá venku" → segment se přeskočí; žádný degenerovaný `{0,0,0,0}`), `intersection` smazán. Platí ovšem stále: **trojúhelníky** near-plane clipping pořád nemají (viz Výhled).
 
-10. **Nevalidované čtení index bufferu** (`DeviceDIB.h:320-335`, `:371-381`): indexy z .obj jdou přímo do scratch bufferů, které jen rostou → vadný index čte **stale data předchozího meshe** (tichá vizuální korupce, nejhůř diagnostikovatelný failure mód). Fix: `if (ia >= vertexCount) continue;`.
+10. ✅ **OPRAVENO 2026-08-10** — **Nevalidované čtení index bufferu** (`DeviceDIB.h:320-335`, `:371-381`): indexy z .obj jdou přímo do scratch bufferů, které jen rostou → vadný index čte **stale data předchozího meshe** (tichá vizuální korupce, nejhůř diagnostikovatelný failure mód). *Provedený fix:* trojúhelník s indexem mimo `vertexCount` se přeskočí (`continue`) hned po načtení indexů, s komentářem proč.
 
 11. **`noexcept` lži → `std::terminate`** (`DeviceDIB.h:135-150`): `targetCreateImpl`/`targetResizeImpl` jsou `noexcept`, uvnitř `make_unique` + ctor, který hází. `StableRegistry::reset` navíc dělá `items[i].reset()` **před** `make_unique` → při throwu roztržené registry a pak terminate.
 
@@ -130,7 +131,7 @@ Chyby 4, 5, 7, 8 (cross, brake, underflow, projekce) jsou přesně to, co jedno�
 | # | Co | Proč v tomhle pořadí |
 |---|----|----|
 | 1 | ✅ **hotovo 2026-08-08** — Concurrency trojice: `ResizeRequest` → `AtomicMailbox<T>` (atomic<u64>), freshness bit do `dirty_idx`, `RunState` latch | Nejvyšší závažnost/nejmenší diff; UB a hang pryč |
-| 2 | `Vec4::cross` const, `brake()` else-if+clamp, `speedDown` dt-scale, bounds check indexů v rasterizéru, ~~drawAxis NaN path~~ (✅ hotovo 2026-08-08) | Malé izolované opravy skutečných chyb |
+| 2 | ✅ **hotovo 2026-08-10** — `Vec4::cross` const, `brake()` bez přestřelení, `speedDown` dt-scale, bounds check indexů v rasterizéru (drawAxis NaN path už 2026-08-08) | Malé izolované opravy skutečných chyb |
 | 3 | Velký úklid mrtvého kódu (Mtx4 třetina, depth plumbing zmrazit/zúžit, Win32DC rozhodnout, mrtvé factory/metody) + `= delete` na DeviceTargetDIB | Zadarmo; odstraní zavádějící scaffolding před kroky 5–6 |
 | 4 | Testovací projekt math + datastruct; sjednotit error kontrakt (zapsat do CLAUDE.md); π/two_pi konstanty; Slerp/Lerp konvence | Pojistka pro všechno další |
 | 5 | Extrakce z App.h (DemoScene → zabije wave duplikaci; FollowCamera; CarController) + MeshInstance/scene-object redesign + bake draw listu | Odemyká data-driven scény; build fáze přestane znát demo |

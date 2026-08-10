@@ -188,7 +188,9 @@ public:
             flag = false;
         }
 
-        if (flag) scene.car.speedDown(0.01f);
+        // pasivni dojezd ~0.6 m/s^2, skalovano dt jako sousedni vstupy
+        // (drive 0.01/tick = zavisle na logicHz; pri 60 Hz je chovani shodne)
+        if (flag) scene.car.speedDown(0.6f * dt);
 
 
         scene.car.run(dt);

@@ -45,10 +45,9 @@ float Vec4::dot(const Vec4& v) const
     return Vec4::dot(*this, v);
 }
 
-Vec4& Vec4::cross(const Vec4& v)
+Vec4 Vec4::cross(const Vec4& v) const
 {
-    *this = Vec4::cross(*this, v);
-    return *this;
+    return Vec4::cross(*this, v);
 }
 
 Vec4 Vec4::operator+(const Vec4& o) const {

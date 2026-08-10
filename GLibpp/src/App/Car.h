@@ -84,9 +84,9 @@ struct Car
         model.accelerate(dSpeed);
     }
 
-    void speedDown(float faktor)
+    void speedDown(float decrement)
     {
-        model.brake(faktor);
+        model.brake(decrement);
     }
 
     void steerFrontWheels(float dAngle)

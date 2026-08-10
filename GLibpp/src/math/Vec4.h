@@ -25,7 +25,9 @@ public:
     static Vec4 normalize(const Vec4& v);
 
     float dot(const Vec4& v) const;
-    Vec4& cross(const Vec4& v);
+    // ciste, nemutuje *this - drivejsi mutujici verze (Vec4&) tise prepisovala
+    // prijemce a rozbijela Gram-Schmidt retezce typu `up = fwd.cross(right)`
+    Vec4 cross(const Vec4& v) const;
 
     Vec4 operator+(const Vec4& o) const;
     Vec4 operator-(const Vec4& o) const;

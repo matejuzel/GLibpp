@@ -286,6 +286,12 @@ namespace GLibpp::Render {
                 uint32_t ibb = indices[i + 1];
                 uint32_t ic = indices[i + 2];
 
+                // ochrana proti vadnym indexum (napr. z pokazeneho .obj):
+                // scratch buffery jen rostou, takze index mimo rozsah by cetl
+                // stale hodnoty drive kresleneho meshe = ticha vizualni korupce
+                if (ia >= vertexCount || ibb >= vertexCount || ic >= vertexCount)
+                    continue;
+
                 // --- view-space pozice pro normálu ---
                 float axv = viewPosBuffer[3 * ia];
                 float ayv = viewPosBuffer[3 * ia + 1];
