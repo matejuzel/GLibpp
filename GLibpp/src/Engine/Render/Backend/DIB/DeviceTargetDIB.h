@@ -3,6 +3,8 @@
 #include "DeviceTargetBase.h"
 #include "RenderTargetDescriptor.h"
 
+#include <vector>
+
 namespace GLibpp::Render {
 
     class DeviceDIB; // forward
@@ -19,12 +21,24 @@ namespace GLibpp::Render {
         using Base = internal::RenderTargetDIBBase;
 
     public:
+        // --- barevny target: DIB sekce, kterou umi BitBlt ---
         HBITMAP hBitmap = nullptr;
         HDC memDC = nullptr;
         HGDIOBJ oldBitmap = nullptr;
         uint32_t* framebuffer = nullptr;
 
+        // --- depth target: souvisle pole hloubek, zadne GDI ---
+        // (hloubku nikdo neblituje, takze DIB sekce, HDC ani HBITMAP nemaji smysl;
+        //  u barevneho targetu je tenhle vektor prazdny a naopak)
+        std::vector<float> depthbuffer;
+
         DeviceTargetDIB() = default;
+
+        // vlastni GDI handly (a buffer) -> kopie by je uvolnila dvakrat
+        DeviceTargetDIB(const DeviceTargetDIB&) = delete;
+        DeviceTargetDIB& operator=(const DeviceTargetDIB&) = delete;
+        DeviceTargetDIB(DeviceTargetDIB&&) = delete;
+        DeviceTargetDIB& operator=(DeviceTargetDIB&&) = delete;
 
         DeviceTargetDIB(const RenderTargetDescriptor& descriptor)
             : Base(descriptor)
@@ -36,6 +50,12 @@ namespace GLibpp::Render {
                     std::to_string(descriptor.width) + "x" +
                     std::to_string(descriptor.height) + "]"
                 );
+            }
+
+            // depth target: jen alokace pole, GDI cesta se preskoci
+            if (isDepthFormat(descriptor.format)) {
+                depthbuffer.assign(pixelCount(), 0.0f);
+                return;
             }
 
             BITMAPINFO bmi = {};
@@ -85,8 +105,8 @@ namespace GLibpp::Render {
 
         ~DeviceTargetDIB()
         {
-
-            SelectObject(memDC, oldBitmap);
+            // depth target zadne GDI nema - memDC je nullptr a SelectObject by se volal naprazdno
+            if (memDC) SelectObject(memDC, oldBitmap);
 
             if (hBitmap) {
                 DeleteObject(hBitmap);
@@ -102,6 +122,14 @@ namespace GLibpp::Render {
         HDC getDC() const { return memDC; }
         HBITMAP getBitmap() const { return hBitmap; }
         uint32_t* getFramebuffer() const { return framebuffer; }
+
+        size_t pixelCount() const noexcept { return size_t(descriptor.width) * descriptor.height; }
+
+        // hloubkovy target (bez DIB sekce) vs barevny - rozhoduje format v descriptoru
+        bool isDepth() const noexcept { return isDepthFormat(descriptor.format); }
+
+        // true az kdyz je target skutecne pouzitelny jako depth buffer daneho rozliseni
+        bool isDepthUsable() const noexcept { return isDepth() && depthbuffer.size() == pixelCount(); }
 
         void inline putPixel(uint32_t x, uint32_t y, uint32_t color) noexcept
         {

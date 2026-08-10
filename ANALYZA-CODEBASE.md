@@ -5,7 +5,7 @@
 > **Rozsah:** tříčlenný hloubkový audit celého `GLibpp/src/` (render backend + common; Core/Platform/App; Math/Geometry/Physics/Assets)
 > **Předchozí analýza:** commit `0adc39a`, 2026-08-04 (viz git historie tohoto souboru)
 > **Aktualizace 2026-08-08:** opravena concurrency trojice — krok 1 doporučeného pořadí (chyby 1–3 níže označeny ✅). Nový sdílený primitiv `Core::AtomicMailbox<T>` (`Engine/Core/Datastruct/AtomicMailbox.h`). Dále opravena chyba 9 (drawAxis NaN/UB) — osy se nyní klipují proti všem 6 rovinám frustumu.
-> **Aktualizace 2026-08-10:** dokončen krok 2 — chyby 4, 5, 6 a 10 označeny ✅ (`Vec4::cross` čistý, `brake()` bez přestřelení a deadzone, `speedDown` škálované dt, bounds check indexů v `rasterizeMesh`). Dále sjednocena konvence interpolace (systémový problém 4) — hidden friends + ADL, zapsáno v CLAUDE.md.
+> **Aktualizace 2026-08-10:** dokončen krok 2 — chyby 4, 5, 6 a 10 označeny ✅ (`Vec4::cross` čistý, `brake()` bez přestřelení a deadzone, `speedDown` škálované dt, bounds check indexů v `rasterizeMesh`). Dále sjednocena konvence interpolace (systémový problém 4) — hidden friends + ADL, zapsáno v CLAUDE.md. A **implementován depth buffer na DIB backendu** (krok 6 první polovina) — detail ve Výhledu, chyba 12 částečně opravena.
 
 ---
 
@@ -16,7 +16,7 @@
 | Subsystém | Skóre | Poznámka |
 |---|---|---|
 | Core / Platform / App | **7/10** | SPSC most prokazatelně korektní; sráží ho Win32 error handling a hromadící se mrtvý kód |
-| Render backend (DIB + common) | **5/10** | Švy (CRTP, handly, residency) 7–8; vnitřek rasterizéru prototyp s reálnými chybami |
+| Render backend (DIB + common) | **5/10** | Švy (CRTP, handly, residency) 7–8; vnitřek rasterizéru prototyp s reálnými chybami (od 2026-08-10 s funkčním depth bufferem a bez NaN cesty v `drawAxis`) |
 | Math / Geometry / Physics | **5/10** | Staré vrstvy nikdy nerevidované; Mtx4 je slabý základ |
 | — z toho Assets samostatně | **8/10** | Nejlepší kus repa; jediná vada: tři mechanismy signalizace chyb |
 
@@ -71,7 +71,7 @@ Vzorec, který se opakuje napříč: **posledních 10 % se přeskočí.** Freshn
 
 11. **`noexcept` lži → `std::terminate`** (`DeviceDIB.h:135-150`): `targetCreateImpl`/`targetResizeImpl` jsou `noexcept`, uvnitř `make_unique` + ctor, který hází. `StableRegistry::reset` navíc dělá `items[i].reset()` **před** `make_unique` → při throwu roztržené registry a pak terminate.
 
-12. **Neinicializovaná čtení**: `RenderTargetDescriptor` bez default member initializerů (default-constructed = garbage width/format); `LPVOID buf` v error handleru `DeviceTargetDIB.h:66-74` — při selhání `FormatMessageA` konstruuje `std::string` z neinicializovaného pointeru (crash uvnitř hlášení chyby). `Depthbuffer24bit` deklaruje `TextureUsage::ColorAttachment` (copy-paste), `FramebufferRGBA32bit` žádá `RGBA32F` (128 bpp) — obě hodnoty dnes ignorované, obě špatně.
+12. **Neinicializovaná čtení**: ~~`RenderTargetDescriptor` bez default member initializerů~~ (✅ NSDMI doplněny 2026-08-10); `LPVOID buf` v error handleru `DeviceTargetDIB.h:66-74` — při selhání `FormatMessageA` konstruuje `std::string` z neinicializovaného pointeru (crash uvnitř hlášení chyby) — **stále otevřené**. ~~`Depthbuffer24bit` deklaruje `TextureUsage::ColorAttachment`, `FramebufferRGBA32bit` žádá `RGBA32F` (128 bpp)~~ — ✅ obě opraveny 2026-08-10 a format je teď skutečně čtený (rozhoduje o residency targetu).
 
 13. **`DeviceTargetDIB` porušuje rule of five**: vlastní HBITMAP/HDC/raw pointer, má destruktor, nemá `= delete` copy/move → náhodná kopie = double-free GDI handlů. (Vedlejší `Win32DC.h` to má učebnicově správně — a je celý nepoužitý.)
 
@@ -88,8 +88,8 @@ Vzorec, který se opakuje napříč: **posledních 10 % se přeskočí.** Freshn
 ## 1. Mrtvý kód se hromadí rychleji, než se maže
 
 - **Mtx4.cpp: ~230 z 642 řádků bez volajícího** (inverse/transpose rodina, Orthographic, aritmetické operátory, file-static třetí kopie multiply smyčky) — a právě v mrtvé třetině žijí chyby 4 a 8.
-- **Depth-buffer plumbing horší než absence**: 4 vrstvy (descriptor → Renderer → DrawCommand `SetDepthbuffer` → ctx) s nulovým konzumentem, alokující plnou 32bpp DIB sekci + HDC + HBITMAP při každém resize.
-- `Win32DC.h` (kompletní správná RAII třída, nepoužitá), mrtvé AVX2 clear path (`clearMode` nemá setter; `__cpuid(7)` je navíc špatně — leaf 7 chce `__cpuidex`), `drawQuad`, `Vec4::Slerp`, `Mathematics::reciprocal*` (pesimizace s `cout` v headeru), mrtvé `MeshFactory::CreateGrid/Quad/Triangle/Sphere`, 8 mrtvých public metod WindowWin32/Keyboard, `timer10Hz` živící prázdnou lambdu.
+- ~~**Depth-buffer plumbing horší než absence**: 4 vrstvy (descriptor → Renderer → DrawCommand `SetDepthbuffer` → ctx) s nulovým konzumentem, alokující plnou 32bpp DIB sekci + HDC + HBITMAP při každém resize.~~ ✅ **VYŘEŠENO 2026-08-10** — plumbing má konzumenta (viz Výhled níže), depth target je pole floatů bez GDI.
+- `Win32DC.h` (kompletní správná RAII třída, nepoužitá), mrtvé AVX2 clear path (`clearMode` nemá setter; `__cpuid(7)` je navíc špatně — leaf 7 chce `__cpuidex`), `Vec4::Slerp`, `Mathematics::reciprocal*` (pesimizace s `cout` v headeru), mrtvé `MeshFactory::CreateGrid/Quad/Triangle/Sphere`, 8 mrtvých public metod WindowWin32/Keyboard, `timer10Hz` živící prázdnou lambdu. (`drawQuad` smazán 2026-08-10 spolu se změnou signatury `drawTriangle`.)
 - Header hygiena: většina headerů není self-contained (kompilují se jen díky pořadí includů v Renderer.h); `StableRegistry.h` tahá `<iostream>` do celého enginu kvůli debug `operator<<`.
 
 ## 2. Tři mechanismy signalizace chyb v jednom modulu
@@ -124,7 +124,7 @@ Chyby 4, 5, 7, 8 (cross, brake, underflow, projekce) jsou přesně to, co jedno�
 
 ## 8. Výhled: co budou stát plánované kroky
 
-- **Depth buffer** (~den práce): ctx handle už na backend doteče, ale současné plumbing aktivně mate — depth target je HBITMAP-backed, descriptor má špatné enum hodnoty, `drawTriangle` bere jen x,y (chybí barycentrika/1w interpolace) a off-by-one v scanline smyčce (`y1` kreslený 2×, inclusive spany) se stane viditelným artefaktem hned s prvním Z-testem.
+- ✅ **Depth buffer — HOTOVO 2026-08-10.** Depth target je u DIB backendu souvislé pole `float` bez jakéhokoliv GDI (`DeviceTargetDIB` se rozhoduje podle `isDepthFormat(descriptor.format)`), descriptor má opravené enum hodnoty (`Depth32F` + `DepthAttachment`, barva `RGBA8`) a NSDMI. `drawTriangle` bere z na vrchol a interpoluje ho rovinou v obrazovkovém prostoru — po perspektivním dělení je NDC z afinní funkcí x,y, takže je to **exaktní** a 1/w se pro hloubku nepotřebuje. Test „menší vyhrává", clear na `kDepthFar = 1.0f` jde přes tentýž SIMD fill jako barva (v Debugu podstatné: `std::fill_n` nad 0,5 M floatů stálo ~10 na 1% Low). Předpokládaný off-by-one problém se **nematerializoval**: inclusive spany znamenají, že sdílené hrany kreslí oba trojúhelníky, a se striktním `<` je druhý zápis zamítnut — žádné švy ani dvojité kreslení. Zrušen i přetížený sentinel `z == 0` pro neplatné vrcholy (kolidoval s legitimní NDC hloubkou 0) — nahradil ho vlastní příznakový buffer. **Drátěný model a osy hloubku ignorují** (debug overlay) — vědomé rozhodnutí, zdokumentované v CLAUDE.md.
 - **Near-plane clipping** (těžší): dnešní per-vertex sentinel `z=0` + fixed-stride scratch buffery indexované původním vertex ID neumí vyjádřit nové vrcholy z clipu → přepis kroků 3–5 `rasterizeMesh`, ne vsuvka. `clipSegmentWithPlane` je od 2026-08-08 korektní (bool kontrakt, bez NaN), ale je segment-only — pro trojúhelníky (Sutherland–Hodgman, vznik nových vrcholů) je potřeba nový kód.
 - **GL backend**: šev je správně, kontrakt nevynucený — chybí C++20 `concept RenderDevice` (nejvyšší páka: promění scavenger hunt v jeden čitelný blok), `DeviceTraits` je dnes fikce (definuje typy, které nic nepoužívá a DIB je kontradikuje), `present(TargetHandle)` je DIB-shaped (GL chce SwapBuffers bez targetu) a `ctx.depthbufferHandle` je DIB-ismus (GL chce attachment na FBO).
 
@@ -139,7 +139,7 @@ Chyby 4, 5, 7, 8 (cross, brake, underflow, projekce) jsou přesně to, co jedno�
 | 3 | Velký úklid mrtvého kódu (Mtx4 třetina, depth plumbing zmrazit/zúžit, Win32DC rozhodnout, mrtvé factory/metody) + `= delete` na DeviceTargetDIB | Zadarmo; odstraní zavádějící scaffolding před kroky 5–6 |
 | 4 | Testovací projekt math + datastruct; sjednotit error kontrakt (zapsat do CLAUDE.md); π/two_pi konstanty; ~~Slerp/Lerp konvence~~ (✅ hotovo 2026-08-10) | Pojistka pro všechno další |
 | 5 | Extrakce z App.h (DemoScene → zabije wave duplikaci; FollowCamera; CarController) + MeshInstance/scene-object redesign + bake draw listu | Odemyká data-driven scény; build fáze přestane znát demo |
-| 6 | Depth buffer + near-plane clipping (mění rasterizer API) | Před dalším růstem scén |
+| 6 | ~~Depth buffer~~ (✅ hotovo 2026-08-10) + near-plane clipping (mění rasterizer API) | Před dalším růstem scén |
 | 7 | C++20 `concept RenderDevice`, srovnat `DeviceTraits` s realitou, pak GL backend | Až na vynucený, otestovaný kontrakt |
 
 **Shrnuto:** projekt netrpí špatnou architekturou — švy jsou správně a nový kód (Assets, interpolace, command stream) na nich staví dobře. Trpí **prototypovými listovými vrstvami, které nikdo nerevidoval** (rasterizér, vnitřek Mtx4, Win32 error handling) a **mrtvým kódem, který aktivně mate** (falešný „clipping", fiktivní DeviceTraits, depth plumbing bez konzumenta). Kroky 1–3 jsou dohromady víkend práce a zvednou celek z ~6 na ~7,5; testy (krok 4) jsou jediná ochrana, aby se skóre už nepropadalo.

@@ -109,7 +109,7 @@ namespace GLibpp::Render {
             auto width = window.getClientWidth();
             auto height = window.getClientHeight();
             framebufferHandle = device.targetCreate(RenderTargetDescriptor::FramebufferRGBA32bit(width, height));
-            depthbufferHandle = device.targetCreate(RenderTargetDescriptor::Depthbuffer24bit(width, height));
+            depthbufferHandle = device.targetCreate(RenderTargetDescriptor::Depthbuffer32F(width, height));
 
 			resize(width, height);
 
@@ -258,9 +258,10 @@ namespace GLibpp::Render {
     private:
 
         // build faze (extract): interpolovana Scene -> linearni command list.
-        // Bez depth bufferu je poradi kresleni = viditelnost, poradi emitu se
-        // nesmi menit bez rozmyslu. Budouci hierarchicky graf nahradi prave
-        // tuhle metodu (flat uzly -> propagace worldu -> emit do tehoz listu).
+        // Vzajemne zakryti plnych trojuhelniku resi depth buffer, takze poradi
+        // drawu uz neni nosne; drateny model a osy ale hloubku ignoruji (debug
+        // overlay), tam poradi emitu porad rozhoduje. Budouci hierarchicky graf
+        // nahradi prave tuhle metodu (flat uzly -> propagace worldu -> emit).
         void buildDrawList(const Scene& scene)
         {
             // stav framu - drawy nasleduji az za nim (viz poznamka o razeni v DrawCommand.h)
@@ -281,8 +282,8 @@ namespace GLibpp::Render {
             // Ground
             drawList.drawMesh(Mtx4::Identity(), scene.renderables.gridWave);
 
-            // testovaci model nacteny z .obj (data/models) - kresleny pred autem,
-            // aby auto bez depth bufferu zustalo viditelne pri prujezdu kolem
+            // testovaci model nacteny z .obj (data/models); poradi vuci autu uz
+            // nehraje roli - vzajemne zakryti resi depth buffer
             drawList.drawMesh(Mtx4::Identity(), scene.renderables.test);
 
             // Car

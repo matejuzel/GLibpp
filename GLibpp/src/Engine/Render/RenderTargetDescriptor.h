@@ -7,10 +7,12 @@
 namespace GLibpp::Render {
 
     struct RenderTargetDescriptor {
-        uint32_t width;
-        uint32_t height;
-        TextureFormat format;
-        TextureUsage usage;
+        // NSDMI jsou nutne: default-konstruovany descriptor drive nesl neurcitou
+        // velikost i format a target z nej postaveny mel garbage rozmery
+        uint32_t width = 0;
+        uint32_t height = 0;
+        TextureFormat format = TextureFormat::RGBA8;
+        TextureUsage usage = TextureUsage::ColorAttachment;
 
         uint8_t samples = 1; // MSAA samples, default 1 (no MSAA)
         uint8_t mipLevels = 1; // number of mip levels, default 1 (no mipmaps)
@@ -28,19 +30,23 @@ namespace GLibpp::Render {
         {
         }
 
+        // 32 bpp barva = 8 bitu na kanal (tak vypada DIB sekce);
+        // RGBA32F by byl 128 bpp float per pixel - drive tu bylo omylem prave to
         static RenderTargetDescriptor FramebufferRGBA32bit(uint32_t width, uint32_t height) {
             return RenderTargetDescriptor(
                 width, height,
-                TextureFormat::RGBA32F,
+                TextureFormat::RGBA8,
                 TextureUsage::ColorAttachment,
                 1, 1
             );
         }
-        static RenderTargetDescriptor Depthbuffer24bit(uint32_t width, uint32_t height) {
+        // hloubka jako float - DIB backend testuje NDC z (viz kDepthFar v DeviceDIB);
+        // usage byl drive copy-paste ColorAttachment
+        static RenderTargetDescriptor Depthbuffer32F(uint32_t width, uint32_t height) {
             return RenderTargetDescriptor(
                 width, height,
-                TextureFormat::Depth24,
-                TextureUsage::ColorAttachment,
+                TextureFormat::Depth32F,
+                TextureUsage::DepthAttachment,
                 1, 1
             );
         }

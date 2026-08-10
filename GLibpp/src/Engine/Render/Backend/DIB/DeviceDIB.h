@@ -8,6 +8,7 @@
 
 #include <vector>
 #include <algorithm>
+#include <bit>
 #include <immintrin.h> // AVX2
 
 namespace GLibpp::Render {
@@ -107,6 +108,12 @@ namespace GLibpp::Render {
 
         std::vector<float> floatBuffer;
         std::vector<float> viewPosBuffer; // view-space pozice (pro vypocet normal)
+        std::vector<uint8_t> vertexValidBuffer; // 1 = vrchol cely uvnitr frustumu
+
+        // Hloubka se cisti na nejvzdalenejsi hodnotu. Po perspektivnim deleni je
+        // NDC z v [-1, 1] (GL konvence, -1 = near rovina), takze far = +1
+        // a depth test je "mensi vyhrava" (viz RasterizerDIB::drawTriangle).
+        static constexpr float kDepthFar = 1.0f;
 
     public:
 
@@ -221,6 +228,9 @@ namespace GLibpp::Render {
             if (viewPosBuffer.size() < 3 * vertexCount)
                 viewPosBuffer.resize(3 * vertexCount);
 
+            if (vertexValidBuffer.size() < vertexCount)
+                vertexValidBuffer.resize(vertexCount);
+
             // --- 3) Transformace vrcholů ---
             int offset = 0;
             int offsetView = 0;
@@ -230,31 +240,27 @@ namespace GLibpp::Render {
                 const Vec4& vertex = positions[vi];
                 // projekce + viewport
                 Vec4 v = mvp * vertex;
-                if (fabs(v.w) > 10e-6) 
-                {
-                    
-                    bool inside =
-                        v.x >= -v.w && v.x <= v.w &&
-                        v.y >= -v.w && v.y <= v.w &&
-                        v.z >= -v.w && v.z <= v.w;
 
-                    if (inside) {
-                        v.divideW();
-                        viewportTransform(v);
-                    }
-                    else {
-                        v.z = 0.0f;
-                    }
-                    
+                // Vrchol je platny jen kdyz je cely uvnitr frustumu (chybi clipping
+                // trojuhelniku - trojuhelnik s neplatnym vrcholem se zahodi).
+                // Priznak je vlastni pole: drive se neplatnost signalizovala pres
+                // v.z = 0, coz kolidovalo s legitimni NDC hloubkou 0 - a depth
+                // buffer takovy preteceny sentinel neunese vubec.
+                const bool valid = fabs(v.w) > 1e-5f
+                    && v.x >= -v.w && v.x <= v.w
+                    && v.y >= -v.w && v.y <= v.w
+                    && v.z >= -v.w && v.z <= v.w;
+
+                if (valid) {
+                    v.divideW();
+                    viewportTransform(v);
                 }
-                else 
-                {
-                    //v = Vec4(0.0f, 0.0f, 0.0f, 0.0f);
-                }
+
+                vertexValidBuffer[vi] = valid ? uint8_t(1) : uint8_t(0);
 
                 floatBuffer[offset++] = v.x;
                 floatBuffer[offset++] = v.y;
-                floatBuffer[offset++] = v.z;
+                floatBuffer[offset++] = v.z; // NDC z v [-1, 1] pro platne vrcholy
 
                 // view-space pozice (pro normály)
                 Vec4 vView = mv * vertex;
@@ -266,6 +272,19 @@ namespace GLibpp::Render {
             }
 
             Target& target = registry.targets.get(ctx.framebufferHandle);
+
+            // depth target je volitelny: kdyz neni bindnuty (nebo nesedi rozliseni
+            // s framebufferem), kresli se jako dosud bez Z-testu v poradi commandu
+            Target* depth = nullptr;
+            if (registry.targets.isValid(ctx.depthbufferHandle))
+            {
+                Target& d = registry.targets.get(ctx.depthbufferHandle);
+                if (d.isDepthUsable() && d.pixelCount() == target.pixelCount()
+                    && d.descriptor.width == target.descriptor.width)
+                {
+                    depth = &d;
+                }
+            }
 
             // --- 4) Směrové světlo ve VIEW SPACE ---
             float Lx = 0.0f;
@@ -290,6 +309,11 @@ namespace GLibpp::Render {
                 // scratch buffery jen rostou, takze index mimo rozsah by cetl
                 // stale hodnoty drive kresleneho meshe = ticha vizualni korupce
                 if (ia >= vertexCount || ibb >= vertexCount || ic >= vertexCount)
+                    continue;
+
+                // chybi clipping trojuhelniku - trojuhelnik trcici z frustumu se cely
+                // zahodi (viditelne mizeni na okrajich; drive resil sentinel z == 0)
+                if (!vertexValidBuffer[ia] || !vertexValidBuffer[ibb] || !vertexValidBuffer[ic])
                     continue;
 
                 // --- view-space pozice pro normálu ---
@@ -351,14 +375,11 @@ namespace GLibpp::Render {
                 float cy = floatBuffer[3 * ic + 1];
                 float cz = floatBuffer[3 * ic + 2];
 
-                bool skip = fabs(az) < 10e-6 || fabs(bz) < 10e-6 || fabs(cz) < 10e-6;
-
-                if (!skip)
                 RasterizerDIB::drawTriangle(
-                    target,
-                    ax, ay,
-                    bx, by,
-                    cx, cy,
+                    target, depth,
+                    ax, ay, az,
+                    bx, by, bz,
+                    cx, cy, cz,
                     shaded,
                     wiredFlag
                 );
@@ -487,32 +508,50 @@ namespace GLibpp::Render {
 
         void clearImpl(const Context& ctx) noexcept
         {
+            // hloubka (kdyz je bindnuta) - vsechny pixely na far.
+            // Jede pres tentyz SIMD fill jako barva: je to jen vypln 32bitovym
+            // vzorem, takze se posila bitova reprezentace floatu. V Debugu je to
+            // podstatne - std::fill_n nad pul milionem floatu je tam skalarni
+            // smycka a stalo to ~10 FPS na 1% Low.
+            if (registry.targets.isValid(ctx.depthbufferHandle))
+            {
+                Target& d = registry.targets.get(ctx.depthbufferHandle);
+                if (d.isDepthUsable())
+                {
+                    clearFill(reinterpret_cast<uint32_t*>(d.depthbuffer.data()),
+                        d.depthbuffer.size(), std::bit_cast<uint32_t>(kDepthFar));
+                }
+            }
+
             if (!registry.targets.isValid(ctx.framebufferHandle)) return;
 
             Target& target = registry.targets.get(ctx.framebufferHandle);
-            uint32_t color = ctx.clearColor.toRGBA();
-            size_t size = target.descriptor.width * target.descriptor.height;
-            uint32_t* dst = target.framebuffer;
+            clearFill(target.framebuffer, target.pixelCount(), ctx.clearColor.toRGBA());
+        }
 
+        // vypln souvisleho pole 32bitovym vzorem podle zvoleneho clearMode
+        // (barva i hloubka - hloubka posila bitovou reprezentaci floatu)
+        void clearFill(uint32_t* dst, size_t size, uint32_t pattern) noexcept
+        {
             switch (clearMode)
             {
             case ClearMode::AVX2:
                 if (cpuFeatures.avx2) {
-                    clearAVX2(dst, size, color);
+                    clearAVX2(dst, size, pattern);
                     return;
                 }
                 [[fallthrough]];
 
             case ClearMode::SSE2:
                 if (cpuFeatures.sse2) {
-                    clearSSE2(dst, size, color);
+                    clearSSE2(dst, size, pattern);
                     return;
                 }
                 [[fallthrough]];
 
             case ClearMode::Scalar:
             default:
-                clearScalar(dst, size, color);
+                clearScalar(dst, size, pattern);
                 return;
             }
         }
@@ -522,6 +561,8 @@ namespace GLibpp::Render {
             if (!registry.targets.isValid(targetHandle)) return;
 
             Target& target = registry.targets.get(targetHandle);
+            if (target.isDepth()) return; // depth target nema DIB sekci ani DC, neni co blitovat
+
             HDC targetDC = window.getHDC();
             HDC sourceDC = target.getDC();
             uint32_t width = target.descriptor.width;

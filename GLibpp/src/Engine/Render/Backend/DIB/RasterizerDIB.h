@@ -2,6 +2,7 @@
 
 #include <cstdint>
 #include <algorithm>
+#include <cmath>
 #include "DeviceTargetBase.h"
 #include "DeviceTargetDIB.h"
 
@@ -41,11 +42,22 @@ namespace GLibpp::Render {
             }
         }
 
+        // Depth test se dela, jen kdyz je predan depth target (nullptr = kresli se
+        // v poradi jako dosud). Hloubka na vstupu je NDC z v [-1, 1] (-1 = near),
+        // test je "mensi vyhrava" a vyhra znamena zapis do framebufferu i do hloubky.
+        //
+        // Interpolace je presna a levna: po perspektivnim deleni je NDC z afinni
+        // funkci obrazovkovych x, y, takze staci rovina z = zRef + dzdx*dx + dzdy*dy
+        // a v ramci radku se pricita dzdx. (1/w interpolace je potreba az pro
+        // atributy typu UV nebo barvy, ne pro hloubku.)
+        //
+        // Obrys (wireframe) i drawLine hloubku ignoruji - cary jsou debug overlay.
         static void inline drawTriangle(
             DeviceTargetDIB& target,
-            int x0, int y0,
-            int x1, int y1,
-            int x2, int y2,
+            DeviceTargetDIB* depth,
+            int x0, int y0, float z0,
+            int x1, int y1, float z1,
+            int x2, int y2, float z2,
             uint32_t color,
             bool wireframe
         ) noexcept
@@ -57,6 +69,27 @@ namespace GLibpp::Render {
                 drawLine(target, x1, y1, x2, y2, color);
                 drawLine(target, x2, y2, x0, y0, color);
                 return;
+            }
+
+            // Rovina hloubky - pocita se z nesetridenych vrcholu a referencni bod se
+            // odlozi, takze nasledne serazeni podle Y se ji nedotkne
+            const int   zRefX = x0;
+            const int   zRefY = y0;
+            const float zRef = z0;
+            float dzdx = 0.0f;
+            float dzdy = 0.0f;
+
+            if (depth)
+            {
+                const float e1x = float(x1 - x0), e1y = float(y1 - y0);
+                const float e2x = float(x2 - x0), e2y = float(y2 - y0);
+                const float denom = e1x * e2y - e2x * e1y; // dvojnasobek plochy
+
+                if (std::fabs(denom) < 1e-6f) return; // degenerovany trojuhelnik (nulova plocha)
+
+                const float inv = 1.0f / denom;
+                dzdx = ((z1 - z0) * e2y - (z2 - z0) * e1y) * inv;
+                dzdy = ((z2 - z0) * e1x - (z1 - z0) * e2x) * inv;
             }
 
             // Seřadíme vrcholy podle Y (od nejnižšího)
@@ -74,10 +107,30 @@ namespace GLibpp::Render {
 
                     xStart = std::max(0, xStart);
                     xEnd = std::min((int)target.descriptor.width - 1, xEnd);
+                    if (xStart > xEnd)
+                        return;
 
-                    uint32_t* row = target.framebuffer + y * target.descriptor.width;
-                    for (int x = xStart; x <= xEnd; x++)
-                        row[x] = color;
+                    const size_t stride = target.descriptor.width;
+                    uint32_t* row = target.framebuffer + size_t(y) * stride;
+
+                    if (!depth)
+                    {
+                        for (int x = xStart; x <= xEnd; x++)
+                            row[x] = color;
+                        return;
+                    }
+
+                    float* depthRow = depth->depthbuffer.data() + size_t(y) * stride;
+                    float z = zRef + dzdx * float(xStart - zRefX) + dzdy * float(y - zRefY);
+
+                    for (int x = xStart; x <= xEnd; x++, z += dzdx)
+                    {
+                        if (z < depthRow[x])
+                        {
+                            depthRow[x] = z;
+                            row[x] = color;
+                        }
+                    }
                 };
 
             auto edgeInterp = [&](int y, int x0, int y0, int x1, int y1)
@@ -106,49 +159,26 @@ namespace GLibpp::Render {
         }
 
 
+        // x, y se zaokrouhli na pixel, hloubka zustava float
+        // (pozn.: chybi subpixel presnost - vrcholy se pri pohybu kamery viditelne cukaji)
         static void inline drawTriangle(
             DeviceTargetDIB& target,
-            float x0, float y0,
-            float x1, float y1,
-            float x2, float y2,
+            DeviceTargetDIB* depth,
+            float x0, float y0, float z0,
+            float x1, float y1, float z1,
+            float x2, float y2, float z2,
             uint32_t color,
             bool wireframe
         ) noexcept
         {
-            drawTriangle(target,
-                static_cast<int>(x0),
-                static_cast<int>(y0),
-                static_cast<int>(x1),
-                static_cast<int>(y1),
-                static_cast<int>(x2),
-                static_cast<int>(y2),
+            drawTriangle(target, depth,
+                static_cast<int>(x0), static_cast<int>(y0), z0,
+                static_cast<int>(x1), static_cast<int>(y1), z1,
+                static_cast<int>(x2), static_cast<int>(y2), z2,
                 color,
                 wireframe
             );
         }
-
-        static void inline drawQuad(DeviceTargetDIB& target, int x0, int y0, int x1, int y1, int x2, int y2, int x3, int y3, uint32_t color, bool wired) noexcept
-        {
-            drawTriangle(target, x0, y0, x1, y1, x2, y2, color, wired);
-            drawTriangle(target, x0, y0, x2, y2, x3, y3, color, wired);
-        }
-
-        static void inline drawQuad(DeviceTargetDIB& target, float x0, float y0, float x1, float y1, float x2, float y2, float x3, float y3, uint32_t color, bool wired) noexcept
-        {
-            drawQuad(target,
-                static_cast<int>(x0),
-                static_cast<int>(y0),
-                static_cast<int>(x1),
-                static_cast<int>(y1),
-                static_cast<int>(x2),
-                static_cast<int>(y2),
-                static_cast<int>(x3),
-                static_cast<int>(y3),
-                color,
-                wired
-            );
-        }
-
 
     };
 

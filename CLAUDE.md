@@ -67,7 +67,7 @@ Handles are `StableRegistry<T>::Handle{index, generation}` (both `uint32_t`; a d
 
 ### What is stubbed or dead — don't be misled
 
-- **No depth buffer.** `depthbufferHandle` (a `Renderer` member) is created and resized but never bound or read. Triangles draw in index order with no Z-test.
+- **Depth buffer covers filled triangles only.** The DIB depth target is a plain `std::vector<float>` with no GDI at all (`DeviceTargetDIB` branches on `isDepthFormat(descriptor.format)`), cleared to `kDepthFar = 1.0f` and tested "smaller wins" on NDC z — which is exactly linear in screen space after the perspective divide, so `drawTriangle` interpolates it with a plane equation. **Wireframe outlines and `drawAxis` deliberately ignore depth** (debug overlay), so emit order still decides among lines and between lines and fills.
 - **No triangle clipping.** `rasterizeMesh` (`DeviceDIB.h`) does an all-or-nothing per-vertex frustum test and skips any triangle with an outside vertex. Only `drawAxisImpl` clips properly.
 - **`Renderer::resize` failure clobbers handles.** If `targetResize` fails it returns `TARGET_INVALID`, which overwrites the stored handle permanently — known footgun, documented in a comment, fix out of scope so far.
 - **`GLibpp/_old/`** is a previous iteration of the whole engine, kept for reference. Never edit it or copy patterns from it.
