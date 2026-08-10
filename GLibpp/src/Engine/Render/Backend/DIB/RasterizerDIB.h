@@ -52,16 +52,36 @@ namespace GLibpp::Render {
         // atributy typu UV nebo barvy, ne pro hloubku.)
         //
         // Obrys (wireframe) i drawLine hloubku ignoruji - cary jsou debug overlay.
+        //
+        // Pro sousedni trojuhelniky jsou kriticke dve veci:
+        //  1) rovina se pocita z NEZAOKROUHLENYCH souradnic vrcholu. Fitovana na cela
+        //     cisla dava dvema trojuhelnikum se spolecnou hranou meritelne odlisne
+        //     roviny - na sdilene hrane se pak hadaji o hloubku a vyhrava ten, ktery
+        //     se zaokrouhlenim posunul blize (viditelne artefakty na navazujicich
+        //     hranach). Z presnych souradnic obe roviny na sdilene hrane splynou.
+        //  2) hloubka se vzorkuje ve STREDU pixelu (x+0.5, y+0.5) - pixel s indexem x
+        //     pokryva interval [x, x+1). Vzorkovani v rohu zanasi systematickou chybu
+        //     0,5*(dzdx + dzdy), ktera je pro kazdy trojuhelnik jina, takze i dve
+        //     spravne roviny se na sdilene hrane rozejdou.
+        //
+        // Pokryti se porad urcuje ze zaokrouhlenych vrcholu (chybi subpixel presnost
+        // a exclusive fill rule - viz ANALYZA-CODEBASE.md), takze pixel na sdilene
+        // hrane kresli oba trojuhelniky. Se striktnim < ale vyhrava ten prvni a
+        // vysledek je deterministicky, ne per-pixel nahodny.
         static void inline drawTriangle(
             DeviceTargetDIB& target,
             DeviceTargetDIB* depth,
-            int x0, int y0, float z0,
-            int x1, int y1, float z1,
-            int x2, int y2, float z2,
+            float fx0, float fy0, float z0,
+            float fx1, float fy1, float z1,
+            float fx2, float fy2, float z2,
             uint32_t color,
             bool wireframe
         ) noexcept
         {
+            int x0 = static_cast<int>(fx0), y0 = static_cast<int>(fy0);
+            int x1 = static_cast<int>(fx1), y1 = static_cast<int>(fy1);
+            int x2 = static_cast<int>(fx2), y2 = static_cast<int>(fy2);
+
             if (wireframe)
             {
                 // jen obrys
@@ -71,21 +91,21 @@ namespace GLibpp::Render {
                 return;
             }
 
-            // Rovina hloubky - pocita se z nesetridenych vrcholu a referencni bod se
-            // odlozi, takze nasledne serazeni podle Y se ji nedotkne
-            const int   zRefX = x0;
-            const int   zRefY = y0;
+            // Rovina hloubky - z presnych souradnic nesetridenych vrcholu; referencni
+            // bod se odlozi, takze nasledne serazeni podle Y se ji nedotkne
+            const float zRefX = fx0;
+            const float zRefY = fy0;
             const float zRef = z0;
             float dzdx = 0.0f;
             float dzdy = 0.0f;
 
             if (depth)
             {
-                const float e1x = float(x1 - x0), e1y = float(y1 - y0);
-                const float e2x = float(x2 - x0), e2y = float(y2 - y0);
+                const float e1x = fx1 - fx0, e1y = fy1 - fy0;
+                const float e2x = fx2 - fx0, e2y = fy2 - fy0;
                 const float denom = e1x * e2y - e2x * e1y; // dvojnasobek plochy
 
-                if (std::fabs(denom) < 1e-6f) return; // degenerovany trojuhelnik (nulova plocha)
+                if (std::fabs(denom) < 1e-6f) return; // nulova plocha - neni co vzorkovat
 
                 const float inv = 1.0f / denom;
                 dzdx = ((z1 - z0) * e2y - (z2 - z0) * e1y) * inv;
@@ -121,7 +141,11 @@ namespace GLibpp::Render {
                     }
 
                     float* depthRow = depth->depthbuffer.data() + size_t(y) * stride;
-                    float z = zRef + dzdx * float(xStart - zRefX) + dzdy * float(y - zRefY);
+
+                    // vzorkuje se stred pixelu, ne jeho levy horni roh
+                    float z = zRef
+                        + dzdx * ((float(xStart) + 0.5f) - zRefX)
+                        + dzdy * ((float(y) + 0.5f) - zRefY);
 
                     for (int x = xStart; x <= xEnd; x++, z += dzdx)
                     {
@@ -158,27 +182,6 @@ namespace GLibpp::Render {
             }
         }
 
-
-        // x, y se zaokrouhli na pixel, hloubka zustava float
-        // (pozn.: chybi subpixel presnost - vrcholy se pri pohybu kamery viditelne cukaji)
-        static void inline drawTriangle(
-            DeviceTargetDIB& target,
-            DeviceTargetDIB* depth,
-            float x0, float y0, float z0,
-            float x1, float y1, float z1,
-            float x2, float y2, float z2,
-            uint32_t color,
-            bool wireframe
-        ) noexcept
-        {
-            drawTriangle(target, depth,
-                static_cast<int>(x0), static_cast<int>(y0), z0,
-                static_cast<int>(x1), static_cast<int>(y1), z1,
-                static_cast<int>(x2), static_cast<int>(y2), z2,
-                color,
-                wireframe
-            );
-        }
 
     };
 
