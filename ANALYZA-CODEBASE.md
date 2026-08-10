@@ -5,7 +5,7 @@
 > **Rozsah:** tříčlenný hloubkový audit celého `GLibpp/src/` (render backend + common; Core/Platform/App; Math/Geometry/Physics/Assets)
 > **Předchozí analýza:** commit `0adc39a`, 2026-08-04 (viz git historie tohoto souboru)
 > **Aktualizace 2026-08-08:** opravena concurrency trojice — krok 1 doporučeného pořadí (chyby 1–3 níže označeny ✅). Nový sdílený primitiv `Core::AtomicMailbox<T>` (`Engine/Core/Datastruct/AtomicMailbox.h`). Dále opravena chyba 9 (drawAxis NaN/UB) — osy se nyní klipují proti všem 6 rovinám frustumu.
-> **Aktualizace 2026-08-10:** dokončen krok 2 — chyby 4, 5, 6 a 10 označeny ✅ (`Vec4::cross` čistý, `brake()` bez přestřelení a deadzone, `speedDown` škálované dt, bounds check indexů v `rasterizeMesh`).
+> **Aktualizace 2026-08-10:** dokončen krok 2 — chyby 4, 5, 6 a 10 označeny ✅ (`Vec4::cross` čistý, `brake()` bez přestřelení a deadzone, `speedDown` škálované dt, bounds check indexů v `rasterizeMesh`). Dále sjednocena konvence interpolace (systémový problém 4) — hidden friends + ADL, zapsáno v CLAUDE.md.
 
 ---
 
@@ -102,9 +102,13 @@ Assets: výjimky (loader), asserty (registry, v Release zmizí), INVALID sentine
 - 4×4 multiply smyčka 3× (`Mtx4.cpp`), grid triangulace 2× verbatim, wave vzorec 2×, dva fullscreen paths, `toWideString` reimplementovaný inline.
 - **π v pěti pravopisech** (`3.1415926535f`, `3.14159265f`, `3.14159f` 2×, dvě definice `kTwoPi`), zatímco `Math::pi` sedí nepoužité — chybí `float` alias a `two_pi`.
 
-## 4. Konvence interpolace je nahodilá
+## 4. ✅ VYŘEŠENO 2026-08-10 — Konvence interpolace je nahodilá
 
-Šest typů, čtyři konvence (static member vs friend free function; `Camera::Slerp` je ve skutečnosti Lerp — jméno lže, a je **živé** v `Scene::Slerp`). Sjednotit na friend free `Slerp/Lerp` (forma, kterou používá Scene→Car→Camera řetěz) a mrtvé `Mtx4::Slerp`/`Vec4::Slerp` smazat.
+Šest typů, čtyři konvence (static member vs friend free function; `Camera::Slerp` je ve skutečnosti Lerp — jméno lže, a je **živé** v `Scene::Slerp`).
+
+*Provedeno:* sjednoceno na **skryté friend funkce nalezené přes ADL** — `Vec4`, `Quaternion`, `Mtx4` a `CarWheel` převedeny ze statických metod, všechna volání jsou teď nekvalifikovaná (`Lerp(a, b, t)` / `Slerp(a, b, t)`). Falešný `Camera::Slerp` (tělo = `return Lerp(a,b,t)`) smazán; `Scene::Slerp` volá `Lerp` pro kameru a `Slerp` pro auto, takže jméno na každém řádku říká, co se skutečně děje. Konvence i její důvod zapsány do CLAUDE.md (sekce *Interpolation: hidden friends found by ADL*) a kanonický komentář do `Vec4.h`.
+
+Zbývá jen jako **mrtvý kód** (krok 3, ne konvence): `Vec4::Slerp` bez volajícího; `Mtx4::Slerp` úmyslně ponechán — ožije, až world matice poputují do `Scene` (MeshInstance redesign).
 
 ## 5. BicycleModel: správná kinematika, hardcoded tuning
 
@@ -133,7 +137,7 @@ Chyby 4, 5, 7, 8 (cross, brake, underflow, projekce) jsou přesně to, co jedno�
 | 1 | ✅ **hotovo 2026-08-08** — Concurrency trojice: `ResizeRequest` → `AtomicMailbox<T>` (atomic<u64>), freshness bit do `dirty_idx`, `RunState` latch | Nejvyšší závažnost/nejmenší diff; UB a hang pryč |
 | 2 | ✅ **hotovo 2026-08-10** — `Vec4::cross` const, `brake()` bez přestřelení, `speedDown` dt-scale, bounds check indexů v rasterizéru (drawAxis NaN path už 2026-08-08) | Malé izolované opravy skutečných chyb |
 | 3 | Velký úklid mrtvého kódu (Mtx4 třetina, depth plumbing zmrazit/zúžit, Win32DC rozhodnout, mrtvé factory/metody) + `= delete` na DeviceTargetDIB | Zadarmo; odstraní zavádějící scaffolding před kroky 5–6 |
-| 4 | Testovací projekt math + datastruct; sjednotit error kontrakt (zapsat do CLAUDE.md); π/two_pi konstanty; Slerp/Lerp konvence | Pojistka pro všechno další |
+| 4 | Testovací projekt math + datastruct; sjednotit error kontrakt (zapsat do CLAUDE.md); π/two_pi konstanty; ~~Slerp/Lerp konvence~~ (✅ hotovo 2026-08-10) | Pojistka pro všechno další |
 | 5 | Extrakce z App.h (DemoScene → zabije wave duplikaci; FollowCamera; CarController) + MeshInstance/scene-object redesign + bake draw listu | Odemyká data-driven scény; build fáze přestane znát demo |
 | 6 | Depth buffer + near-plane clipping (mění rasterizer API) | Před dalším růstem scén |
 | 7 | C++20 `concept RenderDevice`, srovnat `DeviceTraits` s realitou, pak GL backend | Až na vynucený, otestovaný kontrakt |

@@ -115,9 +115,13 @@ public:
     // --- Operátory a Interpolace (zůstávají stejné) ---
     Camera& operator=(const Camera& other) = default;
 
+    // skryty friend nalezeny pres ADL - viz konvence interpolace ve Vec4.h.
+    // Kamera ma jen Lerp: interpoluje se pozice a uhly yaw/pitch, zadna
+    // orientacni baze se neslerpuje - drivejsi Slerp byl jen prejmenovany
+    // Lerp (dve jmena pro jedno chovani), takze zmizel.
     friend Camera Lerp(const Camera& a, const Camera& b, float t) {
         Camera res;
-        res.position = a.position + (b.position - a.position) * t;
+        res.position = Lerp(a.position, b.position, t);
 
         // yaw se točí dokola (atan2 skáče na hranici +-pi) -> interpolace po nejkratší
         // cestě; jinak by kamera při přechodu hranice na jeden frame prosvištěla 2*pi
@@ -130,14 +134,6 @@ public:
         res.nearZ = a.nearZ + (b.nearZ - a.nearZ) * t;
         res.farZ = a.farZ + (b.farZ - a.farZ) * t;
         res.updateTargetFromAngles();
-        return res;
-    }
-
-    friend Camera Slerp(const Camera& a, const Camera& b, float t) {
-        // U moderní kamery je lepší interpolovat Yaw/Pitch než Target!
-        Camera res = Lerp(a, b, t);
-        // Pokud chceš slerpovat orientaci báze (Up), použij tu původní Slerp logiku,
-        // ale pro FPS kameru je Lerp úhlů Yaw/Pitch vizuálně plynulejší.
         return res;
     }
 };

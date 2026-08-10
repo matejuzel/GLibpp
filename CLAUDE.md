@@ -42,7 +42,7 @@ They share exactly one thing: `ZeroAllocTripleBuffer<LogicState>`. It is strictl
 
 Because render rate ≠ logic rate, the renderer **interpolates between two logic states**. It keeps previous/current in a render-thread-local `ZeroAllocStateHistory`, computes alpha from the states' own `tickInfo.lastLogicTick` timestamps, and calls `Slerp(prev, curr, t)`. Both threads share a clock epoch (`TimeManager` constructed with `useGlobalStart=true`) so those timestamps are comparable.
 
-**Consequence for any new scene state:** if you add a field to `Scene` that moves over time, extend the `friend Scene Slerp(...)` in `src/App/Scene.h`. Unhandled fields default to the current state and will visibly stutter. `Scene::Slerp` delegates into `Car`/`CarWheel`/`Camera` Slerp/Lerp overloads (`src/App/Car.h`, `src/Engine/Geometry/Camera.h`) — follow that pattern.
+**Consequence for any new scene state:** if you add a field to `Scene` that moves over time, extend the `friend Scene Slerp(...)` in `src/App/Scene.h`. Unhandled fields default to the current state and will visibly stutter. `Scene::Slerp` delegates into the per-type `Lerp`/`Slerp` of `Camera`, `Car`, `CarWheel`, `Vec4`, `Quaternion` — follow that pattern and see the interpolation convention below.
 
 **Shutdown** is one-directional and explicit: `App` and `Renderer` hold *separate* `RunState` instances. ESC stops App's; App's loop then exits and calls `renderer->stop()`, which stops the Renderer's, then joins. The renderer has no way to stop the app.
 
@@ -93,5 +93,13 @@ This matters because the history here was mixed: most files were Windows-1250 (t
 Two places are still CP1250 on purpose or by neglect: `GLibpp/_old/` (reference-only, never compiled, never edit it) and the `worktree-remove_jitter` branch, whose `Renderer.h` already has mojibake committed.
 
 Math (`src/Math/`) is row-vector style with chained mutating builders — `Mtx4::Identity().translate(x,y,z).rotateY(a)` — and `Quaternion` for orientation. `Mtx4::Identity()` returns a value, so the chain mutates a temporary, not a shared identity.
+
+### Interpolation: hidden friends found by ADL, never static members
+
+Every interpolatable type exposes its interpolation as a **`friend` function defined inline in the class** — `friend T Lerp(const T& a, const T& b, float t)` and/or `Slerp` — so **every call site is unqualified**: `Lerp(a, b, t)`, `Slerp(a, b, t)`, never `T::Lerp(a, b, t)`. Overload resolution picks the right one by argument type (ADL). Types following this today: `Vec4` (Lerp + Slerp), `Quaternion` (Slerp), `Mtx4` (Slerp), `CarWheel` (Lerp), `Camera` (Lerp), `Car` (Slerp), `Scene` (Slerp). The canonical explanation lives at the top of the interpolation block in `src/Math/Vec4.h`.
+
+Why this and not static members: the operation is symmetric in `a`/`b` so it doesn't belong inside one type's scope; unqualified calls make the delegation chain `Scene` → `Car` → `Quaternion`/`Vec4` read uniformly and let generic code interpolate a `T` it doesn't know the name of; and a friend defined in-class is invisible to ordinary lookup, so global-namespace math types add no name collisions.
+
+**Name honestly** — `Slerp` only where something is genuinely spherically interpolated (a quaternion, a basis), `Lerp` otherwise. Don't add a `Slerp` that just forwards to `Lerp`; `Camera` had one and it was deleted.
 
 `App.h` contains `if (0)` / `if (false)` scratch blocks used as ad-hoc debug probes. They're intentional; leave them unless asked.

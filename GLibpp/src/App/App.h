@@ -110,7 +110,7 @@ public:
             std::cout << q1.toMatrix() << std::endl;
             std::cout << q2.toMatrix() << std::endl;
 
-            std::cout << Quaternion::Slerp(q1, q2, 0.5f).toMatrix() << std::endl;
+            std::cout << Slerp(q1, q2, 0.5f).toMatrix() << std::endl;
 
             exit(0);
         }
@@ -228,7 +228,7 @@ public:
         Vec4 desired = carPos - forward * followDistance + Vec4(0.0f, followHeight, 0.0f, 0.0f);
 
         float alpha = 1.0f - std::exp(-stiffness * dt);
-        Vec4 newPos = Vec4::Lerp(scene.camera.position, desired, alpha);
+        Vec4 newPos = Lerp(scene.camera.position, desired, alpha);
 
         scene.camera.lookAtFrom(newPos, carPos + Vec4(0.0f, lookAtHeight, 0.0f, 0.0f));
     }

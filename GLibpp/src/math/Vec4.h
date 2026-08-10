@@ -49,7 +49,14 @@ public:
         return Vec4::cross(a, b);
     }
 
-    static Vec4 Slerp(const Vec4& a, const Vec4& b, float t)
+    // ---- interpolace ----
+    // Konvence celeho projektu: Lerp/Slerp jsou skryte friend funkce nalezene
+    // pres ADL, ne staticke metody. Volani je pak pro kazdy typ stejne
+    // - Lerp(a, b, t) / Slerp(a, b, t) - takze retezec Scene -> Car -> Vec4
+    // cte jednotne a genericky kod nemusi znat jmeno typu (viz CLAUDE.md).
+    // "Skryty" = definovany uvnitr tridy, tedy nedohledatelny bezným lookupem
+    // -> zadne znecisteni globalniho namespace, zadne kolize.
+    friend Vec4 Slerp(const Vec4& a, const Vec4& b, float t)
     {
         // 1) Normalizace vstupů (pro jistotu)
         Vec4 v0 = a.normalized();
@@ -78,7 +85,7 @@ public:
         return v0 * w0 + v1 * w1;
     }
 
-    static Vec4 Lerp(const Vec4& a, const Vec4& b, float t)
+    friend Vec4 Lerp(const Vec4& a, const Vec4& b, float t)
     {
         return a * (1.0f - t) + b * t;
     }

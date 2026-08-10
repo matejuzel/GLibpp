@@ -83,7 +83,9 @@ struct Mtx4 {
     std::string toStringDetail() const;
 
 
-    static Mtx4 Slerp(const Mtx4& a, const Mtx4& b, float t) {
+    // skryty friend nalezeny pres ADL - viz konvence interpolace ve Vec4.h
+    // (zatim bez volajiciho - ozije, az world matice poputuji do Scene)
+    friend Mtx4 Slerp(const Mtx4& a, const Mtx4& b, float t) {
 
         auto slerpVec = [](const Vec4& v1, const Vec4& v2, float t) -> Vec4 {
             float dot = std::clamp(v1.dot(v2), -1.0f, 1.0f);

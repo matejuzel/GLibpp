@@ -33,7 +33,8 @@ struct CarWheel {
         return m_pos * m_steer * m_roll;
     }
 
-    static CarWheel Lerp(const CarWheel& a, const CarWheel& b, float t) {
+    // skryty friend nalezeny pres ADL - viz konvence interpolace ve Vec4.h
+    friend CarWheel Lerp(const CarWheel& a, const CarWheel& b, float t) {
 
         auto interpolated = b;
 
@@ -170,12 +171,14 @@ struct Car
 
         Car interpolated = a;
 
-        interpolated.model.heading = Quaternion::Slerp(a.model.heading, b.model.heading, t);
-        interpolated.model.position = Vec4::Lerp(a.model.position, b.model.position, t);
-        interpolated.wheelFrontLeft = CarWheel::Lerp(a.wheelFrontLeft, b.wheelFrontLeft, t);
-        interpolated.wheelFrontRight = CarWheel::Lerp(a.wheelFrontRight, b.wheelFrontRight, t);
-        interpolated.wheelBackLeft = CarWheel::Lerp(a.wheelBackLeft, b.wheelBackLeft, t);
-        interpolated.wheelBackRight = CarWheel::Lerp(a.wheelBackRight, b.wheelBackRight, t);
+        // nekvalifikovana volani - spravnou funkci vybere ADL podle typu argumentu
+        // (Slerp pro Quaternion, Lerp pro Vec4 i CarWheel)
+        interpolated.model.heading = Slerp(a.model.heading, b.model.heading, t);
+        interpolated.model.position = Lerp(a.model.position, b.model.position, t);
+        interpolated.wheelFrontLeft = Lerp(a.wheelFrontLeft, b.wheelFrontLeft, t);
+        interpolated.wheelFrontRight = Lerp(a.wheelFrontRight, b.wheelFrontRight, t);
+        interpolated.wheelBackLeft = Lerp(a.wheelBackLeft, b.wheelBackLeft, t);
+        interpolated.wheelBackRight = Lerp(a.wheelBackRight, b.wheelBackRight, t);
 
         return interpolated;
     }

@@ -30,8 +30,9 @@ struct Scene {
 		// defaultne vse na current
 		Scene sceneInterpolated = b;
 
-		// volitelne jednotlive objekty interpolovat
-		sceneInterpolated.camera = Slerp(a.camera, b.camera, t);
+		// volitelne jednotlive objekty interpolovat; jmeno rika, co se deje:
+		// kamera se lerpuje (pozice + uhly), auto slerpuje heading quaternion
+		sceneInterpolated.camera = Lerp(a.camera, b.camera, t);
 		sceneInterpolated.car = Slerp(a.car, b.car, t);
 
 		return sceneInterpolated;

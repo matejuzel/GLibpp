@@ -146,7 +146,8 @@ struct Quaternion
         return Quaternion(-x * inv, -y * inv, -z * inv, w * inv);
     }
 
-    static Quaternion Slerp(const Quaternion& a, const Quaternion& b, float t) noexcept
+    // skryty friend nalezeny pres ADL - viz konvence interpolace ve Vec4.h
+    friend Quaternion Slerp(const Quaternion& a, const Quaternion& b, float t) noexcept
     {
         // dot product
         float dot = a.x * b.x + a.y * b.y + a.z * b.z + a.w * b.w;
