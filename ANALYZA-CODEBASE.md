@@ -6,6 +6,7 @@
 > **Předchozí analýza:** commit `0adc39a`, 2026-08-04 (viz git historie tohoto souboru)
 > **Aktualizace 2026-08-08:** opravena concurrency trojice — krok 1 doporučeného pořadí (chyby 1–3 níže označeny ✅). Nový sdílený primitiv `Core::AtomicMailbox<T>` (`Engine/Core/Datastruct/AtomicMailbox.h`). Dále opravena chyba 9 (drawAxis NaN/UB) — osy se nyní klipují proti všem 6 rovinám frustumu.
 > **Aktualizace 2026-08-10:** dokončen krok 2 — chyby 4, 5, 6 a 10 označeny ✅ (`Vec4::cross` čistý, `brake()` bez přestřelení a deadzone, `speedDown` škálované dt, bounds check indexů v `rasterizeMesh`). Dále sjednocena konvence interpolace (systémový problém 4) — hidden friends + ADL, zapsáno v CLAUDE.md. A **implementován depth buffer na DIB backendu** (krok 6 první polovina) — detail ve Výhledu, chyba 12 částečně opravena. Nakonec **rasterizér přepsán na hranové funkce nad subpixelovou mřížkou s top-left fill rule** (viz Výhled) — tím padl i bod „celočíselný `edgeInterp` bez subpixel přesnosti" z hodnocení render backendu.
+> **Aktualizace 2026-08-11:** založen **testovací projekt `GLibppTests`** (systémový problém 7, 57 kontrol) a s ním opraveny chyby 7 a 8 — detail v příslušných bodech. Testy jsou součástí `glib-commit` gate.
 
 ---
 
@@ -59,9 +60,9 @@ Vzorec, který se opakuje napříč: **posledních 10 % se přeskočí.** Freshn
 
 6. ✅ **OPRAVENO 2026-08-10** — **`speedDown(0.01f)` není škálované dt** (`App.h:191`) — absolutní dekrement per tick mezi čtyřmi dt-škálovanými sousedy; změna `logicHz` změní jízdní chování. *Provedený fix:* `speedDown(0.6f * dt)` — pasivní dojezd ~0.6 m/s² nezávislý na `logicHz`; při 60 Hz je chování shodné s původním.
 
-7. **Unsigned underflow v grid builderech** (`MeshFactory.cpp:294`, `:353`): `size == 0` → `size - 1 == 4294967295` → OOM smyčka. `UpdateGridWave` má overflow fix (`size_t(size) * size`), sousední `reserve(size * size)` ne — oprava aplikovaná na 1 ze 3 míst. Příbuzné: `CreateCylinder` — modulo `% (segments * 2)` bez guardu = crash při `segments == 0`.
+7. ✅ **OPRAVENO 2026-08-11** — **Unsigned underflow v grid builderech** (`MeshFactory.cpp:294`, `:353`): `size == 0` → `size - 1 == 4294967295` → OOM smyčka. `UpdateGridWave` má overflow fix (`size_t(size) * size`), sousední `reserve(size * size)` ne — oprava aplikovaná na 1 ze 3 míst. *Provedený fix:* `CreateGrid` i `CreateGridWave` mají guard `if (size < 2) return msh;` (pod 2×2 vrcholy není co triangulovat) a `reserve(size_t(size) * size)`. Testy v `GLibppTests` to drží. **Korekce původního nálezu:** modulo `% (segments * 2)` v `CreateCylinder` při `segments == 0` **nespadne** — všechny tři smyčky, které ho obsahují, mají podmínku `i < segments`, takže se nikdy nevyhodnotí; degenerovaný (ne padající) výsledek nicméně guard `segments < 3` teď odmítá, konzistentně s `CreateSphere`.
 
-8. **`Perspective` a `Orthographic` nesouhlasí v clip-space Z** (`Mtx4.cpp:503` vs `:513`): GL konvence [-1,1] vs [0,1] bez flipu. Projeví se jako „záhadný" bug při prvním použití ortho nebo depth bufferu. `inverseAffine` dělí nulou bez kontroly (`Mtx4.cpp:309`), zatímco `inverse` kontroluje — opačné bezpečnostní postoje v jedné třídě.
+8. ✅ **OPRAVENO 2026-08-11** — **`Perspective` a `Orthographic` nesouhlasí v clip-space Z** (`Mtx4.cpp:503` vs `:513`): GL konvence [-1,1] vs [0,1] bez flipu. Projeví se jako „záhadný" bug při prvním použití ortho nebo depth bufferu. `inverseAffine` dělí nulou bez kontroly (`Mtx4.cpp:309`), zatímco `inverse` kontroluje — opačné bezpečnostní postoje v jedné třídě. *Provedený fix:* `Orthographic` má z-řádek `[0, 0, -2/(f-n), -(f+n)/(f-n)]`, takže mapuje `[near, far]` na NDC z v [-1, +1] stejně jako `Perspective` (a stejně jako předpokládá `kDepthFar`). `inverseAffine` dostal guard na `det == 0` s týmž fallbackem (nulová matice) jako `inverse` — přesná nula, ne epsilon, protože legitimně malé škálování má malý determinant a invertovat se dá. Obojí pokryto testy.
 
 ## Rasterizér / backend
 
@@ -118,9 +119,17 @@ Quaternion heading + rotace kolem ICR je správný přístup. Ale `BicycleParams
 
 Okno/fullscreen, input+ESC policy, gameplay mapping, kamera, asset authoring, priority vláken, thread lifecycle, publish protokol, debug scaffolding — 349 řádků. **Pořadí extrakce podle výnosu:** ① `setupDemoResources` → `DemoScene.h` (zabije i duplikaci vlny), ② `updateFollowCamera` → controller vedle Camery, ③ `updateLogic` mapping → `CarController` (přirozené místo pro fix chyby 6), ④ window/OS bootstrap. Po ①–③ je App ~140 řádků čisté orchestrace.
 
-## 7. Chybí testy — pořád, a chyby to potvrzují
+## 7. ✅ ZALOŽENO 2026-08-11 — Chybí testy
 
-Chyby 4, 5, 7, 8 (cross, brake, underflow, projekce) jsou přesně to, co jednořádkové unit testy chytí. Math + datastruct jsou deterministické, bez Win32 závislostí. **Jak:** druhý console projekt `GLibppTests` s mini-runnerem (pár assert funkcí, žádný framework), zapojený do `glib-commit` rituálu.
+Chyby 4, 5, 7, 8 (cross, brake, underflow, projekce) jsou přesně to, co jednořádkové unit testy chytí. Math + datastruct jsou deterministické, bez Win32 závislostí.
+
+*Provedeno:* druhý console projekt **`GLibppTests`** (x64 only) s mini-runnerem bez frameworku (`TestRunner.h`: `check()`/`section()`, exit kód = počet selhání), zapojený do `glib-commit` rituálu jako samostatný gate. **57 kontrol, vše zelené** v Debug i Release. Testuje **skutečné hlavičky enginu**, ne kopie algoritmů — `test_rasterizer.cpp` staví reálné `DeviceTargetDIB` targety a volá shipovaný `RasterizerDIB`.
+
+Pokryto: exkluzivní bezmezerové pokrytí + subpixel přesnost + depth test rasterizéru (tím je zachráněn dřívější scratchpad test, na který ukazovala CLAUDE.md a který by se ztratil), konvence clip-space Z obou projekcí, singulární inverze, čistota `Vec4::cross`, `Lerp`/`Slerp` přes ADL, konstantní úhlová rychlost `Quaternion::Slerp`, ortonormalita `Mtx4::Slerp`, degenerované vstupy a integrita index bufferu u `MeshFactory` (každý index míří do vertex bufferu — přesně předpoklad, na kterém stojí bounds check v rasterizéru).
+
+**Poznámka k metodě:** u chyby 7 nešlo psát test před opravou — selhání nebyl assert, ale 4 miliardy iterací s OOM, takže test by se zasekl místo aby spadl. Guard a test tam vznikly zároveň. U chyby 8 by test selhal korektně (`Orthographic` vracel −0,01 místo −1), ale opravováno bylo rovněž v jednom kroku.
+
+**Nepokryto zatím:** datové struktury (`ZeroAllocTripleBuffer`, `StableRegistry`, `ZeroAllocStateHistory`, `AtomicMailbox`) — SPSC chování se unit testem ověřuje obtížně, ale invarianty typu „handle po `reset()` zůstává platný" nebo „ring vrací stavy podle stáří" jsou přímočaré a stojí za doplnění. Dále `ObjLoader` (parsování ze stringu je čistá funkce, ideální kandidát) a `Car`/`CarWheel` wrap-aware interpolace přes hranici 0/2π.
 
 ## 8. Výhled: co budou stát plánované kroky
 
@@ -139,7 +148,7 @@ Chyby 4, 5, 7, 8 (cross, brake, underflow, projekce) jsou přesně to, co jedno�
 | 1 | ✅ **hotovo 2026-08-08** — Concurrency trojice: `ResizeRequest` → `AtomicMailbox<T>` (atomic<u64>), freshness bit do `dirty_idx`, `RunState` latch | Nejvyšší závažnost/nejmenší diff; UB a hang pryč |
 | 2 | ✅ **hotovo 2026-08-10** — `Vec4::cross` const, `brake()` bez přestřelení, `speedDown` dt-scale, bounds check indexů v rasterizéru (drawAxis NaN path už 2026-08-08) | Malé izolované opravy skutečných chyb |
 | 3 | Velký úklid mrtvého kódu (Mtx4 třetina, depth plumbing zmrazit/zúžit, Win32DC rozhodnout, mrtvé factory/metody) + `= delete` na DeviceTargetDIB | Zadarmo; odstraní zavádějící scaffolding před kroky 5–6 |
-| 4 | Testovací projekt math + datastruct; sjednotit error kontrakt (zapsat do CLAUDE.md); π/two_pi konstanty; ~~Slerp/Lerp konvence~~ (✅ hotovo 2026-08-10) | Pojistka pro všechno další |
+| 4 | ~~Testovací projekt~~ (✅ 2026-08-11, 57 kontrol; datastruct + ObjLoader zbývají), ~~Slerp/Lerp konvence~~ (✅ 2026-08-10); zbývá sjednotit error kontrakt (zapsat do CLAUDE.md) a π/two_pi konstanty | Pojistka pro všechno další |
 | 5 | Extrakce z App.h (DemoScene → zabije wave duplikaci; FollowCamera; CarController) + MeshInstance/scene-object redesign + bake draw listu | Odemyká data-driven scény; build fáze přestane znát demo |
 | 6 | ~~Depth buffer~~ (✅ hotovo 2026-08-10) + near-plane clipping (mění rasterizer API) | Před dalším růstem scén |
 | 7 | C++20 `concept RenderDevice`, srovnat `DeviceTraits` s realitou, pak GL backend | Až na vynucený, otestovaný kontrakt |

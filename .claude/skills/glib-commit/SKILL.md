@@ -25,16 +25,27 @@ Debug|x64 musí projít (u větších změn i Release|x64):
 
 U změn dotýkajících se rendereru/timingu navíc runtime gate — skill `verifier-gui`.
 
-## 3. Commit
+## 3. Testy
+
+Solution staví i projekt `GLibppTests` — spusť ho a čekej exit 0:
+
+```powershell
+& ".\x64\Debug\GLibppTests.exe"
+```
+
+Při selhání **necommituj**. Testy sahají na skutečné hlavičky enginu (rasterizace, projekce, MeshFactory), takže selhání znamená regresi, ne rozbitý test.
+
+## 4. Commit
 
 - Zkontroluj `git status` + `git diff` — nikdy nestageuj `GLibpp/_old/` ani soubory, které do změny nepatří.
 - Zpráva **česky**, subjekt ve stylu `vyvoj - <stručně co>` (viz `git log --oneline`); pro čistě úklidové commity je v historii i vzor `vyreseni warningu`, `uprava`.
 - Commituje se přímo do `main` (pracovní konvence tohoto repa).
+- `Co-Authored-By` uveď podle modelu, který na změně skutečně pracoval.
+
+Víceřádkovou zprávu předávej **souborem**, ne here-stringem — `git add ...; git commit -m @'...'@` na jednom řádku se v PowerShellu už jednou rozsypal na argumenty a do historie šla zkomolená zpráva:
 
 ```powershell
-git add <soubory>; git commit -m @'
-vyvoj - <co>
-
-Co-Authored-By: Claude Fable 5 <noreply@anthropic.com>
-'@
+git add <soubory>
+git commit -F <cesta\k\zprave.txt>
+git log -1 --format=%B   # over, ze zprava dosla cela
 ```

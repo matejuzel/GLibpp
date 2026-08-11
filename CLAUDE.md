@@ -19,15 +19,25 @@ Only **x64** is usable. The `Win32`/`x86` configurations exist in the solution b
 ./x64/Debug/GLibpp.exe
 ```
 
-Both `Debug|x64` and `Release|x64` build. `main.cpp` is the only entry point; swap `Debug` for `Release` in the command above and run `./x64/Release/GLibpp.exe`.
+Both `Debug|x64` and `Release|x64` build. `GLibpp/src/main.cpp` is the app's entry point; swap `Debug` for `Release` in the command above and run `./x64/Release/GLibpp.exe`.
 
-There are no tests, no lint config, and no CMake — MSBuild + the `.vcxproj` is the whole build system. The MSVC toolchain here is Czech-localized, so compiler diagnostics come back in Czech.
+### Tests
+
+The solution holds a second project, **`GLibppTests`** (`GLibppTests/`, x64 only) — a console runner with no framework: `src/TestRunner.h` gives `check()`/`section()` and counts failures, each suite is one `runXxxTests()` called from `src/main.cpp`, exit code 0 means everything passed. The solution build above builds it too; run it with:
+
+```sh
+./x64/Debug/GLibppTests.exe
+```
+
+It tests the **real** engine headers, not copies of the algorithms — `test_rasterizer.cpp` builds actual `DeviceTargetDIB` targets (a small 40×40 DIB section plus a depth target) and calls the shipping `RasterizerDIB`. The engine's few `.cpp` files it needs (`Mtx4`, `Vec4`, `Mesh`, `MeshFactory`) are compiled straight into the test project; there is no static library. Add new suites by declaring `runXxxTests()` in `TestRunner.h`, calling it from `main.cpp`, and adding the file to `GLibppTests.vcxproj` (+ `.filters`).
+
+There is no lint config and no CMake — MSBuild + the two `.vcxproj` files are the whole build system. The MSVC toolchain here is Czech-localized, so compiler diagnostics come back in Czech.
 
 `main.cpp` asks for monitor `\\.\DISPLAY1`; on a machine without that display name the window silently falls back to the default position, which is fine.
 
 ### Adding a file
 
-New `.cpp`/`.h` files must be added to `GLibpp/GLibpp.vcxproj` by hand — MSBuild lists sources explicitly and will not glob. A new directory must also be appended to `AdditionalIncludeDirectories` in **both** the `Debug|x64` and `Release|x64` `ItemDefinitionGroup`s, because includes are **flat**: code writes `#include "Mtx4.h"`, never a relative path.
+New `.cpp`/`.h` files must be added to `GLibpp/GLibpp.vcxproj` by hand — MSBuild lists sources explicitly and will not glob. A new directory must also be appended to `AdditionalIncludeDirectories` in **both** the `Debug|x64` and `Release|x64` `ItemDefinitionGroup`s, because includes are **flat**: code writes `#include "Mtx4.h"`, never a relative path. A new engine directory needs the same entry in `GLibppTests/GLibppTests.vcxproj`, where the identical flat list lives once in the `EngineIncludes` user macro.
 
 ## Architecture
 
@@ -68,7 +78,7 @@ Handles are `StableRegistry<T>::Handle{index, generation}` (both `uint32_t`; a d
 ### What is stubbed or dead — don't be misled
 
 - **Depth buffer covers filled triangles only.** The DIB depth target is a plain `std::vector<float>` with no GDI at all (`DeviceTargetDIB` branches on `isDepthFormat(descriptor.format)`), cleared to `kDepthFar = 1.0f` and tested "smaller wins" on NDC z — which is exactly linear in screen space after the perspective divide, so `drawTriangle` interpolates it with a plane equation. **Wireframe outlines and `drawAxis` deliberately ignore depth** (debug overlay), so emit order still decides among lines and between lines and fills.
-- **Filled triangles rasterize via edge functions on a 1/256-pixel fixed-point grid**, with pixel-center coverage and a top-left fill rule, so a pixel on a shared edge belongs to exactly one of the two triangles. The fixed point is load-bearing, not cosmetic: `E_AB(p) == -E_BA(p)` holds bit-exactly in integers, so the fill rule decides consistently — in float, rounding could hand a boundary pixel to both triangles or to neither. Don't "simplify" this back to float edge functions or to integer vertex coordinates. `raster_test.cpp` in the session scratchpad exercises the invariant (exclusive, gap-free tiling) if you need to re-verify.
+- **Filled triangles rasterize via edge functions on a 1/256-pixel fixed-point grid**, with pixel-center coverage and a top-left fill rule, so a pixel on a shared edge belongs to exactly one of the two triangles. The fixed point is load-bearing, not cosmetic: `E_AB(p) == -E_BA(p)` holds bit-exactly in integers, so the fill rule decides consistently — in float, rounding could hand a boundary pixel to both triangles or to neither. Don't "simplify" this back to float edge functions or to integer vertex coordinates. `GLibppTests/src/test_rasterizer.cpp` pins the invariant (exclusive, gap-free tiling) — it will fail loudly if someone does.
 - **No triangle clipping.** `rasterizeMesh` (`DeviceDIB.h`) does an all-or-nothing per-vertex frustum test and skips any triangle with an outside vertex. Only `drawAxisImpl` clips properly.
 - **`Renderer::resize` failure clobbers handles.** If `targetResize` fails it returns `TARGET_INVALID`, which overwrites the stored handle permanently — known footgun, documented in a comment, fix out of scope so far.
 - **`GLibpp/_old/`** is a previous iteration of the whole engine, kept for reference. Never edit it or copy patterns from it.

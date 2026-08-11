@@ -1,0 +1,103 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <!-- Testy GLibpp. Zamerne jen x64 - Win32 konfigurace hlavniho projektu nejsou
+       funkcni (viz CLAUDE.md), nema smysl je tady zavadet znovu.
+       Engine je header-only az na par .cpp, ktere se sem prekladaji primo
+       (zadna staticka knihovna - drzi to build jednoduchy). -->
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Debug|x64">
+      <Configuration>Debug</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|x64">
+      <Configuration>Release</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="src\main.cpp" />
+    <ClCompile Include="src\test_math.cpp" />
+    <ClCompile Include="src\test_meshfactory.cpp" />
+    <ClCompile Include="src\test_rasterizer.cpp" />
+    <!-- prekladane jednotky enginu, na kterych testy zavisi -->
+    <ClCompile Include="..\GLibpp\src\Math\Mtx4.cpp" />
+    <ClCompile Include="..\GLibpp\src\Math\Vec4.cpp" />
+    <ClCompile Include="..\GLibpp\src\Engine\Geometry\Mesh.cpp" />
+    <ClCompile Include="..\GLibpp\src\Engine\Geometry\MeshFactory.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="src\TestRunner.h" />
+  </ItemGroup>
+  <PropertyGroup Label="Globals">
+    <VCProjectVersion>17.0</VCProjectVersion>
+    <Keyword>Win32Proj</Keyword>
+    <ProjectGuid>{d1c3614d-28bd-43fc-9881-c853f9ffc2d1}</ProjectGuid>
+    <RootNamespace>GLibppTests</RootNamespace>
+    <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <UseDebugLibraries>true</UseDebugLibraries>
+    <PlatformToolset>v143</PlatformToolset>
+    <CharacterSet>Unicode</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <PlatformToolset>v143</PlatformToolset>
+    <WholeProgramOptimization>true</WholeProgramOptimization>
+    <CharacterSet>Unicode</CharacterSet>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <ImportGroup Label="ExtensionSettings">
+  </ImportGroup>
+  <ImportGroup Label="Shared">
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <PropertyGroup Label="UserMacros">
+    <!-- includy enginu jsou ploche (kod pise #include "Mtx4.h") - stejny seznam
+         jako v GLibpp.vcxproj, jen relativne k testovacimu projektu -->
+    <EngineIncludes>$(ProjectDir)..\GLibpp\src;$(ProjectDir)..\GLibpp\src\App;$(ProjectDir)..\GLibpp\src\Engine;$(ProjectDir)..\GLibpp\src\Math;$(ProjectDir)..\GLibpp\src\Platform;$(ProjectDir)..\GLibpp\src\Engine\Core;$(ProjectDir)..\GLibpp\src\Engine\Render;$(ProjectDir)..\GLibpp\src\Engine\Core\Datastruct;$(ProjectDir)..\GLibpp\src\Engine\Render\Backend;$(ProjectDir)..\GLibpp\src\Engine\Render\Backend\Common;$(ProjectDir)..\GLibpp\src\Engine\Render\Backend\DIB;$(ProjectDir)..\GLibpp\src\Platform\Win32;$(ProjectDir)..\GLibpp\src\Engine\Core\Input;$(ProjectDir)..\GLibpp\src\Engine\Geometry;$(ProjectDir)..\GLibpp\src\Engine\Assets;$(ProjectDir)..\GLibpp\src\Engine\Physics\Bicycle;$(ProjectDir)..\GLibpp\src\Engine\Physics</EngineIncludes>
+  </PropertyGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <ClCompile>
+      <WarningLevel>Level3</WarningLevel>
+      <SDLCheck>true</SDLCheck>
+      <PreprocessorDefinitions>_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <ConformanceMode>true</ConformanceMode>
+      <AdditionalOptions>/utf-8 %(AdditionalOptions)</AdditionalOptions>
+      <AdditionalIncludeDirectories>$(ProjectDir)src;$(EngineIncludes)</AdditionalIncludeDirectories>
+      <LanguageStandard>stdcpp20</LanguageStandard>
+    </ClCompile>
+    <Link>
+      <SubSystem>Console</SubSystem>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <ClCompile>
+      <WarningLevel>Level3</WarningLevel>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <SDLCheck>true</SDLCheck>
+      <PreprocessorDefinitions>NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <ConformanceMode>true</ConformanceMode>
+      <AdditionalOptions>/utf-8 %(AdditionalOptions)</AdditionalOptions>
+      <AdditionalIncludeDirectories>$(ProjectDir)src;$(EngineIncludes)</AdditionalIncludeDirectories>
+      <LanguageStandard>stdcpp20</LanguageStandard>
+    </ClCompile>
+    <Link>
+      <SubSystem>Console</SubSystem>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+    </Link>
+  </ItemDefinitionGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+  <ImportGroup Label="ExtensionTargets">
+  </ImportGroup>
+</Project>

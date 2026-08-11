@@ -150,6 +150,9 @@ Mesh MeshFactory::CreateCylinder(float radius, float height, uint32_t segments)
 {
     Mesh msh;
 
+    // pod 3 segmenty je valec degenerovany (stejna ochrana jako CreateSphere)
+    if (segments < 3) return msh;
+
     const float halfH = height * 0.5f;
     const uint32_t baseIndex = static_cast<uint32_t>(msh.vertexBuffer.size());
 
@@ -273,11 +276,12 @@ Mesh MeshFactory::CreateGrid(uint32_t size, float distort)
 {
     Mesh msh;
 
-    msh.vertexBuffer.clear();
-    msh.indexBuffer.clear();
+    // mrizka potrebuje aspon 2x2 vrcholy. Pri size == 0 by "size - 1" v triangulaci
+    // podteklo (unsigned) na 4 miliardy iteraci a snedlo pamet; size == 1 nema quad.
+    if (size < 2) return msh;
 
     // Simple grid in XY plane
-    msh.vertexBuffer.reserve(size * size);
+    msh.vertexBuffer.reserve(size_t(size) * size); // size_t: uint32 by pretekl nad 65535
 
     for (uint32_t y = 0; y < size; ++y) {
         for (uint32_t x = 0; x < size; ++x) {
@@ -316,9 +320,10 @@ Mesh MeshFactory::CreateGridWave(uint32_t size, float waveHeight, float time, fl
 {
     Mesh msh;
 
-    msh.vertexBuffer.clear();
-    msh.indexBuffer.clear();
-    msh.vertexBuffer.reserve(size * size);
+    // viz CreateGrid: size < 2 nema co triangulovat a size == 0 by podteklo
+    if (size < 2) return msh;
+
+    msh.vertexBuffer.reserve(size_t(size) * size); // size_t: uint32 by pretekl nad 65535
 
     // Střed mřížky
     const float cx = (size - 1) * 0.5f;

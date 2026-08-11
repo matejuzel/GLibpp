@@ -306,6 +306,20 @@
             r01 * (r10 * r22 - r12 * r20) +
             r02 * (r10 * r21 - r11 * r20);
 
+        // singularni 3x3 blok inverzi nema - fallback stejny jako u inverse():
+        // nulova matice. Bez guardu tady vznikalo inf/NaN, ktere se tise sirilo dal.
+        // (Presna nula, ne epsilon: legitimne male skalovani ma male det a invertovat
+        //  se da - prah by musel byt normalizovany velikosti matice.)
+        if (det == 0.0f) {
+            (*this) = Mtx4(
+                        0.0f, 0.0f, 0.0f, 0.0f,
+                        0.0f, 0.0f, 0.0f, 0.0f,
+                        0.0f, 0.0f, 0.0f, 0.0f,
+                        0.0f, 0.0f, 0.0f, 0.0f
+                      );
+            return *this;
+        }
+
         float invDet = 1.0f / det;
 
         // Inverse of 3x3 block
@@ -511,10 +525,14 @@
     }
 
     Mtx4 Mtx4::Orthographic(float left, float right, float bottom, float top, float nearZ, float farZ) {
+        // Stejna konvence jako Perspective: kamera hledi po -Z a rozsah
+        // [nearZ, farZ] se mapuje na NDC z v [-1, +1].
+        // Drive tady bylo 1/(farZ-nearZ) bez negace, tedy mapovani na [0, 1]
+        // a bez otoceni znamenka - prepnuti projekce by obratilo depth test.
         return Mtx4(
             2 / (right - left), 0, 0, -(right + left) / (right - left),
             0, 2 / (top - bottom), 0, -(top + bottom) / (top - bottom),
-            0, 0, 1 / (farZ - nearZ), -nearZ / (farZ - nearZ),
+            0, 0, -2 / (farZ - nearZ), -(farZ + nearZ) / (farZ - nearZ),
             0, 0, 0, 1
         );
     }
