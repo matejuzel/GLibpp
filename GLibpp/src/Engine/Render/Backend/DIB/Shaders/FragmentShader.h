@@ -50,13 +50,27 @@ namespace GLibpp::Render {
     struct ShaderUniforms {
         float invWidth;  // 1 / sirka viewportu v pixelech
         float invHeight; // 1 / vyska viewportu v pixelech
+
+        // bindnuta textura pruchodu (command SetTexture); nullptr = zadna.
+        // ARGB 0xAARRGGBB, radky shora dolu - resolvuje rasterizeMesh z residency
+        const uint32_t* texture;
+        uint32_t textureWidth;
+        uint32_t textureHeight;
     };
 
-    // per-triangle vstup: screen-space vrcholy + ploche atributy
+    // per-triangle vstup: screen-space vrcholy + atributy
     struct TriangleInput {
         float x0, y0, z0;   // screen x, y + NDC z (po perspektivnim deleni)
         float x1, y1, z1;
         float x2, y2, z2;
+
+        // texturovaci UV + prevracene clip-space w per vrchol; UV se interpoluji
+        // perspektivne korektne (rasterizer interpoluje u/w, v/w, 1/w - shader
+        // deli az per pixel). Mesh bez UV dodava nuly, invW pro platne vrcholy
+        // je vzdy > 0 (frustum test garantuje w >= nearZ)
+        float u0, v0, invW0;
+        float u1, v1, invW1;
+        float u2, v2, invW2;
 
         // plocha normala trojuhelniku ve view space (dodava ji geometricka
         // faze v rasterizeMesh; per-vertex normaly prijdou az s atributem v Mesh)
@@ -71,6 +85,14 @@ namespace GLibpp::Render {
         int x;
         int y;
         float z;            // interpolovana NDC hloubka pixelu
+
+        // perspektivne korektni atributy: interpolovane u/w, v/w a 1/w -
+        // skutecne UV si shader spocita delenim (plati jen kdyz to potrebuje):
+        //     float w = 1.0f / px.invW;
+        //     float u = px.uOverW * w, v = px.vOverW * w;
+        float uOverW;
+        float vOverW;
+        float invW;
     };
 
     template <typename S>

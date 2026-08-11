@@ -31,8 +31,17 @@ namespace GLibpp::Render {
         // (stejny flow jako GL backend: upload pri startu, re-upload po mutaci; substrat pro budouci SoA/SIMD)
         // pozn.: zisk cache lokality je dnes marginalni - primarni duvod je referencni GL-shaped architektura
         std::vector<Vec4> meshPositions;
+        std::vector<float> meshUVs;           // texturovaci UV, 2 floaty na vrchol (nuly u meshu bez UV)
         std::vector<uint32_t> meshIndices;    // indexy lokalni vuci meshi (rasterizace jde pres scratch buffer)
         std::vector<MeshRangeDIB> meshRanges; // indexovano handle.index -> O(1) lookup bez hashovani
+
+        // rezidence textur: handle.index -> ShaderResource target (+ validace generace)
+        struct TextureRef {
+            typename Device::TargetHandle target = Device::TARGET_INVALID;
+            uint32_t generation = 0;
+            bool valid = false;
+        };
+        std::vector<TextureRef> textureRefs;
 
         typename Device::TargetRegistry targets;
     };
@@ -108,6 +117,7 @@ namespace GLibpp::Render {
 
         std::vector<float> floatBuffer;
         std::vector<float> viewPosBuffer; // view-space pozice (pro vypocet normal)
+        std::vector<float> invWBuffer;    // 1/w per vrchol (perspektivni korekce atributu)
         std::vector<uint8_t> vertexValidBuffer; // 1 = vrchol cely uvnitr frustumu
 
         // Hloubka se cisti na nejvzdalenejsi hodnotu. Po perspektivnim deleni je
@@ -194,13 +204,16 @@ namespace GLibpp::Render {
 
             rasterizeMesh(ctx,
                 registry.meshPositions.data() + range.vertexOffset, range.vertexCount,
+                registry.meshUVs.data() + size_t(range.vertexOffset) * 2,
                 registry.meshIndices.data() + range.indexOffset, range.indexCount,
                 transform, color, wiredFlag);
         }
 
         // spolecne rasterizacni jadro - geometrie prichazi jako pointer + pocet
-        // (bud primo kanonicky Mesh, nebo range z residency poli)
+        // (bud primo kanonicky Mesh, nebo range z residency poli);
+        // uvs = 2 floaty na vrchol (nuly u meshu bez UV)
         void rasterizeMesh(const Context& ctx, const Vec4* positions, size_t vertexCount,
+                           const float* uvs,
                            const uint32_t* indices, size_t indexCount,
                            const Mtx4& transform, const Color& color, bool wiredFlag) noexcept
         {
@@ -228,6 +241,9 @@ namespace GLibpp::Render {
             if (viewPosBuffer.size() < 3 * vertexCount)
                 viewPosBuffer.resize(3 * vertexCount);
 
+            if (invWBuffer.size() < vertexCount)
+                invWBuffer.resize(vertexCount);
+
             if (vertexValidBuffer.size() < vertexCount)
                 vertexValidBuffer.resize(vertexCount);
 
@@ -250,6 +266,10 @@ namespace GLibpp::Render {
                     && v.x >= -v.w && v.x <= v.w
                     && v.y >= -v.w && v.y <= v.w
                     && v.z >= -v.w && v.z <= v.w;
+
+                // 1/w pro perspektivni korekci atributu - pro platny vrchol je
+                // w >= nearZ > 0 (frustum test), takze invW je vzdy kladne
+                invWBuffer[vi] = valid ? 1.0f / v.w : 0.0f;
 
                 if (valid) {
                     v.divideW();
@@ -292,11 +312,32 @@ namespace GLibpp::Render {
             // uvnitr rasterizacni smycky uz je inlinovany, zadny per-pixel dispatch
             const RasterizerDIB::RasterizeFn rasterize = RasterizerDIB::fragmentFunction(ctx.fragmentShader);
 
+            // bindnuta textura pruchodu (command SetTexture) -> pointer + rozmery
+            // do uniformu; nevalidni/nezaregistrovany handle = zadna textura
+            const uint32_t* texturePixels = nullptr;
+            uint32_t textureW = 0;
+            uint32_t textureH = 0;
+            if (ctx.texture.index < registry.textureRefs.size())
+            {
+                const auto& ref = registry.textureRefs[ctx.texture.index];
+                if (ref.valid && ref.generation == ctx.texture.generation
+                    && registry.targets.isValid(ref.target))
+                {
+                    Target& tex = registry.targets.get(ref.target);
+                    texturePixels = tex.framebuffer;
+                    textureW = tex.descriptor.width;
+                    textureH = tex.descriptor.height;
+                }
+            }
+
             // per-draw konstanty pro shadery (obdoba GPU uniformu) - napr. pro
             // odvozeni normalizovanych souradnic obrazovky ze stredu pixelu
             const ShaderUniforms uniforms{
                 1.0f / float(width),
-                1.0f / float(height)
+                1.0f / float(height),
+                texturePixels,
+                textureW,
+                textureH
             };
 
             for (size_t i = 0; i + 2 < indexCount; i += 3)
@@ -360,11 +401,15 @@ namespace GLibpp::Render {
                 float cy = floatBuffer[3 * ic + 1];
                 float cz = floatBuffer[3 * ic + 2];
 
-                // vstup shaderu: geometrie + ploche atributy (normala, zakladni barva)
+                // vstup shaderu: geometrie + atributy (UV + 1/w pro perspektivni
+                // korekci, plocha normala, zakladni barva)
                 const TriangleInput tri{
                     ax, ay, az,
                     bx, by, bz,
                     cx, cy, cz,
+                    uvs[2 * ia],  uvs[2 * ia + 1],  invWBuffer[ia],
+                    uvs[2 * ibb], uvs[2 * ibb + 1], invWBuffer[ibb],
+                    uvs[2 * ic],  uvs[2 * ic + 1],  invWBuffer[ic],
                     Nx, Ny, Nz,
                     color,
                     wiredFlag
@@ -549,7 +594,8 @@ namespace GLibpp::Render {
             if (!registry.targets.isValid(targetHandle)) return;
 
             Target& target = registry.targets.get(targetHandle);
-            if (target.isDepth()) return; // depth target nema DIB sekci ani DC, neni co blitovat
+            // depth target ani textura nemaji DIB sekci/DC, neni co blitovat
+            if (target.isDepth() || target.isShaderResource()) return;
 
             HDC targetDC = window.getHDC();
             HDC sourceDC = target.getDC();
@@ -577,6 +623,15 @@ namespace GLibpp::Render {
 
             registry.meshPositions.insert(registry.meshPositions.end(), vb.begin(), vb.end());
             registry.meshIndices.insert(registry.meshIndices.end(), ib.begin(), ib.end());
+
+            // UV residency drzi stejne offsety jako pozice (2 floaty na vrchol);
+            // mesh bez UV dostane nuly, aby rasterizace nemusela vetvit
+            const auto& uv = mesh.getUVBuffer();
+            if (uv.size() == vb.size() * 2)
+                registry.meshUVs.insert(registry.meshUVs.end(), uv.begin(), uv.end());
+            else
+                registry.meshUVs.insert(registry.meshUVs.end(), vb.size() * 2, 0.0f);
+
             registry.meshRanges[h.index] = range;
         }
 
@@ -594,6 +649,26 @@ namespace GLibpp::Render {
 
             std::copy(vb.begin(), vb.end(), registry.meshPositions.begin() + range.vertexOffset);
             std::copy(ib.begin(), ib.end(), registry.meshIndices.begin() + range.indexOffset);
+
+            const auto& uv = mesh.getUVBuffer();
+            if (uv.size() == vb.size() * 2)
+                std::copy(uv.begin(), uv.end(), registry.meshUVs.begin() + size_t(range.vertexOffset) * 2);
+        }
+
+        // vytvori ShaderResource target a nahraje do nej kanonicke texely
+        // (vola se z upload walku na zacatku runLoop, stejne jako meshRegisterImpl)
+        void textureRegisterImpl(Assets::TextureHandle h, const Assets::TextureData& texture) noexcept
+        {
+            if (!texture.isValid()) return;
+
+            if (registry.textureRefs.size() <= h.index)
+                registry.textureRefs.resize(h.index + 1);
+
+            TargetHandle t = targetCreateImpl(RenderTargetDescriptor::Texture(texture.width, texture.height));
+            Target& target = registry.targets.get(t);
+            std::copy(texture.pixels.begin(), texture.pixels.end(), target.framebuffer);
+
+            registry.textureRefs[h.index] = { t, h.generation, true };
         }
 
         Context createContextImpl() noexcept {

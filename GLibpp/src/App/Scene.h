@@ -15,6 +15,10 @@ struct SceneRenderables {
 	GLibpp::Assets::MeshInstanceHandle icosphere = GLibpp::Assets::MESH_INSTANCE_HANDLE_INVALID;
 	GLibpp::Assets::MeshInstanceHandle icrBeam   = GLibpp::Assets::MESH_INSTANCE_HANDLE_INVALID;
 	GLibpp::Assets::MeshInstanceHandle test      = GLibpp::Assets::MESH_INSTANCE_HANDLE_INVALID;
+	GLibpp::Assets::MeshInstanceHandle texPanel  = GLibpp::Assets::MESH_INSTANCE_HANDLE_INVALID;
+
+	// textura panelu - binduje se commandem SetTexture pro texturovany pass
+	GLibpp::Assets::TextureHandle panelTexture   = GLibpp::Assets::TEXTURE_HANDLE_INVALID;
 };
 
 struct Scene {

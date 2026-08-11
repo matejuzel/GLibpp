@@ -5,6 +5,7 @@
 #include "Mtx4.h"
 #include "Color.h"
 #include "FragmentShaderId.h"
+#include "ResourceHandles.h"
 
 namespace GLibpp::Render {
 	
@@ -76,6 +77,10 @@ namespace GLibpp::Render {
         // fragment shader aktualniho pruchodu (nastavuje command SetShader);
         // default Lambert = vzhled dema i bez explicitniho nastaveni
         FragmentShaderId fragmentShader = FragmentShaderId::Lambert;
+
+        // textura bindnuta pro aktualni pruchod (nastavuje command SetTexture);
+        // INVALID = zadna - shadery pak vraci fallback (zakladni barvu instance)
+        Assets::TextureHandle texture = Assets::TEXTURE_HANDLE_INVALID;
 
         typename Device::TargetHandle framebufferHandle = Device::TARGET_INVALID;
         typename Device::TargetHandle depthbufferHandle = Device::TARGET_INVALID;

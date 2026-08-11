@@ -4,6 +4,7 @@
 #include "MeshInstance.h"
 #include "ResourceHandles.h"
 #include "StableRegistry.h"
+#include "TextureData.h"
 #include "Mtx4.h"
 #include "Color.h"
 
@@ -83,6 +84,31 @@ namespace GLibpp::Assets {
             return instances.isValid(h);
         }
 
+        // textury - stejny kontrakt jako meshe: registrace jen pred freeze,
+        // upload walk na zacatku runLoop (textureForEach -> device.textureRegister)
+        TextureHandle textureRegister(TextureData texture)
+        {
+            assert(!frozen && "registrace resources jen pred startem render smycky (runLoop)");
+            assert(texture.isValid());
+            return textures.add(std::move(texture));
+        }
+
+        const TextureData& textureGet(TextureHandle h) const
+        {
+            return textures.get(h);
+        }
+
+        bool textureIsValid(TextureHandle h) const
+        {
+            return textures.isValid(h);
+        }
+
+        template<typename F>
+        void textureForEach(F&& f) const
+        {
+            textures.forEach(std::forward<F>(f));
+        }
+
         // vola render vlakno na zacatku runLoop - od te chvile je registrace zakazana
         void freeze()
         {
@@ -93,6 +119,7 @@ namespace GLibpp::Assets {
 
         Core::StableRegistry<Geometry::Mesh> meshes;
         Core::StableRegistry<Geometry::MeshInstance> instances;
+        Core::StableRegistry<TextureData> textures;
         bool frozen = false;
     };
 

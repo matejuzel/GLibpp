@@ -161,6 +161,7 @@ namespace GLibpp::Render {
             // upload point - render vlakno (u GL backendu tady bude aktivni context);
             // backend si z kanonickych dat postavi vlastni residency (kopie, offsety, VBO, ...)
             resources.meshForEach([&](Assets::MeshHandle h, const Geometry::Mesh& m) { device.meshRegister(h, m); });
+            resources.textureForEach([&](Assets::TextureHandle h, const Assets::TextureData& t) { device.textureRegister(h, t); });
 
             running.start();
 
@@ -270,8 +271,6 @@ namespace GLibpp::Render {
             drawList.setView(scene.camera.calculateViewMatrix());
             drawList.setProjection(Mtx4::Perspective(scene.camera.fovRad, viewport.computeAspectRatio(), scene.camera.nearZ, scene.camera.farZ));
             drawList.setViewport(viewport);
-            // vyber fragment shaderu pro tento pruchod (dalsi pass muze prepnout)
-            drawList.setShader(FragmentShaderId::UvDebug);
             drawList.clear(Color::Grayscale(0.4f));
 
             // world matice se pocitaji jednou a sdili je mesh i axis command
@@ -281,8 +280,21 @@ namespace GLibpp::Render {
             const Mtx4 wheelBL = scene.car.getBackLeft();
             const Mtx4 wheelBR = scene.car.getBackRight();
 
-            // Ground
+            // --- pass 1: dratena zem Lambertem (prvni, aby ji plne objekty prekryly -
+            //     cary ignoruji hloubku) ---
+            drawList.setShader(FragmentShaderId::Lambert);
             drawList.drawMesh(Mtx4::Identity(), scene.renderables.gridWave);
+
+            // --- pass 2: texturovany panel (demonstrace SetShader + SetTexture) ---
+            // pozn.: plnoplosna texturovana zem neprosla - vyplneni ~poloviny okna
+            // je v Debugu (/Od) nad rozpoctem framu (~30 FPS) nezavisle na poctu
+            // trojuhelniku; proto texturu nese maly panel a vlna zustava dratena
+            drawList.setShader(FragmentShaderId::Textured);
+            drawList.setTexture(scene.renderables.panelTexture);
+            drawList.drawMesh(Mtx4::Identity(), scene.renderables.texPanel);
+
+            // --- pass 3: zbytek sceny plochym Lambertem ---
+            drawList.setShader(FragmentShaderId::Lambert);
 
             // testovaci model nacteny z .obj (data/models); poradi vuci autu uz
             // nehraje roli - vzajemne zakryti resi depth buffer
@@ -375,6 +387,11 @@ namespace GLibpp::Render {
             ctx.fragmentShader = c.shader.shader;
         }
 
+        static void execSetTexture(Renderer& r, typename Device::Context& ctx, const DrawCmd& c)
+        {
+            ctx.texture = c.texture.texture;
+        }
+
         using ExecuteFn = void (*)(Renderer&, typename Device::Context&, const DrawCmd&);
 
         // dispatch tabulka: index = DrawCmd::Kind, poradi radku musi sedet s enumem
@@ -388,6 +405,7 @@ namespace GLibpp::Render {
             &Renderer::execSetDepthbuffer,
             &Renderer::execClear,
             &Renderer::execSetShader,
+            &Renderer::execSetTexture,
         };
         static_assert(std::size(kDispatch) == static_cast<size_t>(DrawCmd::Kind::Count),
             "dispatch tabulka musi pokryvat vsechny druhy commandu");

@@ -11,6 +11,7 @@
 #include "ShaderSolid.h"
 #include "ShaderLambert.h"
 #include "ShaderUvDebug.h"
+#include "ShaderTextured.h"
 
 
 namespace GLibpp::Render {
@@ -94,11 +95,15 @@ namespace GLibpp::Render {
 
             if (tri.wireframe)
             {
-                // jen obrys - cary adresuji pixel obsahujici vrchol
+                // jen obrys - cary adresuji pixel obsahujici vrchol;
+                // atributy centroidu = prumery (pro debug obrys staci)
                 const PixelInput centroid{
                     pixelOf((tri.x0 + tri.x1 + tri.x2) / 3.0f),
                     pixelOf((tri.y0 + tri.y1 + tri.y2) / 3.0f),
-                    (tri.z0 + tri.z1 + tri.z2) / 3.0f
+                    (tri.z0 + tri.z1 + tri.z2) / 3.0f,
+                    (tri.u0 * tri.invW0 + tri.u1 * tri.invW1 + tri.u2 * tri.invW2) / 3.0f,
+                    (tri.v0 * tri.invW0 + tri.v1 * tri.invW1 + tri.v2 * tri.invW2) / 3.0f,
+                    (tri.invW0 + tri.invW1 + tri.invW2) / 3.0f
                 };
                 const uint32_t color = Shader::shade(triCtx, centroid, uniforms);
 
@@ -117,6 +122,13 @@ namespace GLibpp::Render {
             int64_t vy[3] = { toFixed(tri.y0), toFixed(tri.y1), toFixed(tri.y2) };
             float   vz[3] = { tri.z0, tri.z1, tri.z2 };
 
+            // atributy pro perspektivne korektni interpolaci: u/w, v/w a 1/w
+            // jsou (na rozdil od u, v samotnych) afinni v obrazovkovem prostoru,
+            // takze se interpoluji rovinami jako hloubka; shader deli az per pixel
+            float uw[3] = { tri.u0 * tri.invW0, tri.u1 * tri.invW1, tri.u2 * tri.invW2 };
+            float vw[3] = { tri.v0 * tri.invW0, tri.v1 * tri.invW1, tri.v2 * tri.invW2 };
+            float iw[3] = { tri.invW0, tri.invW1, tri.invW2 };
+
             // --- 2) vinuti: chceme "uvnitr" == vsechny hranove funkce >= 0 ---
             const int64_t area2 = (vx[1] - vx[0]) * (vy[2] - vy[0])
                                 - (vy[1] - vy[0]) * (vx[2] - vx[0]);
@@ -125,10 +137,13 @@ namespace GLibpp::Render {
 
             if (area2 < 0)
             {
-                // obracene vinuti - prohodime dva vrcholy vcetne jejich hloubky
+                // obracene vinuti - prohodime dva vrcholy vcetne vsech atributu
                 std::swap(vx[1], vx[2]);
                 std::swap(vy[1], vy[2]);
                 std::swap(vz[1], vz[2]);
+                std::swap(uw[1], uw[2]);
+                std::swap(vw[1], vw[2]);
+                std::swap(iw[1], iw[2]);
             }
 
             // --- 3) hranove funkce ve tvaru E_i(p) = A_i*p.x + B_i*p.y + C_i ---
@@ -161,8 +176,17 @@ namespace GLibpp::Render {
             if (std::fabs(denom) < 1e-6f) return; // degenerovany trojuhelnik
 
             const float inv = 1.0f / denom;
-            const float dzdx = ((vz[1] - vz[0]) * e2y - (vz[2] - vz[0]) * e1y) * inv;
-            const float dzdy = ((vz[2] - vz[0]) * e1x - (vz[1] - vz[0]) * e2x) * inv;
+
+            // gradient roviny atributu a(x, y) = a[0] + dadx*dx + dady*dy
+            auto planeGrad = [&](const float a[3], float& dadx, float& dady) noexcept {
+                dadx = ((a[1] - a[0]) * e2y - (a[2] - a[0]) * e1y) * inv;
+                dady = ((a[2] - a[0]) * e1x - (a[1] - a[0]) * e2x) * inv;
+            };
+
+            float dzdx, dzdy;   planeGrad(vz, dzdx, dzdy);
+            float duwdx, duwdy; planeGrad(uw, duwdx, duwdy);
+            float dvwdx, dvwdy; planeGrad(vw, dvwdx, dvwdy);
+            float diwdx, diwdy; planeGrad(iw, diwdx, diwdy);
 
             // --- 5) obalka v pixelech (kandidati, jejichz stred muze byt uvnitr) ---
             const float minX = std::min(px[0], std::min(px[1], px[2]));
@@ -201,9 +225,13 @@ namespace GLibpp::Render {
                 uint32_t* row = target.framebuffer + size_t(y) * stride;
                 float* depthRow = depthBase ? depthBase + size_t(y) * stride : nullptr;
 
-                float z = vz[0]
-                    + dzdx * ((float(bxMin) + 0.5f) - px[0])
-                    + dzdy * ((float(y) + 0.5f) - py[0]);
+                const float startDX = (float(bxMin) + 0.5f) - px[0];
+                const float startDY = (float(y) + 0.5f) - py[0];
+
+                float z   = vz[0] + dzdx  * startDX + dzdy  * startDY;
+                float uwv = uw[0] + duwdx * startDX + duwdy * startDY;
+                float vwv = vw[0] + dvwdx * startDX + dvwdy * startDY;
+                float iwv = iw[0] + diwdx * startDX + diwdy * startDY;
 
                 bool wasInside = false;
 
@@ -216,13 +244,13 @@ namespace GLibpp::Render {
 
                         if (!depthRow)
                         {
-                            row[x] = Shader::shade(triCtx, PixelInput{ x, y, z }, uniforms);
+                            row[x] = Shader::shade(triCtx, PixelInput{ x, y, z, uwv, vwv, iwv }, uniforms);
                         }
                         else if (z < depthRow[x])
                         {
                             // early-z: shade() se vola az po vyhranem depth testu
                             depthRow[x] = z;
-                            row[x] = Shader::shade(triCtx, PixelInput{ x, y, z }, uniforms);
+                            row[x] = Shader::shade(triCtx, PixelInput{ x, y, z, uwv, vwv, iwv }, uniforms);
                         }
                     }
                     else if (wasInside)
@@ -231,7 +259,7 @@ namespace GLibpp::Render {
                     }
 
                     e0 += stepX[0]; e1 += stepX[1]; e2 += stepX[2];
-                    z += dzdx;
+                    z += dzdx; uwv += duwdx; vwv += dvwdx; iwv += diwdx;
                 }
 
                 rowE[0] += stepY[0]; rowE[1] += stepY[1]; rowE[2] += stepY[2];
@@ -255,14 +283,18 @@ namespace GLibpp::Render {
                 x0, y0, z0,
                 x1, y1, z1,
                 x2, y2, z2,
+                0.0f, 0.0f, 1.0f,   // UV nulove, invW = 1 (afinni pripad)
+                0.0f, 0.0f, 1.0f,
+                0.0f, 0.0f, 1.0f,
                 0.0f, 0.0f, 0.0f,   // normala - ShaderSolid ji nepouziva
                 Color(color),
                 wireframe
             };
-            // uniformy z rozmeru targetu (descriptor garantuje >= 1)
+            // uniformy z rozmeru targetu (descriptor garantuje >= 1), bez textury
             const ShaderUniforms uniforms{
                 1.0f / float(target.descriptor.width),
-                1.0f / float(target.descriptor.height)
+                1.0f / float(target.descriptor.height),
+                nullptr, 0, 0
             };
             rasterizeTriangleT<ShaderSolid>(target, depth, tri, uniforms);
         }
@@ -281,6 +313,7 @@ namespace GLibpp::Render {
                 &rasterizeTriangleT<ShaderSolid>,
                 &rasterizeTriangleT<ShaderLambert>,
                 &rasterizeTriangleT<ShaderUvDebug>,
+                &rasterizeTriangleT<ShaderTextured>,
             };
             static_assert(std::size(kFragmentDispatch) == static_cast<size_t>(FragmentShaderId::Count),
                 "dispatch tabulka musi pokryvat vsechny druhy shaderu");

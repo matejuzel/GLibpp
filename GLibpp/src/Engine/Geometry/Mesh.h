@@ -40,6 +40,8 @@ public:
 
 	const std::vector<uint32_t>& getIndexBuffer() const;
 
+	const std::vector<float>& getUVBuffer() const;
+
 private:
 
 	//void computeAABB();
@@ -47,6 +49,12 @@ private:
 
 	std::vector<Vec4> vertexBuffer;
 	std::vector<uint32_t> indexBuffer;
+
+	// texturovaci UV per vrchol, prokladane [u0, v0, u1, v1, ...];
+	// prazdny buffer = mesh bez UV (jinak size == 2 * vertexBuffer.size()).
+	// Pozn.: MeshModifier::Subdivide UV nedopocitava - pouziva se jen na
+	// icosphere, ktera UV nema
+	std::vector<float> uvBuffer;
 	//AABB boundingBox;
 };
 

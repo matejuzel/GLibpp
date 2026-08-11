@@ -9,8 +9,6 @@ namespace GLibpp::Geometry {
 Mesh MeshFactory::CreateQuad(float size)
 {
     Mesh msh;
-    msh.vertexBuffer.clear();
-    msh.indexBuffer.clear();
 
     float s = size * 0.5f;
 
@@ -19,6 +17,15 @@ Mesh MeshFactory::CreateQuad(float size)
     msh.vertexBuffer.emplace_back(s, -s, 0.f, 1.f);
     msh.vertexBuffer.emplace_back(s, s, 0.f, 1.f);
     msh.vertexBuffer.emplace_back(-s, s, 0.f, 1.f);
+
+    // texturovaci UV: cela textura pres quad; v = 0 nahore (obrazkova konvence,
+    // +y meshe miri nahoru, proto se v obraci)
+    msh.uvBuffer = {
+        0.f, 1.f,
+        1.f, 1.f,
+        1.f, 0.f,
+        0.f, 0.f,
+    };
 
     msh.indexBuffer = {
         0, 1, 2,
@@ -324,6 +331,7 @@ Mesh MeshFactory::CreateGridWave(uint32_t size, float waveHeight, float time, fl
     if (size < 2) return msh;
 
     msh.vertexBuffer.reserve(size_t(size) * size); // size_t: uint32 by pretekl nad 65535
+    msh.uvBuffer.reserve(size_t(size) * size * 2);
 
     // Střed mřížky
     const float cx = (size - 1) * 0.5f;
@@ -351,6 +359,10 @@ Mesh MeshFactory::CreateGridWave(uint32_t size, float waveHeight, float time, fl
                 waveHeight * wave,
                 1.f
             );
+
+            // texturovaci UV: mrizka mapuje texturu 1:1 pres celou plochu
+            msh.uvBuffer.push_back(float(x) / float(size - 1));
+            msh.uvBuffer.push_back(float(y) / float(size - 1));
         }
     }
 

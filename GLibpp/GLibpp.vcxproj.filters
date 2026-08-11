@@ -137,6 +137,15 @@
     <ClInclude Include="src\Engine\Render\Backend\DIB\Shaders\ShaderUvDebug.h">
       <Filter>Zdrojové soubory\Engine\Render\Backend\DIB\Shaders</Filter>
     </ClInclude>
+    <ClInclude Include="src\Engine\Render\Backend\DIB\Shaders\ShaderTextured.h">
+      <Filter>Zdrojové soubory\Engine\Render\Backend\DIB\Shaders</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Engine\Assets\TextureData.h">
+      <Filter>Zdrojové soubory\Engine\Assets</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Platform\Win32\ImageLoaderWin32.h">
+      <Filter>Zdrojové soubory\Platform\Win32</Filter>
+    </ClInclude>
     <ClInclude Include="src\Engine\Render\Backend\Common\DeviceContext.h">
       <Filter>Zdrojové soubory\Engine\Render\Backend\Common</Filter>
     </ClInclude>

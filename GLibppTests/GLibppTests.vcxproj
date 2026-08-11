@@ -20,6 +20,7 @@
     <ClCompile Include="src\test_meshfactory.cpp" />
     <ClCompile Include="src\test_rasterizer.cpp" />
     <ClCompile Include="src\test_shaders.cpp" />
+    <ClCompile Include="src\test_texture.cpp" />
     <!-- prekladane jednotky enginu, na kterych testy zavisi -->
     <ClCompile Include="..\GLibpp\src\Math\Mtx4.cpp" />
     <ClCompile Include="..\GLibpp\src\Math\Vec4.cpp" />

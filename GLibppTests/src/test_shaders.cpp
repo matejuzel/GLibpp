@@ -42,6 +42,9 @@ namespace {
             2.0f,  2.0f,  z,
             13.0f, 2.0f,  z,
             2.0f,  13.0f, z,
+            0.0f, 0.0f, 1.0f,   // UV nulove, invW = 1 (afinni pripad)
+            0.0f, 0.0f, 1.0f,
+            0.0f, 0.0f, 1.0f,
             nx, ny, nz,
             color,
             wireframe

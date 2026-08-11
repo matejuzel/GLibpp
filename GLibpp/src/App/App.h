@@ -13,6 +13,7 @@
 #include "Mesh.h"
 #include "MeshFactory.h"
 #include "ModelImporter.h"
+#include "ImageLoaderWin32.h"
 #include <fstream>
 
 #include "Scene.h"
@@ -244,6 +245,11 @@ public:
         auto bodyMesh = resources.meshRegister(MeshFactory::CreateCylinder(1.0f, 6, 16).applyTransformation(Mtx4::RotationX(3.14159f / 2.0f) * Mtx4::Translation(0.0f, p.wheelBase * 0.5f, 0.0f)));
         auto sphereMesh = resources.meshRegister(MeshFactory::CreateIcosphere(1.0f, 4));
         auto waveMesh = resources.meshRegister(MeshFactory::CreateGridWave(60, 0.2f, 0.0f, 0.05f));
+
+        // texturovany panel - maly demonstracni objekt pro fragment shader Textured;
+        // plnoplosna texturovana zem neprosla: vyplneni ~poloviny okna je v Debugu
+        // (/Od) nad rozpoctem framu (~30 FPS), nezavisle na poctu trojuhelniku
+        auto panelMesh = resources.meshRegister(MeshFactory::CreateQuad(4.0f));
         auto icrMesh = resources.meshRegister(MeshFactory::CreateCube(0.1f).applyTransformation(Mtx4::Scaling(0.01f, 8.0f, 0.01f)));
 
         // testovaci model z .obj - cesta funguje pri spusteni z korene repa
@@ -255,12 +261,21 @@ public:
         GLibpp::Assets::ModelImporter importer;
         auto testMesh = resources.meshRegister(importer.load(objPath).mesh);
 
+        // textura panelu - dekoduje ji Windows (GDI+), stejny fallback cesty jako model
+        const char* texPath = "data/textures/tex.jpg";
+        if (!std::ifstream(texPath).good()) texPath = "../data/textures/tex.jpg";
+        scene.renderables.panelTexture = resources.textureRegister(GLibpp::Platform::ImageLoaderWin32::Load(texPath));
+
         Mtx4 gridWaveModel = Mtx4::Identity().rotateX(GLibpp::Math::deg2rad(90.0f)).translate(-25.0f, -25.0f, 0.0f).scale(0.5f);
+
+        // panel stoji na zemi kousek od originu, celem k vychozi pozici kamery
+        Mtx4 panelModel = Mtx4::Identity().translate(4.0f, 2.0f, 4.0f);
 
         // umisteny do originu (0,0,0) - souradnice z .obj se prebiraji 1:1
         Mtx4 testModel = Mtx4::Identity();
 
         scene.renderables.gridWave  = resources.meshInstanceRegister(waveMesh, gridWaveModel, Color::Grayscale(0.3f), true);
+        scene.renderables.texPanel  = resources.meshInstanceRegister(panelMesh, panelModel, Color::Grayscale(0.55f), false);
         scene.renderables.carBody   = resources.meshInstanceRegister(bodyMesh);
         scene.renderables.wheel     = resources.meshInstanceRegister(wheelMesh);
         scene.renderables.icosphere = resources.meshInstanceRegister(sphereMesh, Mtx4::Identity(), Color::Grayscale(0.7f), true);

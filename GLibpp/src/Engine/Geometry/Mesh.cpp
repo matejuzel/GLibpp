@@ -14,4 +14,9 @@ const std::vector<uint32_t>& Mesh::getIndexBuffer() const
     return indexBuffer;
 }
 
+const std::vector<float>& Mesh::getUVBuffer() const
+{
+    return uvBuffer;
+}
+
 }

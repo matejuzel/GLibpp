@@ -15,10 +15,11 @@ namespace GLibpp::Render {
     // v RasterizerDIB). Handle system se shadery potka az o vrstvu vys:
     // budouci MaterialHandle = DATA (id shaderu + parametry) v registru.
     enum class FragmentShaderId : uint8_t {
-        Solid,   // passthrough - zakladni barva instance
-        Lambert, // ploche Lambertovo stinovani (vychozi vzhled dema)
-        UvDebug, // vizualizace normalizovanych souradnic obrazovky (r = u, g = v)
-        Count    // pocet - neni to shader
+        Solid,    // passthrough - zakladni barva instance
+        Lambert,  // ploche Lambertovo stinovani (vychozi vzhled dema)
+        UvDebug,  // vizualizace normalizovanych souradnic obrazovky (r = u, g = v)
+        Textured, // nearest vzorkovani bindnute textury na perspektivnich UV
+        Count     // pocet - neni to shader
     };
 
 }

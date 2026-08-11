@@ -32,6 +32,11 @@ namespace GLibpp::Render {
         //  u barevneho targetu je tenhle vektor prazdny a naopak)
         std::vector<float> depthbuffer;
 
+        // --- textura (ShaderResource): texely v pameti, zadne GDI ---
+        // framebuffer ukazuje do tohoto vektoru, takze pristup k pixelum je
+        // jednotny s barevnym targetem (putPixel, primy pointer pro sampling)
+        std::vector<uint32_t> texelStorage;
+
         DeviceTargetDIB() = default;
 
         // vlastni GDI handly (a buffer) -> kopie by je uvolnila dvakrat
@@ -55,6 +60,14 @@ namespace GLibpp::Render {
             // depth target: jen alokace pole, GDI cesta se preskoci
             if (isDepthFormat(descriptor.format)) {
                 depthbuffer.assign(pixelCount(), 0.0f);
+                return;
+            }
+
+            // textura (ShaderResource): texely v pameti, GDI cesta se preskoci;
+            // pixely nahraje backend pri textureRegister (upload walk)
+            if (descriptor.usage == TextureUsage::ShaderResource) {
+                texelStorage.assign(pixelCount(), 0u);
+                framebuffer = texelStorage.data();
                 return;
             }
 
@@ -130,6 +143,9 @@ namespace GLibpp::Render {
 
         // true az kdyz je target skutecne pouzitelny jako depth buffer daneho rozliseni
         bool isDepthUsable() const noexcept { return isDepth() && depthbuffer.size() == pixelCount(); }
+
+        // textura pro sampling (ShaderResource) - nema DIB sekci ani DC
+        bool isShaderResource() const noexcept { return descriptor.usage == TextureUsage::ShaderResource; }
 
         void inline putPixel(uint32_t x, uint32_t y, uint32_t color) noexcept
         {

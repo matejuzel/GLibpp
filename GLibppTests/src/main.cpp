@@ -11,6 +11,7 @@ int main()
 
     runRasterizerTests();
     runShaderTests();
+    runTextureTests();
     runMathTests();
     runMeshFactoryTests();
 

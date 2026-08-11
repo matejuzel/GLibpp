@@ -45,6 +45,7 @@ namespace GLibpp::Render {
             SetDepthbuffer,
             Clear,
             SetShader,
+            SetTexture,
             Count // pocet druhu - neni to command
         };
 
@@ -55,6 +56,7 @@ namespace GLibpp::Render {
         struct TargetPayload   { typename Device::TargetHandle target; }; // SetFramebuffer i SetDepthbuffer
         struct ClearPayload    { Color color; };
         struct ShaderPayload   { FragmentShaderId shader; };
+        struct TexturePayload  { Assets::TextureHandle texture; };
 
         Kind kind = Kind::DrawMesh;
         union {
@@ -65,6 +67,7 @@ namespace GLibpp::Render {
             TargetPayload   target;
             ClearPayload    clear;
             ShaderPayload   shader;
+            TexturePayload  texture;
         };
     };
 
@@ -120,6 +123,10 @@ namespace GLibpp::Render {
 
         void setShader(FragmentShaderId shader) {
             if (Command* c = push(Kind::SetShader)) c->shader = { shader };
+        }
+
+        void setTexture(Assets::TextureHandle texture) {
+            if (Command* c = push(Kind::SetTexture)) c->texture = { texture };
         }
 
         // ---- sprava listu / iterace (submit faze) ----

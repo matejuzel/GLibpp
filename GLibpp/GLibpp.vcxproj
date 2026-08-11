@@ -33,6 +33,7 @@
     <ClInclude Include="src\Engine\Assets\IModelLoader.h" />
     <ClInclude Include="src\Engine\Assets\ModelImporter.h" />
     <ClInclude Include="src\Engine\Assets\ObjLoader.h" />
+    <ClInclude Include="src\Engine\Assets\TextureData.h" />
     <ClInclude Include="src\App\Scene.h" />
     <ClInclude Include="src\Engine\Core\Datastruct\AtomicMailbox.h" />
     <ClInclude Include="src\Engine\Core\Datastruct\StableRegistry.h" />
@@ -56,6 +57,7 @@
     <ClInclude Include="src\Engine\Render\Backend\DIB\Shaders\FragmentShader.h" />
     <ClInclude Include="src\Engine\Render\Backend\DIB\Shaders\ShaderLambert.h" />
     <ClInclude Include="src\Engine\Render\Backend\DIB\Shaders\ShaderSolid.h" />
+    <ClInclude Include="src\Engine\Render\Backend\DIB\Shaders\ShaderTextured.h" />
     <ClInclude Include="src\Engine\Render\Backend\DIB\Shaders\ShaderUvDebug.h" />
     <ClInclude Include="src\Engine\Render\Color.h" />
     <ClInclude Include="src\Engine\Render\DrawCommand.h" />
@@ -71,6 +73,7 @@
     <ClInclude Include="src\Math\Mtx4.h" />
     <ClInclude Include="src\Math\Quaternion.h" />
     <ClInclude Include="src\Math\Vec4.h" />
+    <ClInclude Include="src\Platform\Win32\ImageLoaderWin32.h" />
     <ClInclude Include="src\Platform\Win32\Win32DC.h" />
     <ClInclude Include="src\Platform\Win32\WindowWin32.h" />
     <ClInclude Include="src\Engine\Core\TimeManager.h" />

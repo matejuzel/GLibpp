@@ -40,6 +40,17 @@ namespace GLibpp::Render {
                 1, 1
             );
         }
+        // textura pro sampling ve fragment shaderu - u DIB backendu texely
+        // v pameti bez GDI (viz DeviceTargetDIB::texelStorage)
+        static RenderTargetDescriptor Texture(uint32_t width, uint32_t height) {
+            return RenderTargetDescriptor(
+                width, height,
+                TextureFormat::RGBA8,
+                TextureUsage::ShaderResource,
+                1, 1
+            );
+        }
+
         // hloubka jako float - DIB backend testuje NDC z (viz kDepthFar v DeviceDIB);
         // usage byl drive copy-paste ColorAttachment
         static RenderTargetDescriptor Depthbuffer32F(uint32_t width, uint32_t height) {

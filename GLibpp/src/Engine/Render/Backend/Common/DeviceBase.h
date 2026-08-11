@@ -4,6 +4,7 @@
 #include "StableRegistry.h"
 #include "Mesh.h"
 #include "ResourceHandles.h"
+#include "TextureData.h"
 
 namespace GLibpp::Render {
 
@@ -95,6 +96,14 @@ namespace GLibpp::Render {
             static_cast<DerivedDevice*>(this)->meshUpdateImpl(h, mesh);
         }
 
+        // registrace textury v backendu - identita = TextureHandle; backend si pod
+        // handlem vytvori vlastni residency (DIB: ShaderResource target, GL: texturu)
+        // vola se z upload walku na zacatku runLoop, stejne jako meshRegister
+        void textureRegister(Assets::TextureHandle h, const Assets::TextureData& texture) noexcept
+        {
+            static_cast<DerivedDevice*>(this)->textureRegisterImpl(h, texture);
+        }
+
         Context createContext() noexcept {
             return static_cast<DerivedDevice*>(this)->createContextImpl();
         }
@@ -104,6 +113,7 @@ namespace GLibpp::Render {
         // default no-op - backend, ktery zadnou vlastni residency nepotrebuje, nic neimplementuje
         void meshRegisterImpl(Assets::MeshHandle, const Geometry::Mesh&) noexcept {}
         void meshUpdateImpl(Assets::MeshHandle, const Geometry::Mesh&) noexcept {}
+        void textureRegisterImpl(Assets::TextureHandle, const Assets::TextureData&) noexcept {}
 
     };
 
