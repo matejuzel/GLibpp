@@ -104,6 +104,15 @@ namespace GLibpp::Render {
             static_cast<DerivedDevice*>(this)->textureRegisterImpl(h, texture);
         }
 
+        // residency target textury (DIB: ShaderResource target, GL: textura FBO
+        // attachmentu) - umoznuje bindnout texturu jako framebuffer commandem
+        // SetFramebuffer a kreslit do ni (render-to-texture);
+        // INVALID = textura nezaregistrovana / backend render-to-texture neumi
+        TargetHandle textureTargetGet(Assets::TextureHandle h) noexcept
+        {
+            return static_cast<DerivedDevice*>(this)->textureTargetGetImpl(h);
+        }
+
         Context createContext() noexcept {
             return static_cast<DerivedDevice*>(this)->createContextImpl();
         }
@@ -114,6 +123,7 @@ namespace GLibpp::Render {
         void meshRegisterImpl(Assets::MeshHandle, const Geometry::Mesh&) noexcept {}
         void meshUpdateImpl(Assets::MeshHandle, const Geometry::Mesh&) noexcept {}
         void textureRegisterImpl(Assets::TextureHandle, const Assets::TextureData&) noexcept {}
+        TargetHandle textureTargetGetImpl(Assets::TextureHandle) noexcept { return TARGET_INVALID; }
 
     };
 

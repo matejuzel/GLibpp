@@ -203,6 +203,35 @@ namespace GLibppTests {
             // u praveho okraje uz u prekroci 0.5: stred 7.5 -> u = 0.75 -> pravy sloupec
             check(pixelAt(target, 7, 1) == texels[1],
                 "vzdaleny okraj dosahne na pravy sloupec textury (u -> 1)");
+
+            section("Textury - render-to-texture (ShaderResource target jako framebuffer)");
+
+            // podstata render-to-texture na DIB: framebuffer ShaderResource targetu
+            // ukazuje do texelStorage, takze rasterizer do nej umi kreslit a dalsi
+            // draw ho ihned sampluje bez jakehokoli kopirovani
+            DeviceTargetDIB rt(RenderTargetDescriptor::Texture(W, H));
+            check(rt.isShaderResource() && rt.framebuffer != nullptr,
+                "ShaderResource target ma zapisovatelny framebuffer v pameti");
+
+            // 1) kresleni DO textury: modre pozadi, Solid vyplni ctverec [0,8) cervene
+            const Color red(255, 0, 0, 255);
+            const Color blue(0, 0, 255, 255);
+            const auto solidFn = RasterizerDIB::fragmentFunction(FragmentShaderId::Solid);
+            clearColor(rt, blue.toRGBA());
+            solidFn(rt, nullptr, quadTriA(red), noTex);
+            solidFn(rt, nullptr, quadTriB(red), noTex);
+            check(pixelAt(rt, 3, 3) == red.toRGBA(), "rasterizer zapisuje do ShaderResource targetu");
+
+            // 2) sampling Z prave nakreslene textury v nasledujicim drawu:
+            // quad [0,8) s UV [0,1] mapuje CELOU 16x16 texturu -> pixel (2,2)
+            // sampluje texel (5,5) z cerveneho ctverce, pixel (6,6) texel (13,13)
+            // z modreho pozadi
+            const ShaderUniforms rtUni{ 1.0f / float(W), 1.0f / float(H), rt.framebuffer, uint32_t(W), uint32_t(H) };
+            clearColor(target, 0u);
+            texturedFn(target, nullptr, quadTriA(base), rtUni);
+            texturedFn(target, nullptr, quadTriB(base), rtUni);
+            check(pixelAt(target, 2, 2) == red.toRGBA(), "sampling vraci obsah nakresleny do textury");
+            check(pixelAt(target, 6, 6) == blue.toRGBA(), "sampling vraci i pozadi RT textury");
         }
         catch (const std::exception& e)
         {

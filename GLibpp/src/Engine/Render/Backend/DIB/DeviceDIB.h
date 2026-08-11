@@ -671,6 +671,19 @@ namespace GLibpp::Render {
             registry.textureRefs[h.index] = { t, h.generation, true };
         }
 
+        // resolvuje TextureHandle na residency target (stejna validace jako
+        // sampling v rasterizeMesh); render-to-texture: vraceny target lze
+        // bindnout commandem SetFramebuffer a kreslit do nej - framebuffer
+        // ShaderResource targetu ukazuje primo do texelStorage, takze dalsi
+        // pruchod texturu ihned sampluje bez jakehokoli kopirovani
+        TargetHandle textureTargetGetImpl(Assets::TextureHandle h) noexcept
+        {
+            if (h.index >= registry.textureRefs.size()) return TARGET_INVALID;
+            const auto& ref = registry.textureRefs[h.index];
+            if (!ref.valid || ref.generation != h.generation) return TARGET_INVALID;
+            return ref.target;
+        }
+
         Context createContextImpl() noexcept {
             Context ctx;
             return ctx;

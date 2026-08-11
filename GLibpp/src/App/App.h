@@ -266,21 +266,42 @@ public:
         if (!std::ifstream(texPath).good()) texPath = "../data/textures/tex.jpg";
         scene.renderables.panelTexture = resources.textureRegister(GLibpp::Platform::ImageLoaderWin32::Load(texPath));
 
+        // render-to-texture: prazdna textura, do ktere renderer kazdy frame
+        // kresli auto (pass RT v buildDrawList); placeholder barva je videt
+        // jen nez probehne prvni RT pruchod. Male rozliseni je zamerne:
+        // krome fillu jde i o cache - color+depth targety RT musi zustat
+        // male, aby nevytlacovaly pracovni sadu hlavniho pruchodu (Debug budget)
+        {
+            GLibpp::Assets::TextureData rtTex;
+            rtTex.width = 128;
+            rtTex.height = 128;
+            rtTex.pixels.assign(size_t(rtTex.width) * rtTex.height, 0xFF303030u);
+            scene.renderables.rtTexture = resources.textureRegister(std::move(rtTex));
+        }
+
         Mtx4 gridWaveModel = Mtx4::Identity().rotateX(GLibpp::Math::deg2rad(90.0f)).translate(-25.0f, -25.0f, 0.0f).scale(0.5f);
 
         // panel stoji na zemi kousek od originu, celem k vychozi pozici kamery
         Mtx4 panelModel = Mtx4::Identity().translate(4.0f, 2.0f, 4.0f);
+
+        // druhy panel hned vedle (na strane ke kamere dema) - zobrazuje
+        // render-to-texture obraz auta
+        Mtx4 rtPanelModel = Mtx4::Identity().translate(-0.5f, 2.0f, 4.0f);
 
         // umisteny do originu (0,0,0) - souradnice z .obj se prebiraji 1:1
         Mtx4 testModel = Mtx4::Identity();
 
         scene.renderables.gridWave  = resources.meshInstanceRegister(waveMesh, gridWaveModel, Color::Grayscale(0.3f), true);
         scene.renderables.texPanel  = resources.meshInstanceRegister(panelMesh, panelModel, Color::Grayscale(0.55f), false);
+        scene.renderables.rtPanel   = resources.meshInstanceRegister(panelMesh, rtPanelModel, Color::Grayscale(0.55f), false);
         scene.renderables.carBody   = resources.meshInstanceRegister(bodyMesh);
         scene.renderables.wheel     = resources.meshInstanceRegister(wheelMesh);
         scene.renderables.icosphere = resources.meshInstanceRegister(sphereMesh, Mtx4::Identity(), Color::Grayscale(0.7f), true);
         scene.renderables.icrBeam   = resources.meshInstanceRegister(icrMesh);
-        scene.renderables.test      = resources.meshInstanceRegister(testMesh, testModel, Color::Grayscale(0.55f), false);
+        // wireframe zamerne: plny line.obj stal v Debug (/Od) 8-10 ms na frame
+        // (velke projektovane trojuhelniky pod kamerou) a idle pohled dema byl
+        // sam o sobe nad rozpoctem framu - zmereno per-command instrumentaci
+        scene.renderables.test      = resources.meshInstanceRegister(testMesh, testModel, Color::Grayscale(0.55f), true);
 		
     }
 

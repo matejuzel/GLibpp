@@ -92,6 +92,13 @@ namespace GLibpp::Render {
         typename Device::TargetHandle framebufferHandle;
         typename Device::TargetHandle depthbufferHandle;
 
+        // render-to-texture: barevny target = residency target RT textury ze sceny
+        // (resolvuje se lazy pri prvnim framu s platnym handlem - textura je
+        // v residency az po upload walku), hloubka a viewport patri Rendereru
+        typename Device::TargetHandle rtColorHandle = Device::TARGET_INVALID;
+        typename Device::TargetHandle rtDepthHandle = Device::TARGET_INVALID;
+        Viewport rtViewport{ 0, 0, 0, 0 };
+
         float logicHz;
 
         BufferedLogicState& logicStateBuffered;
@@ -128,6 +135,20 @@ namespace GLibpp::Render {
                 Assets::MeshHandle waveMesh = resources.meshInstanceGet(scene.renderables.gridWave).mesh;
                 Geometry::MeshFactory::UpdateGridWave(resources.meshGetDynamic(waveMesh), 60, 0.2f, static_cast<float>(frameIndex), 0.05f);
                 device.meshUpdate(waveMesh, resources.meshGet(waveMesh));
+            }
+
+            // render-to-texture: lazy resolve targetu + tvorba hloubky k nemu
+            // (targetCreate smi volat jen render vlakno - proto tady, ne v ctoru)
+            if (rtColorHandle == Device::TARGET_INVALID
+                && resources.textureIsValid(scene.renderables.rtTexture))
+            {
+                rtColorHandle = device.textureTargetGet(scene.renderables.rtTexture);
+                if (rtColorHandle != Device::TARGET_INVALID)
+                {
+                    const Assets::TextureData& t = resources.textureGet(scene.renderables.rtTexture);
+                    rtDepthHandle = device.targetCreate(RenderTargetDescriptor::Depthbuffer32F(t.width, t.height));
+                    rtViewport = Viewport{ 0, 0, t.width, t.height };
+                }
             }
 
             auto ctx = device.createContext();
@@ -265,6 +286,24 @@ namespace GLibpp::Render {
         // nahradi prave tuhle metodu (flat uzly -> propagace worldu -> emit).
         void buildDrawList(const Scene& scene)
         {
+            // --- pass 0: render-to-texture ---
+            // tataz scena z tehoz pohledu se kresli do RT textury (jeji residency
+            // target je bindnuty jako framebuffer); hlavni pruchod ji pak zobrazi
+            // na rtPanel pres bezny SetTexture - obraz je z aktualniho framu,
+            // protoze command list se prehrava sekvencne
+            if (rtColorHandle != Device::TARGET_INVALID)
+            {
+                drawList.setFramebuffer(rtColorHandle);
+                drawList.setDepthbuffer(rtDepthHandle);
+                drawList.setView(scene.camera.calculateViewMatrix());
+                drawList.setProjection(Mtx4::Perspective(scene.camera.fovRad, rtViewport.computeAspectRatio(), scene.camera.nearZ, scene.camera.farZ));
+                drawList.setViewport(rtViewport);
+                // clear jinou barvou nez okno, at je na panelu poznat, ze jde o RT obraz
+                drawList.clear(Color(45, 55, 80, 255));
+                emitSceneDraws(scene, false);
+            }
+
+            // --- hlavni pruchod do okna ---
             // stav framu - drawy nasleduji az za nim (viz poznamka o razeni v DrawCommand.h)
             drawList.setFramebuffer(framebufferHandle);
             drawList.setDepthbuffer(depthbufferHandle);
@@ -272,7 +311,20 @@ namespace GLibpp::Render {
             drawList.setProjection(Mtx4::Perspective(scene.camera.fovRad, viewport.computeAspectRatio(), scene.camera.nearZ, scene.camera.farZ));
             drawList.setViewport(viewport);
             drawList.clear(Color::Grayscale(0.4f));
+            emitSceneDraws(scene, true);
+        }
 
+        // emit geometrie sceny - sdileny RT pruchodem i hlavnim pruchodem do okna.
+        // overlay = true jen pro hlavni pruchod; RT pruchod (overlay = false)
+        // vynechava:
+        // - tezke meshe (vlna ~7k, ikosfera ~5k, line.obj ~4,6k trojuhelniku):
+        //   jejich DRUHE kresleni v Debugu (/Od) prehouplo framy pres rozpocet
+        //   na 33ms pacing - zmereno izolovane, kazdy z nich na to staci sam;
+        //   RT tak nese jen auto + panel (cena per-triangle setupu, ne fill)
+        // - rtPanel: sampoval by texturu, do ktere se prave kresli (zpetna vazba)
+        // - debug osy
+        void emitSceneDraws(const Scene& scene, bool overlay)
+        {
             // world matice se pocitaji jednou a sdili je mesh i axis command
             const Mtx4 carM = scene.car.getCarMatrix();
             const Mtx4 wheelFL = scene.car.getFrontLeft();
@@ -282,29 +334,40 @@ namespace GLibpp::Render {
 
             // --- pass 1: dratena zem Lambertem (prvni, aby ji plne objekty prekryly -
             //     cary ignoruji hloubku) ---
-            drawList.setShader(FragmentShaderId::Lambert);
-            drawList.drawMesh(Mtx4::Identity(), scene.renderables.gridWave);
+            if (overlay)
+            {
+                drawList.setShader(FragmentShaderId::Lambert);
+                drawList.drawMesh(Mtx4::Identity(), scene.renderables.gridWave);
+            }
 
-            // --- pass 2: texturovany panel (demonstrace SetShader + SetTexture) ---
+            // --- pass 2: texturovane panely (demonstrace SetShader + SetTexture) ---
             // pozn.: plnoplosna texturovana zem neprosla - vyplneni ~poloviny okna
             // je v Debugu (/Od) nad rozpoctem framu (~30 FPS) nezavisle na poctu
-            // trojuhelniku; proto texturu nese maly panel a vlna zustava dratena
+            // trojuhelniku; proto texturu nesou male panely a vlna zustava dratena
             drawList.setShader(FragmentShaderId::Textured);
             drawList.setTexture(scene.renderables.panelTexture);
             drawList.drawMesh(Mtx4::Identity(), scene.renderables.texPanel);
+            if (overlay)
+            {
+                // panel s render-to-texture obrazem sceny (viz pass 0)
+                drawList.setTexture(scene.renderables.rtTexture);
+                drawList.drawMesh(Mtx4::Identity(), scene.renderables.rtPanel);
+            }
 
             // --- pass 3: zbytek sceny plochym Lambertem ---
             drawList.setShader(FragmentShaderId::Lambert);
 
             // testovaci model nacteny z .obj (data/models); poradi vuci autu uz
             // nehraje roli - vzajemne zakryti resi depth buffer
-            drawList.drawMesh(Mtx4::Identity(), scene.renderables.test);
+            if (overlay)
+                drawList.drawMesh(Mtx4::Identity(), scene.renderables.test);
 
             // Car
             drawList.drawMesh(carM, scene.renderables.carBody);
 
             // sphere (stejny world jako telo auta)
-            drawList.drawMesh(carM, scene.renderables.icosphere);
+            if (overlay)
+                drawList.drawMesh(carM, scene.renderables.icosphere);
 
             // ICR
             drawList.drawMesh(scene.car.getIcrTransformation(), scene.renderables.icrBeam);
@@ -314,6 +377,8 @@ namespace GLibpp::Render {
             drawList.drawMesh(wheelFR, scene.renderables.wheel);
             drawList.drawMesh(wheelBL, scene.renderables.wheel);
             drawList.drawMesh(wheelBR, scene.renderables.wheel);
+
+            if (!overlay) return;
 
             // osy lokalnich prostoru objektu (Mtx4::scale je mutujici builder -> skaluje se kopie)
             const float wheelR = scene.car.model.params.wheelRadius;
