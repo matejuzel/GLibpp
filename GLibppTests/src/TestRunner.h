@@ -36,5 +36,6 @@ namespace GLibppTests {
     void runRasterizerTests();
     void runMathTests();
     void runMeshFactoryTests();
+    void runShaderTests();
 
 }

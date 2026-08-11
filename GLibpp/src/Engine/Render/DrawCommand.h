@@ -3,6 +3,7 @@
 #include "Mtx4.h"
 #include "Color.h"
 #include "Viewport.h"
+#include "FragmentShaderId.h"
 #include "ResourceHandles.h"
 #include <cassert>
 #include <cstddef>
@@ -43,6 +44,7 @@ namespace GLibpp::Render {
             SetFramebuffer,
             SetDepthbuffer,
             Clear,
+            SetShader,
             Count // pocet druhu - neni to command
         };
 
@@ -52,6 +54,7 @@ namespace GLibpp::Render {
         struct ViewportPayload { Viewport viewport; };
         struct TargetPayload   { typename Device::TargetHandle target; }; // SetFramebuffer i SetDepthbuffer
         struct ClearPayload    { Color color; };
+        struct ShaderPayload   { FragmentShaderId shader; };
 
         Kind kind = Kind::DrawMesh;
         union {
@@ -61,6 +64,7 @@ namespace GLibpp::Render {
             ViewportPayload viewport;
             TargetPayload   target;
             ClearPayload    clear;
+            ShaderPayload   shader;
         };
     };
 
@@ -112,6 +116,10 @@ namespace GLibpp::Render {
 
         void clear(const Color& color) {
             if (Command* c = push(Kind::Clear)) c->clear = { color };
+        }
+
+        void setShader(FragmentShaderId shader) {
+            if (Command* c = push(Kind::SetShader)) c->shader = { shader };
         }
 
         // ---- sprava listu / iterace (submit faze) ----

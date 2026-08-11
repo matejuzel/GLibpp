@@ -3,8 +3,14 @@
 #include <cstdint>
 #include <algorithm>
 #include <cmath>
+#include <iterator>
 #include "DeviceTargetBase.h"
 #include "DeviceTargetDIB.h"
+#include "FragmentShaderId.h"
+#include "FragmentShader.h"
+#include "ShaderSolid.h"
+#include "ShaderLambert.h"
+#include "ShaderUvDebug.h"
 
 
 namespace GLibpp::Render {
@@ -56,33 +62,49 @@ namespace GLibpp::Render {
         // Diky exaktnosti staci top-left fill rule a hranicni pixel patri PRESNE
         // JEDNOMU trojuhelniku - sousedni plosky se uz o nej nehadaji.
         //
+        // Fragment shader: barvu pixelu urcuje Shader::shade(), ktery se do
+        // vnitrni smycky INLINUJE (parametr sablony, zadny per-pixel dispatch);
+        // per-triangle priprava (Shader::setup) probehne jednou. Vyber shaderu
+        // za behu jde pres fragmentFunction(id) - LUT instanciaci teto sablony.
+        //
         // Hloubka: NDC z je po perspektivnim deleni afinni funkci obrazovkovych
         // x, y, takze staci rovina z = zRef + dzdx*dx + dzdy*dy (1/w interpolace
         // je potreba az pro atributy typu UV, ne pro hloubku). Rovina se pocita
-        // z tychze snapnutych souradnic jako pokryti a vzorkuje se rovnez ve
-        // stredu pixelu. Depth test je "mensi vyhrava"; bez depth targetu
-        // (nullptr) se kresli v poradi commandu jako dosud.
+        // z tychze snapnutych souradnic jako pokryti, vzorkuje se ve stredu
+        // pixelu a pocita se VZDY - interpolovane z dostava i shader
+        // (PixelInput.z), ne jen depth test. Depth test je "mensi vyhrava" a
+        // shade() se vola az po nem (early-z); bez depth targetu (nullptr) se
+        // kresli v poradi commandu jako dosud.
         // Pozn.: u extremne tenkych trojuhelniku je jmenovatel roviny maly a
         // gradient hloubky velky - presna matematika drzi z uvnitr [min z, max z]
         // vrcholu, float zaokrouhleni se tam ale znatelne zesiluje.
         //
-        // Obrys (wireframe) i drawLine hloubku ignoruji - cary jsou debug overlay.
-        static void inline drawTriangle(
+        // Obrys (wireframe) bere barvu ze shade() v centroidu (zachovava napr.
+        // stinovany dratovy model vlny); cary hloubku ignoruji - debug overlay.
+        template <FragmentShader Shader>
+        static void rasterizeTriangleT(
             DeviceTargetDIB& target,
             DeviceTargetDIB* depth,
-            float fx0, float fy0, float z0,
-            float fx1, float fy1, float z1,
-            float fx2, float fy2, float z2,
-            uint32_t color,
-            bool wireframe
+            const TriangleInput& tri,
+            const ShaderUniforms& uniforms
         ) noexcept
         {
-            if (wireframe)
+            // per-triangle "varyings" - u plochych shaderu tady probehne vsechno
+            const auto triCtx = Shader::setup(tri, uniforms);
+
+            if (tri.wireframe)
             {
                 // jen obrys - cary adresuji pixel obsahujici vrchol
-                const int lx0 = pixelOf(fx0), ly0 = pixelOf(fy0);
-                const int lx1 = pixelOf(fx1), ly1 = pixelOf(fy1);
-                const int lx2 = pixelOf(fx2), ly2 = pixelOf(fy2);
+                const PixelInput centroid{
+                    pixelOf((tri.x0 + tri.x1 + tri.x2) / 3.0f),
+                    pixelOf((tri.y0 + tri.y1 + tri.y2) / 3.0f),
+                    (tri.z0 + tri.z1 + tri.z2) / 3.0f
+                };
+                const uint32_t color = Shader::shade(triCtx, centroid, uniforms);
+
+                const int lx0 = pixelOf(tri.x0), ly0 = pixelOf(tri.y0);
+                const int lx1 = pixelOf(tri.x1), ly1 = pixelOf(tri.y1);
+                const int lx2 = pixelOf(tri.x2), ly2 = pixelOf(tri.y2);
 
                 drawLine(target, lx0, ly0, lx1, ly1, color);
                 drawLine(target, lx1, ly1, lx2, ly2, color);
@@ -91,9 +113,9 @@ namespace GLibpp::Render {
             }
 
             // --- 1) snap vrcholu na subpixelovou mrizku ---
-            int64_t vx[3] = { toFixed(fx0), toFixed(fx1), toFixed(fx2) };
-            int64_t vy[3] = { toFixed(fy0), toFixed(fy1), toFixed(fy2) };
-            float   vz[3] = { z0, z1, z2 };
+            int64_t vx[3] = { toFixed(tri.x0), toFixed(tri.x1), toFixed(tri.x2) };
+            int64_t vy[3] = { toFixed(tri.y0), toFixed(tri.y1), toFixed(tri.y2) };
+            float   vz[3] = { tri.z0, tri.z1, tri.z2 };
 
             // --- 2) vinuti: chceme "uvnitr" == vsechny hranove funkce >= 0 ---
             const int64_t area2 = (vx[1] - vx[0]) * (vy[2] - vy[0])
@@ -132,18 +154,15 @@ namespace GLibpp::Render {
             const float px[3] = { fromFixed(vx[0]), fromFixed(vx[1]), fromFixed(vx[2]) };
             const float py[3] = { fromFixed(vy[0]), fromFixed(vy[1]), fromFixed(vy[2]) };
 
-            float dzdx = 0.0f;
-            float dzdy = 0.0f;
+            const float e1x = px[1] - px[0], e1y = py[1] - py[0];
+            const float e2x = px[2] - px[0], e2y = py[2] - py[0];
+            const float denom = e1x * e2y - e2x * e1y;
 
-            if (depth)
-            {
-                const float e1x = px[1] - px[0], e1y = py[1] - py[0];
-                const float e2x = px[2] - px[0], e2y = py[2] - py[0];
-                const float inv = 1.0f / (e1x * e2y - e2x * e1y); // != 0, viz area2
+            if (std::fabs(denom) < 1e-6f) return; // degenerovany trojuhelnik
 
-                dzdx = ((vz[1] - vz[0]) * e2y - (vz[2] - vz[0]) * e1y) * inv;
-                dzdy = ((vz[2] - vz[0]) * e1x - (vz[1] - vz[0]) * e2x) * inv;
-            }
+            const float inv = 1.0f / denom;
+            const float dzdx = ((vz[1] - vz[0]) * e2y - (vz[2] - vz[0]) * e1y) * inv;
+            const float dzdy = ((vz[2] - vz[0]) * e1x - (vz[1] - vz[0]) * e2x) * inv;
 
             // --- 5) obalka v pixelech (kandidati, jejichz stred muze byt uvnitr) ---
             const float minX = std::min(px[0], std::min(px[1], px[2]));
@@ -197,12 +216,13 @@ namespace GLibpp::Render {
 
                         if (!depthRow)
                         {
-                            row[x] = color;
+                            row[x] = Shader::shade(triCtx, PixelInput{ x, y, z }, uniforms);
                         }
                         else if (z < depthRow[x])
                         {
+                            // early-z: shade() se vola az po vyhranem depth testu
                             depthRow[x] = z;
-                            row[x] = color;
+                            row[x] = Shader::shade(triCtx, PixelInput{ x, y, z }, uniforms);
                         }
                     }
                     else if (wasInside)
@@ -216,6 +236,56 @@ namespace GLibpp::Render {
 
                 rowE[0] += stepY[0]; rowE[1] += stepY[1]; rowE[2] += stepY[2];
             }
+        }
+
+        // Kompatibilni vstup bez vyberu shaderu: plna barva (ShaderSolid).
+        // Drzi presne hodnoty barev - stoji na tom testy rasterizace.
+        // Roundtrip uint32 -> Color -> toRGBA je bezztratovy (oboji 0xAARRGGBB).
+        static void inline drawTriangle(
+            DeviceTargetDIB& target,
+            DeviceTargetDIB* depth,
+            float x0, float y0, float z0,
+            float x1, float y1, float z1,
+            float x2, float y2, float z2,
+            uint32_t color,
+            bool wireframe
+        ) noexcept
+        {
+            const TriangleInput tri{
+                x0, y0, z0,
+                x1, y1, z1,
+                x2, y2, z2,
+                0.0f, 0.0f, 0.0f,   // normala - ShaderSolid ji nepouziva
+                Color(color),
+                wireframe
+            };
+            // uniformy z rozmeru targetu (descriptor garantuje >= 1)
+            const ShaderUniforms uniforms{
+                1.0f / float(target.descriptor.width),
+                1.0f / float(target.descriptor.height)
+            };
+            rasterizeTriangleT<ShaderSolid>(target, depth, tri, uniforms);
+        }
+
+        // typ radku dispatch tabulky: rasterizace trojuhelniku konkretnim shaderem
+        using RasterizeFn = void (*)(DeviceTargetDIB&, DeviceTargetDIB*, const TriangleInput&, const ShaderUniforms&) noexcept;
+
+        // O(1) vyber shaderu: tabulka ukazatelu na instanciace rasterizeTriangleT,
+        // index = FragmentShaderId, poradi radku = poradi enumu (hlida static_assert
+        // - stejny vzor jako dispatch tabulka DrawCommandu v Rendereru).
+        // Fetch se dela jednou na draw (viz rasterizeMesh) -> jeden neprimy call
+        // na trojuhelnik, per-pixel dispatch neexistuje (shade je inlinovany).
+        static RasterizeFn fragmentFunction(FragmentShaderId id) noexcept
+        {
+            static constexpr RasterizeFn kFragmentDispatch[] = {
+                &rasterizeTriangleT<ShaderSolid>,
+                &rasterizeTriangleT<ShaderLambert>,
+                &rasterizeTriangleT<ShaderUvDebug>,
+            };
+            static_assert(std::size(kFragmentDispatch) == static_cast<size_t>(FragmentShaderId::Count),
+                "dispatch tabulka musi pokryvat vsechny druhy shaderu");
+
+            return kFragmentDispatch[static_cast<size_t>(id)];
         }
 
     private:

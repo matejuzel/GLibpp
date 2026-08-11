@@ -286,19 +286,19 @@ namespace GLibpp::Render {
                 }
             }
 
-            // --- 4) Směrové světlo ve VIEW SPACE ---
-            float Lx = 0.0f;
-            float Ly = 0.0f;
-            float Lz = -1.0f; // světlo zepředu v prostoru kamery
+            // --- 4) Rasterizace trojúhelníků ---
+            // Vyber fragment shaderu: JEDEN fetch z LUT na cely draw (stinovani
+            // se odstehovalo do Backend/DIB/Shaders - viz ShaderLambert); shade()
+            // uvnitr rasterizacni smycky uz je inlinovany, zadny per-pixel dispatch
+            const RasterizerDIB::RasterizeFn rasterize = RasterizerDIB::fragmentFunction(ctx.fragmentShader);
 
-            float lenL = std::sqrt(Lx * Lx + Ly * Ly + Lz * Lz);
-            Lx /= lenL; Ly /= lenL; Lz /= lenL;
+            // per-draw konstanty pro shadery (obdoba GPU uniformu) - napr. pro
+            // odvozeni normalizovanych souradnic obrazovky ze stredu pixelu
+            const ShaderUniforms uniforms{
+                1.0f / float(width),
+                1.0f / float(height)
+            };
 
-            // difuzní rozsah
-            float a = 0.2f;
-            float b = 1.0f;
-
-            // --- 5) Rasterizace trojúhelníků ---
             for (size_t i = 0; i + 2 < indexCount; i += 3)
             {
                 uint32_t ia = indices[i];
@@ -347,21 +347,6 @@ namespace GLibpp::Render {
                     Nx /= lenN; Ny /= lenN; Nz /= lenN;
                 }
 
-                // --- Lambert ---
-                float dotNL = Nx * Lx + Ny * Ly + Nz * Lz;
-                if (dotNL < 0.0f) dotNL = 0.0f;
-                if (dotNL > 1.0f) dotNL = 1.0f;
-
-                float I = a + dotNL * (b - a);
-
-                // --- barva ---
-                uint32_t shaded = Color(
-                    uint8_t(color.r * I),
-                    uint8_t(color.g * I),
-                    uint8_t(color.b * I),
-                    color.a
-                ).toRGBA();
-
                 // --- screen-space pozice ---
                 float ax = floatBuffer[3 * ia];
                 float ay = floatBuffer[3 * ia + 1];
@@ -375,14 +360,17 @@ namespace GLibpp::Render {
                 float cy = floatBuffer[3 * ic + 1];
                 float cz = floatBuffer[3 * ic + 2];
 
-                RasterizerDIB::drawTriangle(
-                    target, depth,
+                // vstup shaderu: geometrie + ploche atributy (normala, zakladni barva)
+                const TriangleInput tri{
                     ax, ay, az,
                     bx, by, bz,
                     cx, cy, cz,
-                    shaded,
+                    Nx, Ny, Nz,
+                    color,
                     wiredFlag
-                );
+                };
+
+                rasterize(target, depth, tri, uniforms);
             }
         }
 

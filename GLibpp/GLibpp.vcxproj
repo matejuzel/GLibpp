@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup Label="ProjectConfigurations">
     <ProjectConfiguration Include="Debug|Win32">
@@ -53,8 +53,13 @@
     <ClInclude Include="src\Engine\Render\Backend\DIB\RasterizerDIB.h" />
     <ClInclude Include="src\Engine\Render\Backend\DIB\DeviceDIB.h" />
     <ClInclude Include="src\Engine\Render\Backend\DIB\DeviceTargetDIB.h" />
+    <ClInclude Include="src\Engine\Render\Backend\DIB\Shaders\FragmentShader.h" />
+    <ClInclude Include="src\Engine\Render\Backend\DIB\Shaders\ShaderLambert.h" />
+    <ClInclude Include="src\Engine\Render\Backend\DIB\Shaders\ShaderSolid.h" />
+    <ClInclude Include="src\Engine\Render\Backend\DIB\Shaders\ShaderUvDebug.h" />
     <ClInclude Include="src\Engine\Render\Color.h" />
     <ClInclude Include="src\Engine\Render\DrawCommand.h" />
+    <ClInclude Include="src\Engine\Render\FragmentShaderId.h" />
     <ClInclude Include="src\Engine\Render\Renderer.h" />
     <ClInclude Include="src\Engine\Assets\ResourceHandles.h" />
     <ClInclude Include="src\Engine\Assets\ResourceManager.h" />
@@ -155,7 +160,7 @@
       <PreprocessorDefinitions>_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <AdditionalOptions>/utf-8 %(AdditionalOptions)</AdditionalOptions>
-      <AdditionalIncludeDirectories>$(ProjectDir)src;$(ProjectDir)src\App;$(ProjectDir)src\Engine;$(ProjectDir)src\Math;$(ProjectDir)src\Platform;$(ProjectDir)src\Engine\Core;$(ProjectDir)src\Engine\Render;$(ProjectDir)src\Engine\Core\Datastruct;$(ProjectDir)src\Engine\Render\Backend;$(ProjectDir)src\Engine\Render\Backend\Common;$(ProjectDir)src\Engine\Render\Backend\DIB;$(ProjectDir)src\Platform\Win32;$(ProjectDir)src\Engine\Core\Input;$(ProjectDir)src\Engine\Geometry;$(ProjectDir)src\Engine\Assets;$(ProjectDir)src\Engine\Physics\Bicycle;$(ProjectDir)src\Engine\Physics</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ProjectDir)src;$(ProjectDir)src\App;$(ProjectDir)src\Engine;$(ProjectDir)src\Math;$(ProjectDir)src\Platform;$(ProjectDir)src\Engine\Core;$(ProjectDir)src\Engine\Render;$(ProjectDir)src\Engine\Core\Datastruct;$(ProjectDir)src\Engine\Render\Backend;$(ProjectDir)src\Engine\Render\Backend\Common;$(ProjectDir)src\Engine\Render\Backend\DIB;$(ProjectDir)src\Engine\Render\Backend\DIB\Shaders;$(ProjectDir)src\Platform\Win32;$(ProjectDir)src\Engine\Core\Input;$(ProjectDir)src\Engine\Geometry;$(ProjectDir)src\Engine\Assets;$(ProjectDir)src\Engine\Physics\Bicycle;$(ProjectDir)src\Engine\Physics</AdditionalIncludeDirectories>
       <LanguageStandard>stdcpp20</LanguageStandard>
     </ClCompile>
     <Link>
@@ -172,7 +177,7 @@
       <PreprocessorDefinitions>NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <AdditionalOptions>/utf-8 %(AdditionalOptions)</AdditionalOptions>
-      <AdditionalIncludeDirectories>$(ProjectDir)src;$(ProjectDir)src\App;$(ProjectDir)src\Engine;$(ProjectDir)src\Math;$(ProjectDir)src\Platform;$(ProjectDir)src\Engine\Core;$(ProjectDir)src\Engine\Render;$(ProjectDir)src\Engine\Core\Datastruct;$(ProjectDir)src\Engine\Render\Backend;$(ProjectDir)src\Engine\Render\Backend\Common;$(ProjectDir)src\Engine\Render\Backend\DIB;$(ProjectDir)src\Platform\Win32;$(ProjectDir)src\Engine\Core\Input;$(ProjectDir)src\Engine\Geometry;$(ProjectDir)src\Engine\Assets;$(ProjectDir)src\Engine\Physics\Bicycle;$(ProjectDir)src\Engine\Physics</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ProjectDir)src;$(ProjectDir)src\App;$(ProjectDir)src\Engine;$(ProjectDir)src\Math;$(ProjectDir)src\Platform;$(ProjectDir)src\Engine\Core;$(ProjectDir)src\Engine\Render;$(ProjectDir)src\Engine\Core\Datastruct;$(ProjectDir)src\Engine\Render\Backend;$(ProjectDir)src\Engine\Render\Backend\Common;$(ProjectDir)src\Engine\Render\Backend\DIB;$(ProjectDir)src\Engine\Render\Backend\DIB\Shaders;$(ProjectDir)src\Platform\Win32;$(ProjectDir)src\Engine\Core\Input;$(ProjectDir)src\Engine\Geometry;$(ProjectDir)src\Engine\Assets;$(ProjectDir)src\Engine\Physics\Bicycle;$(ProjectDir)src\Engine\Physics</AdditionalIncludeDirectories>
       <LanguageStandard>stdcpp20</LanguageStandard>
     </ClCompile>
     <Link>

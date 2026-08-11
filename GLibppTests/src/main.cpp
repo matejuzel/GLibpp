@@ -10,6 +10,7 @@ int main()
     std::printf("GLibpp testy\n");
 
     runRasterizerTests();
+    runShaderTests();
     runMathTests();
     runMeshFactoryTests();
 

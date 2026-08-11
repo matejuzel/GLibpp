@@ -26,6 +26,9 @@
     <ClCompile Include="src\test_rasterizer.cpp">
       <Filter>Zdrojové soubory</Filter>
     </ClCompile>
+    <ClCompile Include="src\test_shaders.cpp">
+      <Filter>Zdrojové soubory</Filter>
+    </ClCompile>
     <ClCompile Include="..\GLibpp\src\Math\Mtx4.cpp">
       <Filter>Zdrojové soubory\Engine</Filter>
     </ClCompile>

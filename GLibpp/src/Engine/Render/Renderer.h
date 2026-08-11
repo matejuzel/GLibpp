@@ -270,6 +270,8 @@ namespace GLibpp::Render {
             drawList.setView(scene.camera.calculateViewMatrix());
             drawList.setProjection(Mtx4::Perspective(scene.camera.fovRad, viewport.computeAspectRatio(), scene.camera.nearZ, scene.camera.farZ));
             drawList.setViewport(viewport);
+            // vyber fragment shaderu pro tento pruchod (dalsi pass muze prepnout)
+            drawList.setShader(FragmentShaderId::UvDebug);
             drawList.clear(Color::Grayscale(0.4f));
 
             // world matice se pocitaji jednou a sdili je mesh i axis command
@@ -368,6 +370,11 @@ namespace GLibpp::Render {
             r.device.clear(ctx);
         }
 
+        static void execSetShader(Renderer& r, typename Device::Context& ctx, const DrawCmd& c)
+        {
+            ctx.fragmentShader = c.shader.shader;
+        }
+
         using ExecuteFn = void (*)(Renderer&, typename Device::Context&, const DrawCmd&);
 
         // dispatch tabulka: index = DrawCmd::Kind, poradi radku musi sedet s enumem
@@ -380,6 +387,7 @@ namespace GLibpp::Render {
             &Renderer::execSetFramebuffer,
             &Renderer::execSetDepthbuffer,
             &Renderer::execClear,
+            &Renderer::execSetShader,
         };
         static_assert(std::size(kDispatch) == static_cast<size_t>(DrawCmd::Kind::Count),
             "dispatch tabulka musi pokryvat vsechny druhy commandu");

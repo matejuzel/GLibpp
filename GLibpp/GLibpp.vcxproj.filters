@@ -31,6 +31,9 @@
     <Filter Include="Zdrojové soubory\Engine\Render\Backend\DIB">
       <UniqueIdentifier>{aa4858c9-d7e0-4cdc-a58d-004bdd18c447}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Zdrojové soubory\Engine\Render\Backend\DIB\Shaders">
+      <UniqueIdentifier>{3980f74d-0665-43ad-acf8-eb4a9132a046}</UniqueIdentifier>
+    </Filter>
     <Filter Include="Zdrojové soubory\Math">
       <UniqueIdentifier>{91c02d10-9d17-4d20-80e5-d379e6f57f48}</UniqueIdentifier>
     </Filter>
@@ -118,6 +121,21 @@
     </ClInclude>
     <ClInclude Include="src\Engine\Render\DrawCommand.h">
       <Filter>Zdrojové soubory\Engine\Render</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Engine\Render\FragmentShaderId.h">
+      <Filter>Zdrojové soubory\Engine\Render</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Engine\Render\Backend\DIB\Shaders\FragmentShader.h">
+      <Filter>Zdrojové soubory\Engine\Render\Backend\DIB\Shaders</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Engine\Render\Backend\DIB\Shaders\ShaderLambert.h">
+      <Filter>Zdrojové soubory\Engine\Render\Backend\DIB\Shaders</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Engine\Render\Backend\DIB\Shaders\ShaderSolid.h">
+      <Filter>Zdrojové soubory\Engine\Render\Backend\DIB\Shaders</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Engine\Render\Backend\DIB\Shaders\ShaderUvDebug.h">
+      <Filter>Zdrojové soubory\Engine\Render\Backend\DIB\Shaders</Filter>
     </ClInclude>
     <ClInclude Include="src\Engine\Render\Backend\Common\DeviceContext.h">
       <Filter>Zdrojové soubory\Engine\Render\Backend\Common</Filter>

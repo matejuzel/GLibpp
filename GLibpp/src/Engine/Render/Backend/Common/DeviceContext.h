@@ -4,6 +4,7 @@
 #include "Viewport.h"
 #include "Mtx4.h"
 #include "Color.h"
+#include "FragmentShaderId.h"
 
 namespace GLibpp::Render {
 	
@@ -71,6 +72,10 @@ namespace GLibpp::Render {
 
         Color clearColor = { 0,0,0,255 };
         uint32_t frameIndex = 0;
+
+        // fragment shader aktualniho pruchodu (nastavuje command SetShader);
+        // default Lambert = vzhled dema i bez explicitniho nastaveni
+        FragmentShaderId fragmentShader = FragmentShaderId::Lambert;
 
         typename Device::TargetHandle framebufferHandle = Device::TARGET_INVALID;
         typename Device::TargetHandle depthbufferHandle = Device::TARGET_INVALID;

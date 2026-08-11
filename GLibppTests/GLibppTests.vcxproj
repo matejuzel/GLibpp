@@ -19,6 +19,7 @@
     <ClCompile Include="src\test_math.cpp" />
     <ClCompile Include="src\test_meshfactory.cpp" />
     <ClCompile Include="src\test_rasterizer.cpp" />
+    <ClCompile Include="src\test_shaders.cpp" />
     <!-- prekladane jednotky enginu, na kterych testy zavisi -->
     <ClCompile Include="..\GLibpp\src\Math\Mtx4.cpp" />
     <ClCompile Include="..\GLibpp\src\Math\Vec4.cpp" />
@@ -63,7 +64,7 @@
   <PropertyGroup Label="UserMacros">
     <!-- includy enginu jsou ploche (kod pise #include "Mtx4.h") - stejny seznam
          jako v GLibpp.vcxproj, jen relativne k testovacimu projektu -->
-    <EngineIncludes>$(ProjectDir)..\GLibpp\src;$(ProjectDir)..\GLibpp\src\App;$(ProjectDir)..\GLibpp\src\Engine;$(ProjectDir)..\GLibpp\src\Math;$(ProjectDir)..\GLibpp\src\Platform;$(ProjectDir)..\GLibpp\src\Engine\Core;$(ProjectDir)..\GLibpp\src\Engine\Render;$(ProjectDir)..\GLibpp\src\Engine\Core\Datastruct;$(ProjectDir)..\GLibpp\src\Engine\Render\Backend;$(ProjectDir)..\GLibpp\src\Engine\Render\Backend\Common;$(ProjectDir)..\GLibpp\src\Engine\Render\Backend\DIB;$(ProjectDir)..\GLibpp\src\Platform\Win32;$(ProjectDir)..\GLibpp\src\Engine\Core\Input;$(ProjectDir)..\GLibpp\src\Engine\Geometry;$(ProjectDir)..\GLibpp\src\Engine\Assets;$(ProjectDir)..\GLibpp\src\Engine\Physics\Bicycle;$(ProjectDir)..\GLibpp\src\Engine\Physics</EngineIncludes>
+    <EngineIncludes>$(ProjectDir)..\GLibpp\src;$(ProjectDir)..\GLibpp\src\App;$(ProjectDir)..\GLibpp\src\Engine;$(ProjectDir)..\GLibpp\src\Math;$(ProjectDir)..\GLibpp\src\Platform;$(ProjectDir)..\GLibpp\src\Engine\Core;$(ProjectDir)..\GLibpp\src\Engine\Render;$(ProjectDir)..\GLibpp\src\Engine\Core\Datastruct;$(ProjectDir)..\GLibpp\src\Engine\Render\Backend;$(ProjectDir)..\GLibpp\src\Engine\Render\Backend\Common;$(ProjectDir)..\GLibpp\src\Engine\Render\Backend\DIB;$(ProjectDir)..\GLibpp\src\Engine\Render\Backend\DIB\Shaders;$(ProjectDir)..\GLibpp\src\Platform\Win32;$(ProjectDir)..\GLibpp\src\Engine\Core\Input;$(ProjectDir)..\GLibpp\src\Engine\Geometry;$(ProjectDir)..\GLibpp\src\Engine\Assets;$(ProjectDir)..\GLibpp\src\Engine\Physics\Bicycle;$(ProjectDir)..\GLibpp\src\Engine\Physics</EngineIncludes>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ClCompile>
