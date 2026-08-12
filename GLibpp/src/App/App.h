@@ -293,13 +293,19 @@ public:
         // panel stoji na zemi kousek od originu, celem k vychozi pozici kamery
         Mtx4 panelModel = Mtx4::Identity().translate(4.0f, 2.0f, 4.0f);
 
-        // panely s produkty renderu, hned vedle (-x = na obrazovce vpravo):
-        // zrcadlo framebufferu a vizualizace hloubky; sdileji quad s UV 0..1,
-        // takze obraz okna je na ctverci mirne natazeny podle aspectu
-        // (dvirka: fit/letterbox = UV inicializovane z aspectu s presahem
-        // [0,1] v kratsim smeru + shader s border-black misto wrapu)
-        Mtx4 fbPanelModel    = Mtx4::Identity().translate(-0.5f, 2.0f, 4.0f);
-        Mtx4 depthPanelModel = Mtx4::Identity().translate(-5.0f, 2.0f, 4.0f);
+        // panely s produkty renderu (zrcadlo framebufferu + vizualizace hloubky)
+        // jedou s autem: localTransform je offset v PROSTORU AUTA (+z = dopredu,
+        // kamera jede za autem, takze XY quad na ni miri celem) a world matici
+        // dodava buildDrawList per frame (carM, stejne jako kola); vedle sebe
+        // nad strechou jako dva displeje. Sdileji quad s UV 0..1, obraz okna
+        // je na ctverci mirne natazeny podle aspectu (dvirka: fit/letterbox =
+        // UV z aspectu s presahem [0,1] v kratsim smeru + border-black shader).
+        // Otoceni 180 st. kolem Y: quad ma u = 0 na -x, ale kamera se na panel
+        // diva od -z, takze bez otoceni by byl obraz vodorovne preklopeny -
+        // panely jsou displeje, ne zrcatka. Pozor na retezeni: transformace
+        // se aplikuji v mesh prostoru zprava (scale -> rotace -> translate)
+        Mtx4 fbPanelModel    = Mtx4::Identity().translate(-3.8f, 3.5f, 0.0f).rotateY(GLibpp::Math::deg2rad(180.0f)).scale(0.75f);
+        Mtx4 depthPanelModel = Mtx4::Identity().translate(3.8f, 3.5f, 0.0f).rotateY(GLibpp::Math::deg2rad(180.0f)).scale(0.75f);
 
         // umisteny do originu (0,0,0) - souradnice z .obj se prebiraji 1:1
         Mtx4 testModel = Mtx4::Identity();

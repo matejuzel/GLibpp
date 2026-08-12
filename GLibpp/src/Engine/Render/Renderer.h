@@ -339,13 +339,15 @@ namespace GLibpp::Render {
             drawList.drawMesh(Mtx4::Identity(), scene.renderables.texPanel);
 
             // zrcadlo: framebuffer minuleho framu (kopie na konci framu, viz
-            // captureFrame) - obsahuje i panel samotny, takze zrcadlo v zrcadle
+            // captureFrame) - obsahuje i panel samotny, takze zrcadlo v zrcadle;
+            // panely jedou s autem (world = carM, offset nad strechou je
+            // v localTransform instance)
             drawList.setTexture(scene.renderables.fbTexture);
-            drawList.drawMesh(Mtx4::Identity(), scene.renderables.fbPanel);
+            drawList.drawMesh(carM, scene.renderables.fbPanel);
 
             // vizualizace hloubky minuleho framu (near svetla, far cerna)
             drawList.setTexture(scene.renderables.depthTexture);
-            drawList.drawMesh(Mtx4::Identity(), scene.renderables.depthPanel);
+            drawList.drawMesh(carM, scene.renderables.depthPanel);
 
             // --- pass 3: zbytek sceny plochym Lambertem ---
             drawList.setShader(FragmentShaderId::Lambert);
