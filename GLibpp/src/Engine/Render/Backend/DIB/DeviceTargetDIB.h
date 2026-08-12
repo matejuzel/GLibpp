@@ -3,9 +3,83 @@
 #include "DeviceTargetBase.h"
 #include "RenderTargetDescriptor.h"
 
+#include <cmath>       // sqrt (skalarni kernel konverze hloubky)
+#include <cstdint>
+#include <immintrin.h> // SSE2/AVX2 kernely konverze hloubky
 #include <vector>
 
 namespace GLibpp::Render {
+
+    // ---- vizualizace hloubky: float NDC z -> grayscale ARGB ----
+    // near (z = -1) -> 255 (svetla), far/clear (z = +1) -> 0 (cerna).
+    // NDC z je po perspektivnim deleni silne nelinearni (vetsina sceny lezi
+    // u 1.0), linearni mapovani by dalo temer cernou plochu - proto se
+    // t = clamp((1 - d) * 0.5) zesvetluje gamma 1/4 (dvoji sqrt; IEEE sqrt
+    // je korektne zaokrouhlena, takze skalar i SIMD daji bit-shodny vystup):
+    //   g = trunc(sqrt(sqrt(t)) * 255);  pixel = 0xFF000000 | g|g<<8|g<<16
+    // Tri varianty podle instrukcni sady - vyber dela volajici (DeviceDIB zna
+    // cpuFeatures); SIMD bere bloky, ocasek jde skalarne. Vsechny varianty
+    // schvalne truncuji (cvtTps) - bit-shodu pinuje test.
+    // Free funkce (ne metody Device): testy je volaji bez okna, stejne jako
+    // targety v tomto headeru.
+
+    inline void convertDepthToGrayScalar(const float* src, uint32_t* dst, size_t count) noexcept
+    {
+        for (size_t i = 0; i < count; ++i)
+        {
+            float t = (1.0f - src[i]) * 0.5f;
+            if (t < 0.0f) t = 0.0f; // clamp pred sqrt - zaporny vstup by dal NaN
+            if (t > 1.0f) t = 1.0f;
+            const float g = std::sqrt(std::sqrt(t)) * 255.0f;
+            const uint32_t v = static_cast<uint32_t>(g);
+            dst[i] = 0xFF000000u | v | (v << 8) | (v << 16);
+        }
+    }
+
+    inline void convertDepthToGraySSE2(const float* src, uint32_t* dst, size_t count) noexcept
+    {
+        const __m128 one   = _mm_set1_ps(1.0f);
+        const __m128 half  = _mm_set1_ps(0.5f);
+        const __m128 zero  = _mm_setzero_ps();
+        const __m128 c255  = _mm_set1_ps(255.0f);
+        const __m128i alpha = _mm_set1_epi32(static_cast<int>(0xFF000000u));
+
+        size_t i = 0;
+        for (size_t n = count / 4; n > 0; --n, i += 4)
+        {
+            __m128 t = _mm_mul_ps(_mm_sub_ps(one, _mm_loadu_ps(src + i)), half);
+            t = _mm_min_ps(_mm_max_ps(t, zero), one);
+            const __m128 g = _mm_mul_ps(_mm_sqrt_ps(_mm_sqrt_ps(t)), c255);
+            const __m128i v = _mm_cvttps_epi32(g); // truncation - shodne se skalarnim castem
+            // v * 0x010101 pres shift+or (mullo_epi32 je az SSE4.1)
+            const __m128i pix = _mm_or_si128(alpha,
+                _mm_or_si128(v, _mm_or_si128(_mm_slli_epi32(v, 8), _mm_slli_epi32(v, 16))));
+            _mm_storeu_si128(reinterpret_cast<__m128i*>(dst + i), pix);
+        }
+        convertDepthToGrayScalar(src + i, dst + i, count - i);
+    }
+
+    inline void convertDepthToGrayAVX2(const float* src, uint32_t* dst, size_t count) noexcept
+    {
+        const __m256 one   = _mm256_set1_ps(1.0f);
+        const __m256 half  = _mm256_set1_ps(0.5f);
+        const __m256 zero  = _mm256_setzero_ps();
+        const __m256 c255  = _mm256_set1_ps(255.0f);
+        const __m256i alpha = _mm256_set1_epi32(static_cast<int>(0xFF000000u));
+
+        size_t i = 0;
+        for (size_t n = count / 8; n > 0; --n, i += 8)
+        {
+            __m256 t = _mm256_mul_ps(_mm256_sub_ps(one, _mm256_loadu_ps(src + i)), half);
+            t = _mm256_min_ps(_mm256_max_ps(t, zero), one);
+            const __m256 g = _mm256_mul_ps(_mm256_sqrt_ps(_mm256_sqrt_ps(t)), c255);
+            const __m256i v = _mm256_cvttps_epi32(g);
+            const __m256i pix = _mm256_or_si256(alpha,
+                _mm256_or_si256(v, _mm256_or_si256(_mm256_slli_epi32(v, 8), _mm256_slli_epi32(v, 16))));
+            _mm256_storeu_si256(reinterpret_cast<__m256i*>(dst + i), pix);
+        }
+        convertDepthToGrayScalar(src + i, dst + i, count - i);
+    }
 
     class DeviceDIB; // forward
     class DeviceTargetDIB; // forward

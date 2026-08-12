@@ -113,6 +113,21 @@ namespace GLibpp::Render {
             return static_cast<DerivedDevice*>(this)->textureTargetGetImpl(h);
         }
 
+        // kopie barevneho obsahu targetu (napr. framebuffer -> capture textura
+        // na konci framu; GL: glCopyTexSubImage/blit); nekompatibilni rozmery
+        // nebo nevalidni handly se tise preskoci
+        void targetCopyColor(TargetHandle src, TargetHandle dst) noexcept
+        {
+            static_cast<DerivedDevice*>(this)->targetCopyColorImpl(src, dst);
+        }
+
+        // vizualizace hloubky: depth target (float) -> barevny target jako
+        // grayscale (near svetla, far cerna); konverzi formatu dela backend
+        void targetCopyDepthGray(TargetHandle src, TargetHandle dst) noexcept
+        {
+            static_cast<DerivedDevice*>(this)->targetCopyDepthGrayImpl(src, dst);
+        }
+
         Context createContext() noexcept {
             return static_cast<DerivedDevice*>(this)->createContextImpl();
         }
@@ -124,6 +139,8 @@ namespace GLibpp::Render {
         void meshUpdateImpl(Assets::MeshHandle, const Geometry::Mesh&) noexcept {}
         void textureRegisterImpl(Assets::TextureHandle, const Assets::TextureData&) noexcept {}
         TargetHandle textureTargetGetImpl(Assets::TextureHandle) noexcept { return TARGET_INVALID; }
+        void targetCopyColorImpl(TargetHandle, TargetHandle) noexcept {}
+        void targetCopyDepthGrayImpl(TargetHandle, TargetHandle) noexcept {}
 
     };
 

@@ -4,6 +4,7 @@
 
 #define NOMINMAX          // ImageLoaderWin32.h je na NOMINMAX pripraveny (Gdiplus trik)
 #include <windows.h>
+#include <intrin.h>       // __cpuid (guard AVX2 vetve testu)
 
 #include <algorithm>
 #include <cstdio>
@@ -236,6 +237,36 @@ namespace GLibppTests {
         catch (const std::exception& e)
         {
             check(false, std::string("vyjimka pri tvorbe targetu: ") + e.what());
+        }
+
+        section("Textury - vizualizace hloubky (convertDepthToGray, SIMD)");
+
+        // 11 hodnot - schvalne nedelitelne 4 ani 8, SIMD musi projit i ocaskem;
+        // mapovani: t = clamp((1 - d) * 0.5), g = trunc(sqrt(sqrt(t)) * 255)
+        // (gamma 1/4 - NDC z je nelinearni, linearni skala by byla temer cerna)
+        const float depthVals[11] = { -1.0f, 0.0f, 1.0f, -2.0f, 2.0f, 0.5f, -0.5f, 0.25f, 0.75f, 0.9f, -0.9f };
+        uint32_t outScalar[11] = {};
+        GLibpp::Render::convertDepthToGrayScalar(depthVals, outScalar, 11);
+
+        check(outScalar[0] == 0xFFFFFFFFu, "near (-1) -> bila");
+        check(outScalar[1] == 0xFFD6D6D6u, "stred (0) -> 214 (0.5^0.25)");
+        check(outScalar[2] == 0xFF000000u, "far (+1) -> cerna");
+        check(outScalar[3] == 0xFFFFFFFFu, "hodnota pod -1 se clampuje na bilou");
+        check(outScalar[4] == 0xFF000000u, "hodnota nad +1 se clampuje na cernou (ne NaN)");
+        check(outScalar[5] == 0xFFB4B4B4u, "d = 0.5 -> 180 (kanaly shodne, alfa FF)");
+
+        // SIMD varianty musi byt bit-shodne se skalarem (obe truncuji)
+        uint32_t outSse[11] = {};
+        GLibpp::Render::convertDepthToGraySSE2(depthVals, outSse, 11);
+        check(std::equal(outScalar, outScalar + 11, outSse), "SSE2 varianta == skalar (vc. ocasku)");
+
+        int cpu[4];
+        __cpuid(cpu, 7);
+        if (cpu[1] & (1 << 5)) // AVX2 - na stroji bez nej vetev preskocime
+        {
+            uint32_t outAvx[11] = {};
+            GLibpp::Render::convertDepthToGrayAVX2(depthVals, outAvx, 11);
+            check(std::equal(outScalar, outScalar + 11, outAvx), "AVX2 varianta == skalar (vc. ocasku)");
         }
     }
 

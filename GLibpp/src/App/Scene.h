@@ -14,16 +14,20 @@ struct SceneRenderables {
 	GLibpp::Assets::MeshInstanceHandle wheel     = GLibpp::Assets::MESH_INSTANCE_HANDLE_INVALID;
 	GLibpp::Assets::MeshInstanceHandle icosphere = GLibpp::Assets::MESH_INSTANCE_HANDLE_INVALID;
 	GLibpp::Assets::MeshInstanceHandle icrBeam   = GLibpp::Assets::MESH_INSTANCE_HANDLE_INVALID;
-	GLibpp::Assets::MeshInstanceHandle test      = GLibpp::Assets::MESH_INSTANCE_HANDLE_INVALID;
-	GLibpp::Assets::MeshInstanceHandle texPanel  = GLibpp::Assets::MESH_INSTANCE_HANDLE_INVALID;
-	GLibpp::Assets::MeshInstanceHandle rtPanel   = GLibpp::Assets::MESH_INSTANCE_HANDLE_INVALID;
+	GLibpp::Assets::MeshInstanceHandle test       = GLibpp::Assets::MESH_INSTANCE_HANDLE_INVALID;
+	GLibpp::Assets::MeshInstanceHandle texPanel   = GLibpp::Assets::MESH_INSTANCE_HANDLE_INVALID;
+	GLibpp::Assets::MeshInstanceHandle fbPanel    = GLibpp::Assets::MESH_INSTANCE_HANDLE_INVALID;
+	GLibpp::Assets::MeshInstanceHandle depthPanel = GLibpp::Assets::MESH_INSTANCE_HANDLE_INVALID;
 
 	// textura panelu - binduje se commandem SetTexture pro texturovany pass
-	GLibpp::Assets::TextureHandle panelTexture   = GLibpp::Assets::TEXTURE_HANDLE_INVALID;
+	GLibpp::Assets::TextureHandle panelTexture    = GLibpp::Assets::TEXTURE_HANDLE_INVALID;
 
-	// render-to-texture: do teto textury renderer kazdy frame kresli scenu
-	// (pass 0 v buildDrawList) a rtPanel ji zobrazuje jako beznou texturu
-	GLibpp::Assets::TextureHandle rtTexture      = GLibpp::Assets::TEXTURE_HANDLE_INVALID;
+	// capture textury: na konci framu do nich renderer kopiruje hotovy
+	// framebuffer a grayscale vizualizaci hloubky (Renderer::captureFrame);
+	// panely je samplují s latenci 1 frame - zivy framebuffer samplovat
+	// nejde, clear na zacatku framu by predchozi obraz znicil
+	GLibpp::Assets::TextureHandle fbTexture       = GLibpp::Assets::TEXTURE_HANDLE_INVALID;
+	GLibpp::Assets::TextureHandle depthTexture    = GLibpp::Assets::TEXTURE_HANDLE_INVALID;
 };
 
 struct Scene {

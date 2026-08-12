@@ -9,6 +9,7 @@
 #include <vector>
 #include <algorithm>
 #include <bit>
+#include <cstring>     // memcpy (targetCopyColor)
 #include <immintrin.h> // AVX2
 
 namespace GLibpp::Render {
@@ -682,6 +683,45 @@ namespace GLibpp::Render {
             const auto& ref = registry.textureRefs[h.index];
             if (!ref.valid || ref.generation != h.generation) return TARGET_INVALID;
             return ref.target;
+        }
+
+        // kopie barvy target -> target (konec framu: framebuffer -> capture
+        // textura, panel ji sampluje pristi frame); soulad rozmeru po resize
+        // okna zajistuje Renderer (targetResize capture textur), mismatch se
+        // tise preskoci - stary obraz na panelu proste o par framu prezije
+        void targetCopyColorImpl(TargetHandle src_h, TargetHandle dst_h) noexcept
+        {
+            if (!registry.targets.isValid(src_h) || !registry.targets.isValid(dst_h)) return;
+            Target& src = registry.targets.get(src_h);
+            Target& dst = registry.targets.get(dst_h);
+            if (src.isDepth() || dst.isDepth()) return;
+            if (!src.framebuffer || !dst.framebuffer) return;
+            if (src.descriptor.width != dst.descriptor.width
+                || src.descriptor.height != dst.descriptor.height) return;
+
+            std::memcpy(dst.framebuffer, src.framebuffer, src.pixelCount() * sizeof(uint32_t));
+        }
+
+        // vizualizace hloubky: float NDC z -> grayscale ARGB (near svetla,
+        // far cerna); kernely convertDepthToGray* zijou v DeviceTargetDIB.h
+        // (free funkce - testovatelne bez okna), tady jen vyber podle CPU
+        void targetCopyDepthGrayImpl(TargetHandle src_h, TargetHandle dst_h) noexcept
+        {
+            if (!registry.targets.isValid(src_h) || !registry.targets.isValid(dst_h)) return;
+            Target& src = registry.targets.get(src_h);
+            Target& dst = registry.targets.get(dst_h);
+            if (!src.isDepthUsable() || dst.isDepth()) return;
+            if (!dst.framebuffer) return;
+            if (src.pixelCount() != dst.pixelCount()
+                || src.descriptor.width != dst.descriptor.width) return;
+
+            const float* s = src.depthbuffer.data();
+            uint32_t* d = dst.framebuffer;
+            const size_t n = src.pixelCount();
+
+            if (cpuFeatures.avx2)      convertDepthToGrayAVX2(s, d, n);
+            else if (cpuFeatures.sse2) convertDepthToGraySSE2(s, d, n);
+            else                       convertDepthToGrayScalar(s, d, n);
         }
 
         Context createContextImpl() noexcept {
