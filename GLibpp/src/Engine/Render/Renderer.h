@@ -352,6 +352,9 @@ namespace GLibpp::Render {
             // --- pass 3: zbytek sceny plochym Lambertem ---
             drawList.setShader(FragmentShaderId::Lambert);
 
+            // drateny ram kolem zrcadla (jede s autem jako panel sam)
+            drawList.drawMesh(carM, scene.renderables.fbPanelFrame);
+
             // testovaci model nacteny z .obj (data/models); poradi vuci autu uz
             // nehraje roli - vzajemne zakryti resi depth buffer
             drawList.drawMesh(Mtx4::Identity(), scene.renderables.test);

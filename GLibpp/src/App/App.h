@@ -250,6 +250,9 @@ public:
         // plnoplosna texturovana zem neprosla: vyplneni ~poloviny okna je v Debugu
         // (/Od) nad rozpoctem framu (~30 FPS), nezavisle na poctu trojuhelniku
         auto panelMesh = resources.meshRegister(MeshFactory::CreateQuad(4.0f));
+
+        // ram zrcadla: vnitrni hrana liciuje s okrajem panelu (4.3 - 2*0.15 = 4.0)
+        auto panelFrameMesh = resources.meshRegister(MeshFactory::CreateQuadFrame(4.3f, 0.15f));
         auto icrMesh = resources.meshRegister(MeshFactory::CreateCube(0.1f).applyTransformation(Mtx4::Scaling(0.01f, 8.0f, 0.01f)));
 
         // testovaci model z .obj - cesta funguje pri spusteni z korene repa
@@ -314,6 +317,10 @@ public:
         scene.renderables.texPanel   = resources.meshInstanceRegister(panelMesh, panelModel, Color::Grayscale(0.55f), false);
         scene.renderables.fbPanel    = resources.meshInstanceRegister(panelMesh, fbPanelModel, Color::Grayscale(0.55f), false);
         scene.renderables.depthPanel = resources.meshInstanceRegister(panelMesh, depthPanelModel, Color::Grayscale(0.55f), false);
+
+        // drateny ram zrcadla - sdili localTransform fbPanelu, takze sedi
+        // presne kolem nej; wireframe cary ignoruji hloubku (debug overlay)
+        scene.renderables.fbPanelFrame = resources.meshInstanceRegister(panelFrameMesh, fbPanelModel, Color::Grayscale(0.85f), true);
         scene.renderables.carBody   = resources.meshInstanceRegister(bodyMesh);
         scene.renderables.wheel     = resources.meshInstanceRegister(wheelMesh);
         scene.renderables.icosphere = resources.meshInstanceRegister(sphereMesh, Mtx4::Identity(), Color::Grayscale(0.7f), true);

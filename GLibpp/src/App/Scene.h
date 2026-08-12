@@ -19,6 +19,9 @@ struct SceneRenderables {
 	GLibpp::Assets::MeshInstanceHandle fbPanel    = GLibpp::Assets::MESH_INSTANCE_HANDLE_INVALID;
 	GLibpp::Assets::MeshInstanceHandle depthPanel = GLibpp::Assets::MESH_INSTANCE_HANDLE_INVALID;
 
+	// drateny ram kolem zrcadla (obrys fbPanelu, sdili jeho localTransform)
+	GLibpp::Assets::MeshInstanceHandle fbPanelFrame = GLibpp::Assets::MESH_INSTANCE_HANDLE_INVALID;
+
 	// textura panelu - binduje se commandem SetTexture pro texturovany pass
 	GLibpp::Assets::TextureHandle panelTexture    = GLibpp::Assets::TEXTURE_HANDLE_INVALID;
 

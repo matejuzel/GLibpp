@@ -34,7 +34,34 @@ Mesh MeshFactory::CreateQuad(float size)
     return msh;
 }
 
-Mesh MeshFactory::CreateTriangle(float size) 
+Mesh MeshFactory::CreateQuadFrame(float size, float thickness)
+{
+    Mesh msh;
+
+    float o = size * 0.5f;      // vnejsi polostrana
+    float i = o - thickness;    // vnitrni polostrana
+
+    // vnejsi obvod 0..3, vnitrni 4..7 (CCW od leveho dolniho rohu)
+    msh.vertexBuffer.emplace_back(-o, -o, 0.f, 1.f);
+    msh.vertexBuffer.emplace_back( o, -o, 0.f, 1.f);
+    msh.vertexBuffer.emplace_back( o,  o, 0.f, 1.f);
+    msh.vertexBuffer.emplace_back(-o,  o, 0.f, 1.f);
+    msh.vertexBuffer.emplace_back(-i, -i, 0.f, 1.f);
+    msh.vertexBuffer.emplace_back( i, -i, 0.f, 1.f);
+    msh.vertexBuffer.emplace_back( i,  i, 0.f, 1.f);
+    msh.vertexBuffer.emplace_back(-i,  i, 0.f, 1.f);
+
+    // 4 pasy po 2 trojuhelnicich (spodni, pravy, horni, levy)
+    msh.indexBuffer = {
+        0, 1, 5,  5, 4, 0,
+        1, 2, 6,  6, 5, 1,
+        2, 3, 7,  7, 6, 2,
+        3, 0, 4,  4, 7, 3,
+    };
+    return msh;
+}
+
+Mesh MeshFactory::CreateTriangle(float size)
 {
     Mesh msh;
     msh.vertexBuffer.clear();
