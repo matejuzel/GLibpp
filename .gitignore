@@ -19,13 +19,18 @@ ipch/
 *.db
 *.opendb
 
+# 3D modely maji taky priponu .obj - pravidlo vyse miri na objektove soubory
+# MSVC, ktere ale vznikaji jen v ignorovanych build slozkach (x64/, Debug/, ...),
+# takze assety z nej vyjimame (jinak by demo po cerstvem klonu nemelo modely)
+!data/models/*.obj
+
 # Binaries
 *.exe
 *.dll
 *.lib
 *.exp
 
-# CMake (pokud n�kdy pou�ije�)
+# CMake (pokud někdy použiješ)
 CMakeFiles/
 CMakeCache.txt
 cmake_install.cmake
