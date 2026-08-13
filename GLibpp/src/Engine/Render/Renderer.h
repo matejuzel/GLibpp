@@ -372,8 +372,8 @@ namespace GLibpp::Render {
             // Car
             drawList.drawMesh(carM, scene.renderables.carBody);
 
-            // sphere (stejny world jako telo auta)
-            drawList.drawMesh(carM, scene.renderables.icosphere);
+            // sphere
+            drawList.drawMesh(Mtx4::Identity(), scene.renderables.icosphere);
 
             // ICR
             drawList.drawMesh(scene.car.getIcrTransformation(), scene.renderables.icrBeam);

@@ -243,7 +243,7 @@ public:
         // vsechna 4 kola jsou geometricky shodna -> jeden sdileny mesh + jedna instance
         auto wheelMesh = resources.meshRegister(MeshFactory::CreateCylinder(p.wheelRadius, 0.4f, 12).applyTransformation(Mtx4::RotationZ(3.14159f / 2.0f)));
         auto bodyMesh = resources.meshRegister(MeshFactory::CreateCylinder(1.0f, 6, 16).applyTransformation(Mtx4::RotationX(3.14159f / 2.0f) * Mtx4::Translation(0.0f, p.wheelBase * 0.5f, 0.0f)));
-        auto sphereMesh = resources.meshRegister(MeshFactory::CreateIcosphere(1.0f, 4));
+        auto sphereMesh = resources.meshRegister(MeshFactory::CreateIcosphere(1.0f, 3).flipFaces().applyTransformation(Mtx4::Translation(0.0f, 0.5f, 0.0f) * Mtx4::Scaling(2.0f)));
         auto waveMesh = resources.meshRegister(MeshFactory::CreateGridWave(60, 0.2f, 0.0f, 0.05f));
 
         // texturovany panel - maly demonstracni objekt pro fragment shader Textured;
@@ -314,8 +314,8 @@ public:
         // diva od -z, takze bez otoceni by byl obraz vodorovne preklopeny -
         // panely jsou displeje, ne zrcatka. Pozor na retezeni: transformace
         // se aplikuji v mesh prostoru zprava (scale -> rotace -> translate)
-        Mtx4 fbPanelModel    = Mtx4::Identity().translate(-3.8f, 3.5f, 0.0f).rotateY(GLibpp::Math::deg2rad(180.0f)).scale(0.75f);
-        Mtx4 depthPanelModel = Mtx4::Identity().translate(3.8f, 3.5f, 0.0f).rotateY(GLibpp::Math::deg2rad(180.0f)).scale(0.75f);
+        Mtx4 fbPanelModel    = Mtx4::Identity().translate(-3.8f, 0.5f, 0.0f).rotateY(GLibpp::Math::deg2rad(180.0f)).scale(0.75f);
+        Mtx4 depthPanelModel = Mtx4::Identity().translate(3.8f, 0.5f, 0.0f).rotateY(GLibpp::Math::deg2rad(180.0f)).scale(0.75f);
 
         scene.renderables.gridWave  = resources.meshInstanceRegister(waveMesh, gridWaveModel, Color::Grayscale(0.3f), true);
         scene.renderables.texPanel   = resources.meshInstanceRegister(panelMesh, panelModel, Color::Grayscale(0.55f), false);
@@ -327,7 +327,7 @@ public:
         scene.renderables.fbPanelFrame = resources.meshInstanceRegister(panelFrameMesh, fbPanelModel, Color::Grayscale(0.85f), true);
         scene.renderables.carBody   = resources.meshInstanceRegister(bodyMesh);
         scene.renderables.wheel     = resources.meshInstanceRegister(wheelMesh);
-        scene.renderables.icosphere = resources.meshInstanceRegister(sphereMesh, Mtx4::Identity(), Color::Grayscale(0.7f), true);
+        scene.renderables.icosphere = resources.meshInstanceRegister(sphereMesh, Mtx4::Identity(), Color::Grayscale(0.7f), false);
         scene.renderables.icrBeam   = resources.meshInstanceRegister(icrMesh);
 
         // --- alej sloupu z .obj modelu, 10 instanci jedne geometrie ---
