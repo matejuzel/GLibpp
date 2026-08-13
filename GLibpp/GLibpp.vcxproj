@@ -58,6 +58,9 @@
     <ClInclude Include="src\Engine\Render\Backend\DIB\Shaders\ShaderLambert.h" />
     <ClInclude Include="src\Engine\Render\Backend\DIB\Shaders\ShaderSolid.h" />
     <ClInclude Include="src\Engine\Render\Backend\DIB\Shaders\ShaderTextured.h" />
+    <ClInclude Include="src\Engine\Render\Backend\DIB\Shaders\ShaderTexturedBilinear.h" />
+    <ClInclude Include="src\Engine\Render\Backend\DIB\Shaders\ShaderTexturedAniso.h" />
+    <ClInclude Include="src\Engine\Render\Backend\DIB\RipMapDIB.h" />
     <ClInclude Include="src\Engine\Render\Backend\DIB\Shaders\ShaderUvDebug.h" />
     <ClInclude Include="src\Engine\Render\Color.h" />
     <ClInclude Include="src\Engine\Render\DrawCommand.h" />

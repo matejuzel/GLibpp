@@ -12,6 +12,8 @@
 #include "ShaderLambert.h"
 #include "ShaderUvDebug.h"
 #include "ShaderTextured.h"
+#include "ShaderTexturedBilinear.h"
+#include "ShaderTexturedAniso.h"
 
 
 namespace GLibpp::Render {
@@ -314,6 +316,8 @@ namespace GLibpp::Render {
                 &rasterizeTriangleT<ShaderLambert>,
                 &rasterizeTriangleT<ShaderUvDebug>,
                 &rasterizeTriangleT<ShaderTextured>,
+                &rasterizeTriangleT<ShaderTexturedBilinear>,
+                &rasterizeTriangleT<ShaderTexturedAniso>,
             };
             static_assert(std::size(kFragmentDispatch) == static_cast<size_t>(FragmentShaderId::Count),
                 "dispatch tabulka musi pokryvat vsechny druhy shaderu");

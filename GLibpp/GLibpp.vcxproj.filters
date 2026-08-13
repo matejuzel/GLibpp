@@ -140,6 +140,15 @@
     <ClInclude Include="src\Engine\Render\Backend\DIB\Shaders\ShaderTextured.h">
       <Filter>Zdrojové soubory\Engine\Render\Backend\DIB\Shaders</Filter>
     </ClInclude>
+    <ClInclude Include="src\Engine\Render\Backend\DIB\Shaders\ShaderTexturedBilinear.h">
+      <Filter>Zdrojové soubory\Engine\Render\Backend\DIB\Shaders</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Engine\Render\Backend\DIB\Shaders\ShaderTexturedAniso.h">
+      <Filter>Zdrojové soubory\Engine\Render\Backend\DIB\Shaders</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Engine\Render\Backend\DIB\RipMapDIB.h">
+      <Filter>Zdrojové soubory\Engine\Render\Backend\DIB</Filter>
+    </ClInclude>
     <ClInclude Include="src\Engine\Assets\TextureData.h">
       <Filter>Zdrojové soubory\Engine\Assets</Filter>
     </ClInclude>

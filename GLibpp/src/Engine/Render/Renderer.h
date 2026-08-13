@@ -334,14 +334,22 @@ namespace GLibpp::Render {
             // pozn.: plnoplosna texturovana zem neprosla - vyplneni ~poloviny okna
             // je v Debugu (/Od) nad rozpoctem framu (~30 FPS) nezavisle na poctu
             // trojuhelniku; proto texturu nesou male panely a vlna zustava dratena
-            drawList.setShader(FragmentShaderId::Textured);
+            // staticky asset ma filtracni urovne (RIP-map), takze anizotropni
+            // filtr - drzi detail i kdyz je panel v perspektive zkoseny
+            drawList.setShader(FragmentShaderId::TexturedAniso);
             drawList.setTexture(scene.renderables.panelTexture);
             drawList.drawMesh(Mtx4::Identity(), scene.renderables.texPanel);
 
             // zrcadlo: framebuffer minuleho framu (kopie na konci framu, viz
             // captureFrame) - obsahuje i panel samotny, takze zrcadlo v zrcadle;
             // panely jedou s autem (world = carM, offset nad strechou je
-            // v localTransform instance)
+            // v localTransform instance).
+            //
+            // Capture panely zamerne ZUSTAVAJI na nearest: jsou diagnosticke,
+            // takze pixel-exaktni pohled na framebuffer je spravnejsi nez
+            // vyhlazeny (a filtrace tri panelu naraz je v Debugu nad rozpoctem
+            // framu - zmereno, 4 tapy na pixel stahly 60 -> 31 FPS)
+            drawList.setShader(FragmentShaderId::Textured);
             drawList.setTexture(scene.renderables.fbTexture);
             drawList.drawMesh(carM, scene.renderables.fbPanel);
 

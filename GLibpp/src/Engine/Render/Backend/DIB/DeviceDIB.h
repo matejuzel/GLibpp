@@ -1,6 +1,7 @@
 ﻿#pragma once
 
 #include "RasterizerDIB.h"
+#include "RipMapDIB.h"
 #include "Color.h"
 #include "DeviceBase.h"
 #include "WindowWin32.h"
@@ -41,6 +42,10 @@ namespace GLibpp::Render {
             typename Device::TargetHandle target = Device::TARGET_INVALID;
             uint32_t generation = 0;
             bool valid = false;
+
+            // filtracni urovne (RIP-map) - prazdne u dynamickych textur,
+            // ktere plni rendering; sampler pak jede jen na urovni 0
+            RipLevels rip;
         };
         std::vector<TextureRef> textureRefs;
 
@@ -318,6 +323,14 @@ namespace GLibpp::Render {
             const uint32_t* texturePixels = nullptr;
             uint32_t textureW = 0;
             uint32_t textureH = 0;
+
+            // filtracni urovne; textura bez nich se tvari jako jednourovnova,
+            // takze sampler nemusi vetvit (viz invariant u ShaderUniforms)
+            static constexpr uint32_t kSingleLevelOffset[1] = { 0u };
+            const uint32_t* levelOffsets = nullptr;
+            uint32_t levelsU = 1;
+            uint32_t levelsV = 1;
+
             if (ctx.texture.index < registry.textureRefs.size())
             {
                 const auto& ref = registry.textureRefs[ctx.texture.index];
@@ -325,9 +338,23 @@ namespace GLibpp::Render {
                     && registry.targets.isValid(ref.target))
                 {
                     Target& tex = registry.targets.get(ref.target);
-                    texturePixels = tex.framebuffer;
                     textureW = tex.descriptor.width;
                     textureH = tex.descriptor.height;
+
+                    if (!ref.rip.empty())
+                    {
+                        // souvisla tabulka urovni (uroven 0 je jeji zacatek)
+                        texturePixels = ref.rip.texels.data();
+                        levelOffsets = ref.rip.offsets.data();
+                        levelsU = ref.rip.levelsU;
+                        levelsV = ref.rip.levelsV;
+                    }
+                    else
+                    {
+                        // dynamicka textura: samplujeme primo target (zadna kopie)
+                        texturePixels = tex.framebuffer;
+                        levelOffsets = kSingleLevelOffset;
+                    }
                 }
             }
 
@@ -338,7 +365,10 @@ namespace GLibpp::Render {
                 1.0f / float(height),
                 texturePixels,
                 textureW,
-                textureH
+                textureH,
+                levelOffsets,
+                levelsU,
+                levelsV
             };
 
             for (size_t i = 0; i + 2 < indexCount; i += 3)
@@ -669,7 +699,16 @@ namespace GLibpp::Render {
             Target& target = registry.targets.get(t);
             std::copy(texture.pixels.begin(), texture.pixels.end(), target.framebuffer);
 
-            registry.textureRefs[h.index] = { t, h.generation, true };
+            auto& ref = registry.textureRefs[h.index];
+            ref.target = t;
+            ref.generation = h.generation;
+            ref.valid = true;
+
+            // filtracni urovne pro staticke assety; dynamicke textury (capture,
+            // render-to-texture) je nemaji - po prvnim framu by lhaly.
+            // Pamet: cela tabulka je ~4x zdrojovy obrazek (viz RipMapDIB.h)
+            if (!texture.dynamic)
+                ref.rip = buildRipMap(texture.pixels.data(), texture.width, texture.height);
         }
 
         // resolvuje TextureHandle na residency target (stejna validace jako

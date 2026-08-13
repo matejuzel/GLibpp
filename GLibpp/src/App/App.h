@@ -282,12 +282,14 @@ public:
             fbTex.width = w;
             fbTex.height = h;
             fbTex.pixels.assign(size_t(w) * h, 0xFF303030u);
+            fbTex.dynamic = true;  // plni ji captureFrame -> zadne filtracni urovne
             scene.renderables.fbTexture = resources.textureRegister(std::move(fbTex));
 
             GLibpp::Assets::TextureData depthTex;
             depthTex.width = w;
             depthTex.height = h;
             depthTex.pixels.assign(size_t(w) * h, 0xFF000000u);
+            depthTex.dynamic = true;
             scene.renderables.depthTexture = resources.textureRegister(std::move(depthTex));
         }
 

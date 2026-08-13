@@ -19,6 +19,8 @@ namespace GLibpp::Render {
         Lambert,  // ploche Lambertovo stinovani (vychozi vzhled dema)
         UvDebug,  // vizualizace normalizovanych souradnic obrazovky (r = u, g = v)
         Textured, // nearest vzorkovani bindnute textury na perspektivnich UV
+        TexturedBilinear, // bilinearni filtr urovne 0 (4 tapy)
+        TexturedAniso,    // anizotropni filtr: vyber RIP-map urovne + bilinearne
         Count     // pocet - neni to shader
     };
 

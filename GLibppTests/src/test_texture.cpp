@@ -14,6 +14,7 @@
 
 #include "RenderTargetDescriptor.h"
 #include "RasterizerDIB.h"
+#include "RipMapDIB.h"
 #include "ImageLoaderWin32.h"
 #include "ResourceManager.h"
 
@@ -106,9 +107,27 @@ namespace {
         };
     }
 
+    // Tentyz ctverec [0,8)x[0,8), ale s volitelnym rozsahem UV: uSpan texturovych
+    // opakovani na 8 pixelu siroky trojuhelnik znamena stopu uSpan * texWidth / 8
+    // texelu na pixel - tim se rizeni vyberu filtracni urovne da nastavit presne.
+    TriangleInput quadTriSpan(const Color& color, float uSpan, float vSpan)
+    {
+        return TriangleInput{
+            0.0f, 0.0f, 0.0f,   8.0f, 0.0f, 0.0f,   8.0f, 8.0f, 0.0f,
+            0.0f,  0.0f,  1.0f,
+            uSpan, 0.0f,  1.0f,
+            uSpan, vSpan, 1.0f,
+            0.0f, 0.0f, 0.0f,
+            color,
+            false
+        };
+    }
+
 }
 
 namespace GLibppTests {
+
+    void runFilteringTests(); // definice nize - vola se z runTextureTests
 
     void runTextureTests()
     {
@@ -162,8 +181,12 @@ namespace GLibppTests {
                 Color(255, 0, 0, 255).toRGBA(), Color(0, 255, 0, 255).toRGBA(),
                 Color(0, 0, 255, 255).toRGBA(), Color(255, 255, 255, 255).toRGBA(),
             };
-            const ShaderUniforms uni{ 1.0f / float(W), 1.0f / float(H), texels, 2, 2 };
-            const ShaderUniforms noTex{ 1.0f / float(W), 1.0f / float(H), nullptr, 0, 0 };
+            // jednourovnova textura: jediny nulovy offset (viz invariant
+            // u ShaderUniforms) - staci pro nearest i bilinearni vzorkovani
+            static constexpr uint32_t kLevel0[1] = { 0u };
+
+            const ShaderUniforms uni{ 1.0f / float(W), 1.0f / float(H), texels, 2, 2, kLevel0, 1, 1 };
+            const ShaderUniforms noTex{ 1.0f / float(W), 1.0f / float(H), nullptr, 0, 0, kLevel0, 1, 1 };
 
             const Color base(10, 200, 60, 255);
             const auto texturedFn = RasterizerDIB::fragmentFunction(FragmentShaderId::Textured);
@@ -227,7 +250,9 @@ namespace GLibppTests {
             // quad [0,8) s UV [0,1] mapuje CELOU 16x16 texturu -> pixel (2,2)
             // sampluje texel (5,5) z cerveneho ctverce, pixel (6,6) texel (13,13)
             // z modreho pozadi
-            const ShaderUniforms rtUni{ 1.0f / float(W), 1.0f / float(H), rt.framebuffer, uint32_t(W), uint32_t(H) };
+            static constexpr uint32_t kRtLevel0[1] = { 0u };
+            const ShaderUniforms rtUni{ 1.0f / float(W), 1.0f / float(H), rt.framebuffer,
+                                        uint32_t(W), uint32_t(H), kRtLevel0, 1, 1 };
             clearColor(target, 0u);
             texturedFn(target, nullptr, quadTriA(base), rtUni);
             texturedFn(target, nullptr, quadTriB(base), rtUni);
@@ -267,6 +292,166 @@ namespace GLibppTests {
             uint32_t outAvx[11] = {};
             GLibpp::Render::convertDepthToGrayAVX2(depthVals, outAvx, 11);
             check(std::equal(outScalar, outScalar + 11, outAvx), "AVX2 varianta == skalar (vc. ocasku)");
+        }
+
+        runFilteringTests();
+    }
+
+    // ---- filtrovani textur: RIP-map urovne, bilinearni tap, vyber urovne ----
+    void runFilteringTests()
+    {
+        using GLibpp::Render::avgARGB;
+        using GLibpp::Render::bilinearSampleARGB;
+        using GLibpp::Render::buildRipMap;
+        using GLibpp::Render::lerpARGB;
+        using GLibpp::Render::ripLevelCount;
+        using GLibpp::Render::ripLevelSize;
+        using GLibpp::Render::RipLevels;
+
+        section("Filtrovani - miseni ARGB (avgARGB, lerpARGB)");
+
+        check(avgARGB(0xFF00FF00u, 0xFF000000u) == 0xFF007F00u,
+            "avgARGB pulí kanal bez preteceni do souseda");
+        check(avgARGB(0xFFFFFFFFu, 0xFFFFFFFFu) == 0xFFFFFFFFu, "avgARGB dvou shodnych = tentyz");
+        check(avgARGB(0xFF010101u, 0xFF000000u) == 0xFF000000u, "avgARGB zaokrouhluje dolu");
+
+        const uint32_t red = Color(255, 0, 0, 255).toRGBA();
+        const uint32_t blue = Color(0, 0, 255, 255).toRGBA();
+        check(lerpARGB(red, blue, 0) == red, "lerpARGB s vahou 0 vraci prvni texel");
+        check(lerpARGB(red, blue, 256) == blue, "lerpARGB s vahou 256 vraci druhy texel");
+        check(lerpARGB(red, blue, 128) == Color(127, 0, 127, 255).toRGBA(),
+            "lerpARGB s vahou 128 je prumer po kanalech");
+
+        section("Filtrovani - RIP-map urovne (buildRipMap)");
+
+        check(ripLevelCount(512) == 10, "512 ma 10 urovni (512 .. 1)");
+        check(ripLevelCount(1) == 1, "jednotkovy rozmer ma jednu uroven");
+        check(ripLevelSize(512, 3) == 64, "uroven 3 z 512 je 64");
+        check(ripLevelSize(6, 3) == 1, "NPOT rozmer nespadne pod 1 texel");
+
+        // 4x2 textura, hodnoty v modrem kanalu (radky shora):
+        //   0x00 0x00 0xFF 0xFF
+        //   0x40 0x40 0x80 0x80
+        const uint32_t b00 = 0xFF000000u, bFF = 0xFF0000FFu, b40 = 0xFF000040u, b80 = 0xFF000080u;
+        const uint32_t base42[8] = { b00, b00, bFF, bFF,
+                                     b40, b40, b80, b80 };
+
+        const RipLevels rip = buildRipMap(base42, 4, 2);
+
+        check(rip.levelsU == 3 && rip.levelsV == 2,
+            "4x2 -> 3 urovne v u a 2 v v (ma " + std::to_string(rip.levelsU) + "x" + std::to_string(rip.levelsV) + ")");
+        // suma pres vsechny urovne = (4+2+1) * (2+1) = 21
+        check(rip.texels.size() == 21, "packed velikost je 21 texelu (ma " + std::to_string(rip.texels.size()) + ")");
+        check(rip.offsets.size() == 6, "tabulka offsetu ma 6 polozek");
+        check(rip.offsets[0] == 0, "uroven (0,0) zacina na offsetu 0");
+
+        // uroven (0,0) je original
+        check(std::equal(base42, base42 + 8, rip.texels.begin()), "uroven (0,0) je zdrojovy obrazek");
+
+        // uroven (1,0): pulená sirka -> 2x2, radek 0 = [avg(0,0), avg(FF,FF)]
+        const uint32_t* l10 = rip.texels.data() + rip.offsets[1];
+        check(l10[0] == b00 && l10[1] == bFF, "uroven (1,0) puli sirku (radek 0)");
+        check(l10[2] == b40 && l10[3] == b80, "uroven (1,0) puli sirku (radek 1)");
+
+        // uroven (2,0): 1x2 -> avg(0x00, 0xFF) = 0x7F, avg(0x40, 0x80) = 0x60
+        const uint32_t* l20 = rip.texels.data() + rip.offsets[2];
+        check(l20[0] == 0xFF00007Fu && l20[1] == 0xFF000060u, "uroven (2,0) je jeden sloupec");
+
+        // uroven (0,1): pulená vyska -> 4x1, avg(0x00,0x40) = 0x20, avg(0xFF,0x80) = 0xBF
+        const uint32_t* l01 = rip.texels.data() + rip.offsets[3];
+        check(l01[0] == 0xFF000020u && l01[2] == 0xFF0000BFu, "uroven (0,1) puli vysku");
+
+        // NPOT: 6x3 -> urovne 3 x 2, posledni sloupec/radek vypada (floor pravidlo)
+        std::vector<uint32_t> base63(18, 0xFF808080u);
+        const RipLevels ripNpot = buildRipMap(base63.data(), 6, 3);
+        check(ripNpot.levelsU == 3 && ripNpot.levelsV == 2, "6x3 -> 3 x 2 urovne");
+        check(ripNpot.texels.size() == (6 + 3 + 1) * (3 + 1), "NPOT packed velikost sedi");
+
+        section("Filtrovani - bilinearni tap");
+
+        // 2x2 textura R G / B W
+        const uint32_t quad[4] = {
+            Color(255, 0, 0, 255).toRGBA(), Color(0, 255, 0, 255).toRGBA(),
+            Color(0, 0, 255, 255).toRGBA(), Color(255, 255, 255, 255).toRGBA(),
+        };
+
+        // stred texelu (0,0) je na u = v = 0.25 -> presne ten texel, zadne miseni
+        check(bilinearSampleARGB(quad, 2, 2, 0.25f, 0.25f) == quad[0],
+            "ve stredu texelu vraci bilinear presne ten texel");
+        check(bilinearSampleARGB(quad, 2, 2, 0.75f, 0.75f) == quad[3],
+            "ve stredu posledniho texelu take presne");
+        // na hranici mezi (0,0) a (1,0) je to jejich prumer
+        check(bilinearSampleARGB(quad, 2, 2, 0.5f, 0.25f) == lerpARGB(quad[0], quad[1], 128),
+            "na hranici dvou texelu je vysledek jejich prumerem");
+
+        section("Filtrovani - vyber RIP urovne (anizotropie)");
+
+        // Synteticka tabulka urovni pro 8x8: kazda uroven ma vlastni "markerovou"
+        // barvu, takze z vysledneho pixelu je poznat, KTERA byla vybrana
+        // (vyber urovne se tim testuje nezavisle na box filtru).
+        RipLevels marked;
+        marked.levelsU = ripLevelCount(8); // 4: 8,4,2,1
+        marked.levelsV = ripLevelCount(8);
+        marked.offsets.resize(size_t(marked.levelsU) * marked.levelsV);
+
+        uint32_t total = 0;
+        for (uint32_t j = 0; j < marked.levelsV; ++j)
+            for (uint32_t i = 0; i < marked.levelsU; ++i)
+            {
+                marked.offsets[size_t(j) * marked.levelsU + i] = total;
+                total += ripLevelSize(8, i) * ripLevelSize(8, j);
+            }
+        marked.texels.resize(total);
+
+        auto markerColor = [](uint32_t i, uint32_t j) { return 0xFF000000u | (i << 8) | j; };
+        for (uint32_t j = 0; j < marked.levelsV; ++j)
+            for (uint32_t i = 0; i < marked.levelsU; ++i)
+            {
+                uint32_t* level = marked.texels.data() + marked.offsets[size_t(j) * marked.levelsU + i];
+                std::fill_n(level, size_t(ripLevelSize(8, i)) * ripLevelSize(8, j), markerColor(i, j));
+            }
+
+        const ShaderUniforms anisoUni{
+            1.0f / float(W), 1.0f / float(H),
+            marked.texels.data(), 8, 8,
+            marked.offsets.data(), marked.levelsU, marked.levelsV
+        };
+
+        try
+        {
+        DeviceTargetDIB anisoTarget(RenderTargetDescriptor::FramebufferRGBA32bit(W, H));
+        const auto anisoFn = RasterizerDIB::fragmentFunction(FragmentShaderId::TexturedAniso);
+        const Color anyColor(10, 20, 30, 255);
+
+        // stopa 1 texel/pixel v obou osach (UV 0..1 na 8 pixelu, textura 8x8) -> (0,0)
+        clearColor(anisoTarget, 0u);
+        anisoFn(anisoTarget, nullptr, quadTriSpan(anyColor, 1.0f, 1.0f), anisoUni);
+        check(pixelAt(anisoTarget, 3, 2) == markerColor(0, 0),
+            "stopa 1 texel/pixel vybere uroven (0,0)");
+
+        // ctyrnasobna stopa jen v u -> uroven (2,0): to je presne ta anizotropie,
+        // kterou izotropni mip neumi (zmensil by i v ose v)
+        clearColor(anisoTarget, 0u);
+        anisoFn(anisoTarget, nullptr, quadTriSpan(anyColor, 4.0f, 1.0f), anisoUni);
+        check(pixelAt(anisoTarget, 3, 2) == markerColor(2, 0),
+            "ctyrnasobna stopa v u vybere uroven (2,0), v v zustava 0");
+
+        // a symetricky jen ve v
+        clearColor(anisoTarget, 0u);
+        anisoFn(anisoTarget, nullptr, quadTriSpan(anyColor, 1.0f, 8.0f), anisoUni);
+        check(pixelAt(anisoTarget, 3, 2) == markerColor(0, 3),
+            "osminasobna stopa v v vybere uroven (0,3)");
+
+        // bez bindnute textury vraci aniso shader fallback barvu instance
+        clearColor(anisoTarget, 0u);
+        const ShaderUniforms anisoNoTex{ 1.0f / float(W), 1.0f / float(H), nullptr, 0, 0, nullptr, 0, 0 };
+        anisoFn(anisoTarget, nullptr, quadTriSpan(anyColor, 1.0f, 1.0f), anisoNoTex);
+        check(pixelAt(anisoTarget, 3, 2) == anyColor.toRGBA(),
+            "bez textury vraci aniso shader barvu instance");
+        }
+        catch (const std::exception& e)
+        {
+            check(false, std::string("vyjimka pri tvorbe targetu: ") + e.what());
         }
     }
 
