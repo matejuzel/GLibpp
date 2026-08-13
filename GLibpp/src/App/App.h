@@ -255,14 +255,14 @@ public:
         auto panelFrameMesh = resources.meshRegister(MeshFactory::CreateQuadFrame(4.3f, 0.15f));
         auto icrMesh = resources.meshRegister(MeshFactory::CreateCube(0.1f).applyTransformation(Mtx4::Scaling(0.01f, 8.0f, 0.01f)));
 
-        // testovaci model z .obj - cesta funguje pri spusteni z korene repa
+        // model sloupu z .obj - cesta funguje pri spusteni z korene repa
         // i z GLibpp/ (VS debugger ma working directory = ProjectDir)
-        const char* objPath = "data/models/line.obj";
-        if (!std::ifstream(objPath).good()) objPath = "../data/models/line.obj";
+        const char* objPath = "data/models/sloup.obj";
+        if (!std::ifstream(objPath).good()) objPath = "../data/models/sloup.obj";
 
         // importer vybere loader podle pripony (dnes jen .obj)
         GLibpp::Assets::ModelImporter importer;
-        auto testMesh = resources.meshRegister(importer.load(objPath).mesh);
+        auto columnMesh = resources.meshRegister(importer.load(objPath).mesh.flipFaces());
 
         // textura panelu - dekoduje ji Windows (GDI+), stejny fallback cesty jako model
         const char* texPath = "data/textures/tex.jpg";
@@ -291,7 +291,12 @@ public:
             scene.renderables.depthTexture = resources.textureRegister(std::move(depthTex));
         }
 
-        Mtx4 gridWaveModel = Mtx4::Identity().rotateX(GLibpp::Math::deg2rad(90.0f)).translate(-25.0f, -25.0f, 0.0f).scale(0.5f);
+        // zem: mrizka ma v mesh prostoru souradnice 0..size-1, takze translate
+        // o -(size-1)/2 ji vycentruje na pocatek. Rozteč 1.0 (drive 0.5) dava
+        // dvojnasobny rozsah v obou osach, tj. plocha [-29.5, 29.5]^2, PRI
+        // NEZMENENEM poctu trojuhelniku - vlna je na Debug rozpocet citliva,
+        // zdvojnasobeni hustoty (size 120) by ho probouralo
+        Mtx4 gridWaveModel = Mtx4::Identity().rotateX(GLibpp::Math::deg2rad(90.0f)).translate(-29.5f, -29.5f, 0.0f);
 
         // panel stoji na zemi kousek od originu, celem k vychozi pozici kamery
         Mtx4 panelModel = Mtx4::Identity().translate(4.0f, 2.0f, 4.0f);
@@ -310,9 +315,6 @@ public:
         Mtx4 fbPanelModel    = Mtx4::Identity().translate(-3.8f, 3.5f, 0.0f).rotateY(GLibpp::Math::deg2rad(180.0f)).scale(0.75f);
         Mtx4 depthPanelModel = Mtx4::Identity().translate(3.8f, 3.5f, 0.0f).rotateY(GLibpp::Math::deg2rad(180.0f)).scale(0.75f);
 
-        // umisteny do originu (0,0,0) - souradnice z .obj se prebiraji 1:1
-        Mtx4 testModel = Mtx4::Identity();
-
         scene.renderables.gridWave  = resources.meshInstanceRegister(waveMesh, gridWaveModel, Color::Grayscale(0.3f), true);
         scene.renderables.texPanel   = resources.meshInstanceRegister(panelMesh, panelModel, Color::Grayscale(0.55f), false);
         scene.renderables.fbPanel    = resources.meshInstanceRegister(panelMesh, fbPanelModel, Color::Grayscale(0.55f), false);
@@ -325,11 +327,37 @@ public:
         scene.renderables.wheel     = resources.meshInstanceRegister(wheelMesh);
         scene.renderables.icosphere = resources.meshInstanceRegister(sphereMesh, Mtx4::Identity(), Color::Grayscale(0.7f), true);
         scene.renderables.icrBeam   = resources.meshInstanceRegister(icrMesh);
-        // wireframe zamerne: plny line.obj stal v Debug (/Od) 8-10 ms na frame
-        // (velke projektovane trojuhelniky pod kamerou) a idle pohled dema byl
-        // sam o sobe nad rozpoctem framu - zmereno per-command instrumentaci
-        scene.renderables.test      = resources.meshInstanceRegister(testMesh, testModel, Color::Grayscale(0.55f), true);
-		
+
+        // --- alej sloupu z .obj modelu, 10 instanci jedne geometrie ---
+        // Sloup stoji zakladnou na y = 0 a rameno trci do -x, takze leva rada
+        // se otoci o 180 st. a ramena obou rad miri nad vozovku. Pozice se
+        // pecou do localTransform instance - je to staticka scenerie, world
+        // matice pri kresleni zustava Identity (na rozdil od kol, kterym world
+        // pocita logika kazdy tick).
+        // Pozor na retezeni builderu: rotateY se aplikuje v mesh prostoru PRED
+        // translate, takze sloup rotuje kolem sve osy, ne kolem originu sceny.
+        // Odstup rady je zamerne maly: engine NEUMI clipping trojuhelniku
+        // (trojuhelnik s vrcholem mimo frustum se cely zahodi), takze siroka
+        // alej by u kamery mizela - pri fov 45 st. a kamere 12 j. za autem je
+        // vodorovne videt jen ~+-6,4 j. Rada zacina za autem a mizi do dalky,
+        // aby jich pri startu bylo v zaberu nekolik.
+        {
+            constexpr float laneX = 6.0f;    // odstup rady od osy vozovky
+            constexpr float spacing = 12.0f; // rozestup sloupu podel jizdy (z)
+
+            for (size_t i = 0; i < SceneRenderables::kColumnCount; ++i)
+            {
+                const bool leftSide = (i % 2) != 0;
+                const float x = leftSide ? -laneX : laneX;
+                const float z = -20.0f + float(i / 2) * spacing; // -20 .. +28
+
+                Mtx4 columnModel = Mtx4::Identity().translate(x, 0.0f, z);
+                if (leftSide) columnModel.rotateY(GLibpp::Math::deg2rad(180.0f));
+
+                scene.renderables.columns[i] =
+                    resources.meshInstanceRegister(columnMesh, columnModel, Color::Grayscale(0.55f), false);
+            }
+        }
     }
 
     void scenePublish(const LogicState& logicState, double lastLogicTick) {

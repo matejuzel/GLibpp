@@ -355,9 +355,11 @@ namespace GLibpp::Render {
             // drateny ram kolem zrcadla (jede s autem jako panel sam)
             drawList.drawMesh(carM, scene.renderables.fbPanelFrame);
 
-            // testovaci model nacteny z .obj (data/models); poradi vuci autu uz
-            // nehraje roli - vzajemne zakryti resi depth buffer
-            drawList.drawMesh(Mtx4::Identity(), scene.renderables.test);
+            // alej sloupu z .obj (data/models) - jedna geometrie v residency
+            // kreslena 10x, pozice nesou localTransform instanci; poradi vuci
+            // autu nehraje roli, vzajemne zakryti resi depth buffer
+            for (const auto& column : scene.renderables.columns)
+                drawList.drawMesh(Mtx4::Identity(), column);
 
             // Car
             drawList.drawMesh(carM, scene.renderables.carBody);

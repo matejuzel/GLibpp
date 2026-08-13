@@ -4,6 +4,7 @@
 #include "Car.h"
 #include "ResourceHandles.h"
 #include "ZeroAllocTripleBuffer.h"
+#include <array>
 #include <type_traits>
 
 // handly demo renderables - trivialne kopirovatelne, zadne alokace pri publish/Slerp
@@ -14,13 +15,19 @@ struct SceneRenderables {
 	GLibpp::Assets::MeshInstanceHandle wheel     = GLibpp::Assets::MESH_INSTANCE_HANDLE_INVALID;
 	GLibpp::Assets::MeshInstanceHandle icosphere = GLibpp::Assets::MESH_INSTANCE_HANDLE_INVALID;
 	GLibpp::Assets::MeshInstanceHandle icrBeam   = GLibpp::Assets::MESH_INSTANCE_HANDLE_INVALID;
-	GLibpp::Assets::MeshInstanceHandle test       = GLibpp::Assets::MESH_INSTANCE_HANDLE_INVALID;
 	GLibpp::Assets::MeshInstanceHandle texPanel   = GLibpp::Assets::MESH_INSTANCE_HANDLE_INVALID;
 	GLibpp::Assets::MeshInstanceHandle fbPanel    = GLibpp::Assets::MESH_INSTANCE_HANDLE_INVALID;
 	GLibpp::Assets::MeshInstanceHandle depthPanel = GLibpp::Assets::MESH_INSTANCE_HANDLE_INVALID;
 
 	// drateny ram kolem zrcadla (obrys fbPanelu, sdili jeho localTransform)
 	GLibpp::Assets::MeshInstanceHandle fbPanelFrame = GLibpp::Assets::MESH_INSTANCE_HANDLE_INVALID;
+
+	// alej sloupu z .obj modelu: JEDNA geometrie v residency, kazda instance
+	// ma vlastni pozici zapecenou v localTransform (staticka scenerie, world
+	// matice je pak Identity) - pole je trivialne kopirovatelne, takze Scene
+	// zustava publikovatelna bez alokaci
+	static constexpr size_t kColumnCount = 10;
+	std::array<GLibpp::Assets::MeshInstanceHandle, kColumnCount> columns{};
 
 	// textura panelu - binduje se commandem SetTexture pro texturovany pass
 	GLibpp::Assets::TextureHandle panelTexture    = GLibpp::Assets::TEXTURE_HANDLE_INVALID;
